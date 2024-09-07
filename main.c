@@ -6,12 +6,12 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 11:46:57 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/07 12:19:06 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/09/07 12:24:48 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 int main(int argc, char const *argv[])
 {
-
-	return 1;
+	int res = 256;
+	return res;
 }
