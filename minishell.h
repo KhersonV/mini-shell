@@ -27,4 +27,12 @@
 # define TRUE 1
 # define FALSE 0
 
+void ft_echo(char **args);
+void ft_cd(char **args);
+void ft_pwd(void);
+void ft_export(char **args, char ***env);
+void ft_unset(char **args, char ***env);
+void ft_env(char **env);
+void ft_exit(char **args);
+
 #endif
