@@ -1,21 +1,20 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   ft_tolower.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/09/07 11:46:57 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/07 12:34:55 by vmamoten         ###   ########.fr       */
+/*   Created: 2024/03/06 17:56:02 by vmamoten          #+#    #+#             */
+/*   Updated: 2024/03/10 13:45:37 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-int main(int argc, char const *argv[])
-{
-	int res = 256;
-	int ram = 16;
+#include "libft.h"
 
-	if (res)
-		return ram;
-	return res;
+int	ft_tolower(int c)
+{
+	if (c >= 'A' && c <= 'Z')
+		c += 32;
+	return (c);
 }

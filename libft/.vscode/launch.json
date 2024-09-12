@@ -6,8 +6,8 @@
       "type": "lldb",
       "request": "launch",
       "args": [],
-      "cwd": "/Users/vmamoten/Desktop/mini-shel",
-      "program": "/Users/vmamoten/Desktop/mini-shel/build/Debug/outDebug"
+      "cwd": "/Users/vmamoten/Desktop/My projects/libft",
+      "program": "/Users/vmamoten/Desktop/My projects/libft/build/Debug/outDebug"
     }
   ]
 }
