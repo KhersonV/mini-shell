@@ -3,14 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   builtins.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
+/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:08:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/13 13:22:49 by admin            ###   ########.fr       */
+/*   Updated: 2024/09/22 12:17:19 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
+#include "../minishell.h"
 
 int	ft_strcmp(const char *s1, const char *s2)
 {
@@ -110,7 +110,7 @@ void	ft_export(char **args, char ***env)
 	}
 }
 
-void	ft_unset(char **args, char ***env)
+void	ft_unset(char **args)
 {
 	if (args[1])
 	{
