@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   builtins.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:08:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/22 12:57:28 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/09/22 21:13:41 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,24 +47,66 @@ void	ft_echo(char **args)
 
 void	ft_cd(char **args)
 {
-	char *dir;
+	char		*dir;
+	char		cwd[PATH_MAX];
+	static char	prev_dir[PATH_MAX] = "";
+	char		*home;
+		char new_dir[PATH_MAX];
 
-	if (!args[1])
+	if (!args[1] || strcmp(args[1], "~") == 0)
 	{
 		dir = getenv("HOME");
 		if (!dir)
 		{
 			fprintf(stderr, "minishell: cd: HOME not set\n");
-			return;
+			return ;
 		}
+	}
+	else if (strcmp(args[1], "-") == 0)
+	{
+		if (prev_dir[0] == '\0')
+		{
+			fprintf(stderr, "minishell: cd: OLDPWD not set\n");
+			return ;
+		}
+		dir = prev_dir;
+		printf("%s\n", dir);
+	}
+	else if (args[1][0] == '~')
+	{
+		home = getenv("HOME");
+		if (!home)
+		{
+			fprintf(stderr, "minishell: cd: HOME not set\n");
+			return ;
+		}
+		snprintf(new_dir, sizeof(new_dir), "%s%s", home, args[1] + 1);
+		dir = new_dir;
 	}
 	else
 	{
 		dir = args[1];
 	}
-
+	if (getcwd(cwd, sizeof(cwd)) == NULL)
+	{
+		perror("minishell: getcwd");
+		return ;
+	}
+	strcpy(prev_dir, cwd);
 	if (chdir(dir) != 0)
+	{
 		perror("minishell: cd");
+		return ;
+	}
+	if (getcwd(cwd, sizeof(cwd)) != NULL)
+	{
+		setenv("OLDPWD", prev_dir, 1);
+		setenv("PWD", cwd, 1);
+	}
+	else
+	{
+		perror("minishell: getcwd");
+	}
 }
 
 void	ft_pwd(void)
