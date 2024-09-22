@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:08:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/22 12:17:19 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/09/22 12:57:28 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,23 @@ void	ft_echo(char **args)
 
 void	ft_cd(char **args)
 {
-	if (!args[1] || chdir(args[1]) != 0)
+	char *dir;
+
+	if (!args[1])
+	{
+		dir = getenv("HOME");
+		if (!dir)
+		{
+			fprintf(stderr, "minishell: cd: HOME not set\n");
+			return;
+		}
+	}
+	else
+	{
+		dir = args[1];
+	}
+
+	if (chdir(dir) != 0)
 		perror("minishell: cd");
 }
 
