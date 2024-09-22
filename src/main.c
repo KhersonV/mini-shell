@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 11:46:57 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/22 13:48:45 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/09/22 23:03:30 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ void	ft_free_args(char **args)
 	free(args);
 }
 
-int	main(int argc, char **argv)
+int	main(int argc, char **argv, char **envp)
 
 {
 	t_tree	*command_node;
@@ -68,7 +68,7 @@ int	main(int argc, char **argv)
 		command_node->name = strdup(args[0]);
 		command_node->left = NULL;
 		command_node->right = NULL;
-		ft_retranslate(command_node, args);
+		ft_retranslate(command_node, args, envp);
 		free(command_node->type);
 		free(command_node->name);
 		free(command_node);

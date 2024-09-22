@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/22 21:14:28 by admin            ###   ########.fr       */
+/*   Updated: 2024/09/22 23:02:43 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@
 
 typedef struct s_tree
 {
-	char *type; //
+	char *type;
 	char			*name;
 	struct s_tree	*left;
 	struct s_tree	*right;
@@ -45,6 +45,6 @@ void				ft_export(char **args, char ***env);
 void				ft_unset(char **args);
 void				ft_env(char **env);
 void				ft_exit(char **args);
-void				ft_retranslate(t_tree *tree, char **args);
+void				ft_retranslate(t_tree *tree, char **args, char **envp);
 
 #endif
