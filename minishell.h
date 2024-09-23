@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/23 19:27:54 by admin            ###   ########.fr       */
+/*   Updated: 2024/09/23 20:02:53 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,13 @@
 # define MINISHELL_H
 
 # include "libft/libft.h"
-# include <stdio.h>
 # include <errno.h>
 # include <fcntl.h>
 # include <limits.h>
 # include <readline/history.h>
 # include <readline/readline.h>
 # include <signal.h>
+# include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
 # include <sys/stat.h>
@@ -31,21 +31,23 @@
 # define TRUE 1
 # define FALSE 0
 
-typedef struct s_tree
+typedef struct s_command
 {
-	char			*type;
-	char			*name;
-	struct s_tree	*left;
-	struct s_tree	*right;
-}					t_tree;
+	char *name;          // Имя команды
+	char **args;         // Аргументы команды
+	char *infile;        // Файл для перенаправления ввода
+	char *outfile;       // Файл для перенаправления вывода
+	int append;          // Флаг для '>>'
+	struct s_command *next; // Указатель на следующую команду (для пайпов)
+}		t_command;
 
-void				ft_echo(char **args);
-void				ft_cd(char **args);
-void				ft_pwd(void);
-void				ft_export(char **args, char ***env);
-void				ft_unset(char **args);
-void				ft_env(char **env);
-void				ft_exit(char **args);
-void				ft_retranslate(t_tree *tree, char **args, char **envp);
+void	ft_echo(char **args);
+void	ft_cd(char **args);
+void	ft_pwd(void);
+void	ft_export(char **args, char ***env);
+void	ft_unset(char **args);
+void	ft_env(char **env);
+void	ft_exit(char **args);
+void	ft_retranslate(t_command *tree, char **args, char **envp);
 
 #endif

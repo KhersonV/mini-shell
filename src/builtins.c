@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:08:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/23 19:27:10 by admin            ###   ########.fr       */
+/*   Updated: 2024/09/23 20:14:20 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,15 +158,22 @@ void	ft_export(char **args, char ***env)
 	}
 }
 
-void	ft_unset(char **args)
+void	ft_unset(char **args, char ***envp)
 {
-	if (args[1])
+	int	i;
+
+	i = 1;
+	if (!args[1])
 	{
-		if (unsetenv(args[1]) != 0)
-			perror("minishell: unset");
-	}
-	else
 		fprintf(stderr, "minishell: unset: not enough arguments\n");
+		return ;
+	}
+	while (args[i])
+	{
+		if (unsetenv(args[i]) != 0)
+			perror("minishell: unset");
+		i++;
+	}
 }
 
 void	ft_env(char **env)

@@ -6,11 +6,96 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/23 19:20:45 by admin            ###   ########.fr       */
+/*   Updated: 2024/09/23 20:03:33 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
+
+
+
+void	execute_command_with_redirect(char **args, char *outfile, int append,
+		char **envp)
+{
+	pid_t	pid;
+	int		status;
+	int		fd;
+
+	pid = fork();
+	if (pid == -1)
+		return (perror("minishell: fork"));
+	else if (pid == 0)
+	{
+		if (append)
+			fd = open(outfile, O_WRONLY | O_CREAT | O_APPEND, 0644);
+		else
+			fd = open(outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		if (fd == -1)
+		{
+			perror("minishell: open");
+			exit(1);
+		}
+		dup2(fd, STDOUT_FILENO);
+		close(fd);
+		execve(find_command(args[0]), args, envp);
+		perror("minishell: execve");
+		exit(1);
+	}
+	else
+		waitpid(pid, &status, 0);
+}
+
+void execute_pipeline(char ***cmds, char **envp)
+{
+    int fd[2];
+    pid_t pid1, pid2;
+
+    if (pipe(fd) == -1)
+    {
+        perror("minishell: pipe");
+        return;
+    }
+
+    pid1 = fork();
+    if (pid1 == -1)
+    {
+        perror("minishell: fork");
+        return;
+    }
+    if (pid1 == 0)
+    {
+        // Дочерний процесс 1
+        dup2(fd[1], STDOUT_FILENO);
+        close(fd[0]);
+        close(fd[1]);
+        execve(find_command(cmds[0][0]), cmds[0], envp);
+        perror("minishell: execve");
+        exit(1);
+    }
+
+    pid2 = fork();
+    if (pid2 == -1)
+    {
+        perror("minishell: fork");
+        return;
+    }
+    if (pid2 == 0)
+    {
+        // Дочерний процесс 2
+        dup2(fd[0], STDIN_FILENO);
+        close(fd[0]);
+        close(fd[1]);
+        execve(find_command(cmds[1][0]), cmds[1], envp);
+        perror("minishell: execve");
+        exit(1);
+    }
+
+    close(fd[0]);
+    close(fd[1]);
+    waitpid(pid1, NULL, 0);
+    waitpid(pid2, NULL, 0);
+}
+
 
 char	*find_command(char *command)
 {
@@ -66,7 +151,7 @@ void	execute_command(char **args, char **envp)
 		waitpid(pid, &status, 0);
 }
 
-void	ft_retranslate(t_tree *tree, char **argv, char **envp)
+void	ft_retranslate(t_command *tree, char **argv, char **envp)
 {
 	char	**args;
 
