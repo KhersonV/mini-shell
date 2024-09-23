@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/22 23:26:11 by admin            ###   ########.fr       */
+/*   Updated: 2024/09/23 19:20:45 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ char	*find_command(char *command)
 	path_env = getenv("PATH");
 	if (!path_env)
 		return (NULL);
-	paths = strdup(path_env);
+	paths = ft_strdup(path_env);
 	token = strtok(paths, ":");
 	while (token)
 	{
@@ -31,7 +31,7 @@ char	*find_command(char *command)
 		if (stat(full_path, &sb) == 0 && sb.st_mode & S_IXUSR)
 		{
 			free(paths);
-			return (strdup(full_path));
+			return (ft_strdup(full_path));
 		}
 		token = strtok(NULL, ":");
 	}

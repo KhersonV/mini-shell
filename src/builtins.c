@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:08:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/22 23:38:45 by admin            ###   ########.fr       */
+/*   Updated: 2024/09/23 19:27:10 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ void	ft_cd(char **args)
 	char		cwd[PATH_MAX];
 	static char	prev_dir[PATH_MAX] = "";
 	char		*home;
-		char new_dir[PATH_MAX];
+	char		new_dir[PATH_MAX];
 
 	if (!args[1] || strcmp(args[1], "~") == 0)
 	{
