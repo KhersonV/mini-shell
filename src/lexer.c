@@ -6,12 +6,19 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 21:23:27 by lynchsama         #+#    #+#             */
-/*   Updated: 2024/09/23 20:49:13 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/09/24 21:16:22 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdio.h>
 
+typedef struct s_tree
+{
+	char 			*type;
+	char			*name;
+	struct s_tree	*left;
+	struct s_tree	*right;
+}					t_tree;
 
 typedef struct s_token
 {
@@ -55,6 +62,26 @@ int is_not_word(char *str, int i)
 
 }
 
+void print_token(enum token_types current_token)
+{
+	if(current_token == SEP)
+		printf("separator");
+	else if(current_token == REDIR_INSOURCE)
+		printf("heredoc");
+	else if(current_token == REDIR_APPEND)
+		printf("append");
+	else if(current_token == PIPE)
+		printf("pipe");
+	else if(current_token == REDIR_OUT)
+		printf("output");
+	else if(current_token == REDIR_IN)
+		printf("input");
+	else if(current_token == END)
+		printf("end of line");
+	else
+		printf("probabily the start of a word");
+}
+
 
 void	looping_string(char *str)
 {
@@ -77,37 +104,75 @@ void	looping_string(char *str)
 
 void make_token(char *s, int start, int end)
 {
-	while(start < end)
+	if(start != end)
 	{
+	while(start <= end)
+	{
+
 		printf("%c", s[start]);
 		start++;
 	}
+	} else
+	{
+		if(s[start] == ' ')
+			printf("[ ]");
+		else
+			printf("%c", s[start]);
+	}
+	printf("\n");
 }
 
-void loop(char *s)
+void lst_find_last_node(t_tree **root)
+{
+
+}
+
+void add_token_node(char *s, int start, int end, t_tree **root)
+{
+	t_tree *node;
+
+	node = malloc(sizeof(t_tree));
+
+}
+
+void loop(char *s, t_tree **root)
 {
 	int i = 0;
 	int start;
 	int end;
+	enum token_types current_token;
+	int in_word = 0;
+
 
 	start = i;
 	while(s[i] != '\0')
 	{
-		if(is_not_word(s, i))
-		{
-			make_token()
-			start = i;
-		}
+		current_token = is_not_word(s, i);
 
+		if(current_token)
+		{
+			printf("start = %d, end = %d, token = %d\n", start, end, current_token);
+			make_token(s, start, end);
+			start = i;
+			if(current_token == REDIR_INSOURCE || current_token == REDIR_APPEND)
+			{
+				i++;
+				end = i;
+				continue;
+			}
+		}
 		end = i;
 		i++;
 	}
+	make_token(s, start, end);
 }
 
 int main(int argc, char **argv)
 {
+	t_tree *root;
 	char *s = argv[1];
-	looping_string(s);
+	//looping_string(s);
+	loop(s, &root);
 	int i = 0;
 	enum token_types current_token = is_not_word("pwd", 0);
 
