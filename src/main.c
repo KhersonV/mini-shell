@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 11:46:57 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/24 20:50:46 by admin            ###   ########.fr       */
+/*   Updated: 2024/09/24 21:24:45 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,15 +27,13 @@ void	ft_free_args(char **args)
 	free(args);
 }
 
-int	main(int argc, char **argv, char **envp)
+int	main(char **envp)
 
 {
 	t_command *command_node;
 	char *line;
 	char **args;
 
-	(void)argc;
-	(void)argv;
 	while (1)
 	{
 		line = readline("minishell> ");
@@ -69,7 +67,6 @@ int	main(int argc, char **argv, char **envp)
 		ft_retranslate(command_node, envp);
 		free(command_node->name);
 		free(command_node);
-		ft_free_args(args);
 	}
 	return (0);
 }

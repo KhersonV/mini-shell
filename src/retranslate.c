@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/24 20:52:29 by admin            ###   ########.fr       */
+/*   Updated: 2024/09/24 21:24:31 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,20 +143,29 @@ void	execute_command(char **args, char **envp)
 		waitpid(pid, &status, 0);
 }
 
-void	ft_retranslate(t_command *tree, char **argv, char **envp)
-{
-	char	**args;
+#include "minishell.h"
 
-	args = argv;
-	if (strcmp(tree->name, "echo") == 0)
-		ft_echo(args);
-	else if (strcmp(tree->name, "cd") == 0)
-		ft_cd(args);
-	else if (strcmp(tree->name, "pwd") == 0)
-		ft_pwd();
-	else
-		execute_command(args, envp);
+void    ft_retranslate(t_command *cmd, char **envp)
+{
+    if (ft_strcmp(cmd->name, "echo") == 0)
+        ft_echo(cmd->args);
+    else if (ft_strcmp(cmd->name, "cd") == 0)
+        ft_cd(cmd->args);
+    else if (ft_strcmp(cmd->name, "pwd") == 0)
+        ft_pwd();
+    else if (ft_strcmp(cmd->name, "export") == 0)
+        ft_export(cmd->args, &envp);
+    else if (ft_strcmp(cmd->name, "unset") == 0)
+        ft_unset(cmd->args, &envp);
+    else if (ft_strcmp(cmd->name, "env") == 0)
+        ft_env(envp);
+    else if (ft_strcmp(cmd->name, "exit") == 0)
+        ft_exit(cmd->args);
+    else
+        execute_command(cmd->args, envp);
+    ft_free_args(cmd->args);
 }
+
 
 /*
 Предлагаю типизировать все билд ины
