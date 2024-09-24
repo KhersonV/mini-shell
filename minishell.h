@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/23 20:02:53 by admin            ###   ########.fr       */
+/*   Updated: 2024/09/24 20:26:12 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,6 @@
 # include <signal.h>
 # include <stdio.h>
 # include <stdlib.h>
-# include <string.h>
 # include <sys/stat.h>
 # include <sys/types.h>
 # include <sys/wait.h>
@@ -33,21 +32,26 @@
 
 typedef struct s_command
 {
-	char *name;          // Имя команды
-	char **args;         // Аргументы команды
-	char *infile;        // Файл для перенаправления ввода
-	char *outfile;       // Файл для перенаправления вывода
-	int append;          // Флаг для '>>'
-	struct s_command *next; // Указатель на следующую команду (для пайпов)
-}		t_command;
+	char				*name;
+	char				**args;
+	char				*infile;
+	char				*outfile;
+	int					append;
+	struct s_command	*next;
+}						t_command;
 
-void	ft_echo(char **args);
-void	ft_cd(char **args);
-void	ft_pwd(void);
-void	ft_export(char **args, char ***env);
-void	ft_unset(char **args);
-void	ft_env(char **env);
-void	ft_exit(char **args);
-void	ft_retranslate(t_command *tree, char **args, char **envp);
+void					ft_echo(char **args);
+void					ft_cd(char **args);
+void					ft_pwd(void);
+void					ft_export(char **args, char ***env);
+void					ft_unset(char **args, char ***envp);
+void					ft_env(char **env);
+void					ft_exit(char **args);
+void					ft_retranslate(t_command *cmd, char **envp);
+void					execute_command_with_redirect(char **args,
+							char *outfile, int append, char **envp);
+void					execute_command(char **args, char **envp);
+char					*find_command(char *command, char **envp);
+void					ft_free_args(char **args);
 
 #endif
