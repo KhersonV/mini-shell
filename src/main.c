@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 11:46:57 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/23 19:32:10 by admin            ###   ########.fr       */
+/*   Updated: 2024/09/24 20:50:46 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,9 +30,9 @@ void	ft_free_args(char **args)
 int	main(int argc, char **argv, char **envp)
 
 {
-	t_tree	*command_node;
-	char	*line;
-	char	**args;
+	t_command *command_node;
+	char *line;
+	char **args;
 
 	(void)argc;
 	(void)argv;
@@ -42,37 +42,34 @@ int	main(int argc, char **argv, char **envp)
 		if (!line)
 			break ;
 		args = ft_split(line, ' ');
+		free(line);
 		if (!args || !args[0])
 		{
-			free(line);
-			if (args)
-				free(args);
+			ft_free_args(args);
 			continue ;
 		}
 		if (strcmp(args[0], "exit") == 0)
 		{
-			free(line);
 			ft_free_args(args);
 			break ;
 		}
-		command_node = malloc(sizeof(t_tree));
+		command_node = malloc(sizeof(t_command));
 		if (!command_node)
 		{
 			perror("malloc");
-			free(line);
 			ft_free_args(args);
 			return (1);
 		}
-		command_node->type = strdup("COMMAND");
-		command_node->name = strdup(args[0]);
-		command_node->left = NULL;
-		command_node->right = NULL;
-		ft_retranslate(command_node, args, envp);
-		free(command_node->type);
+		command_node->name = ft_strdup(args[0]);
+		command_node->args = args;
+        command_node->infile = NULL;
+        command_node->outfile = NULL;
+        command_node->append = 0;
+        command_node->next = NULL;
+		ft_retranslate(command_node, envp);
 		free(command_node->name);
 		free(command_node);
 		ft_free_args(args);
-		free(line);
 	}
 	return (0);
 }

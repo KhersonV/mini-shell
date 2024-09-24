@@ -6,13 +6,11 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/23 20:03:33 by admin            ###   ########.fr       */
+/*   Updated: 2024/09/24 20:52:29 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
-
-
 
 void	execute_command_with_redirect(char **args, char *outfile, int append,
 		char **envp)
@@ -45,57 +43,51 @@ void	execute_command_with_redirect(char **args, char *outfile, int append,
 		waitpid(pid, &status, 0);
 }
 
-void execute_pipeline(char ***cmds, char **envp)
+void	execute_pipeline(char ***cmds, char **envp)
 {
-    int fd[2];
-    pid_t pid1, pid2;
+	int	fd[2];
 
-    if (pipe(fd) == -1)
-    {
-        perror("minishell: pipe");
-        return;
-    }
-
-    pid1 = fork();
-    if (pid1 == -1)
-    {
-        perror("minishell: fork");
-        return;
-    }
-    if (pid1 == 0)
-    {
-        // Дочерний процесс 1
-        dup2(fd[1], STDOUT_FILENO);
-        close(fd[0]);
-        close(fd[1]);
-        execve(find_command(cmds[0][0]), cmds[0], envp);
-        perror("minishell: execve");
-        exit(1);
-    }
-
-    pid2 = fork();
-    if (pid2 == -1)
-    {
-        perror("minishell: fork");
-        return;
-    }
-    if (pid2 == 0)
-    {
-        // Дочерний процесс 2
-        dup2(fd[0], STDIN_FILENO);
-        close(fd[0]);
-        close(fd[1]);
-        execve(find_command(cmds[1][0]), cmds[1], envp);
-        perror("minishell: execve");
-        exit(1);
-    }
-
-    close(fd[0]);
-    close(fd[1]);
-    waitpid(pid1, NULL, 0);
-    waitpid(pid2, NULL, 0);
+	pid_t pid1, pid2;
+	if (pipe(fd) == -1)
+	{
+		perror("minishell: pipe");
+		return ;
+	}
+	pid1 = fork();
+	if (pid1 == -1)
+	{
+		perror("minishell: fork");
+		return ;
+	}
+	if (pid1 == 0)
+	{
+		dup2(fd[1], STDOUT_FILENO);
+		close(fd[0]);
+		close(fd[1]);
+		execve(find_command(cmds[0][0]), cmds[0], envp);
+		perror("minishell: execve");
+		exit(1);
+	}
+	pid2 = fork();
+	if (pid2 == -1)
+	{
+		perror("minishell: fork");
+		return ;
+	}
+	if (pid2 == 0)
+	{
+		dup2(fd[0], STDIN_FILENO);
+		close(fd[0]);
+		close(fd[1]);
+		execve(find_command(cmds[1][0]), cmds[1], envp);
+		perror("minishell: execve");
+		exit(1);
+	}
+	close(fd[0]);
+	close(fd[1]);
+	waitpid(pid1, NULL, 0);
+	waitpid(pid2, NULL, 0);
 }
-
 
 char	*find_command(char *command)
 {
