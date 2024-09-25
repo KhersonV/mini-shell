@@ -6,11 +6,13 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 21:23:27 by lynchsama         #+#    #+#             */
-/*   Updated: 2024/09/24 21:16:22 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/09/25 20:01:56 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
 
 typedef struct s_tree
 {
@@ -62,139 +64,59 @@ int is_not_word(char *str, int i)
 
 }
 
-void print_token(enum token_types current_token)
+char  *print_token(enum token_types current_token)
 {
 	if(current_token == SEP)
-		printf("separator");
+		return ("separator");
 	else if(current_token == REDIR_INSOURCE)
-		printf("heredoc");
+		return ("heredoc");
 	else if(current_token == REDIR_APPEND)
-		printf("append");
+		return ("append");
 	else if(current_token == PIPE)
-		printf("pipe");
+		return ("pipe");
 	else if(current_token == REDIR_OUT)
-		printf("output");
+		return ("output");
 	else if(current_token == REDIR_IN)
-		printf("input");
+		return ("input");
 	else if(current_token == END)
-		printf("end of line");
+		return ("end of line");
 	else
-		printf("probabily the start of a word");
+		return ("probabily the start of a word");
 }
 
 
-void	looping_string(char *str)
+
+t_tree *tokenize(char *s)
 {
+	t_tree *curr;
+	int i;
+	char buf[256];
+	int buf_index;
+	int token_type;
 
-	int start;
-	int end;
-	int i = 0;
+	curr = NULL;
+	buf_index = 0;
 
-	if(!(is_not_word(str, 0)))
-	{
-		start = 0;
-		while(!((str[i]  > 8 && str[i] < 14) || (str[i] == 32) || str[i] == '\0'))
-		{
-			i++;
-		}
-		end = i;
-		printf("start = %d, end = %d", start, end);
-	}
-}
-
-void make_token(char *s, int start, int end)
-{
-	if(start != end)
-	{
-	while(start <= end)
-	{
-
-		printf("%c", s[start]);
-		start++;
-	}
-	} else
-	{
-		if(s[start] == ' ')
-			printf("[ ]");
-		else
-			printf("%c", s[start]);
-	}
-	printf("\n");
-}
-
-void lst_find_last_node(t_tree **root)
-{
-
-}
-
-void add_token_node(char *s, int start, int end, t_tree **root)
-{
-	t_tree *node;
-
-	node = malloc(sizeof(t_tree));
-
-}
-
-void loop(char *s, t_tree **root)
-{
-	int i = 0;
-	int start;
-	int end;
-	enum token_types current_token;
-	int in_word = 0;
-
-
-	start = i;
 	while(s[i] != '\0')
 	{
-		current_token = is_not_word(s, i);
-
-		if(current_token)
+		printf("%c\n", s[i]);
+		if(s[i] == '|' || s[i] == '<' || s[i] == '>')
 		{
-			printf("start = %d, end = %d, token = %d\n", start, end, current_token);
-			make_token(s, start, end);
-			start = i;
-			if(current_token == REDIR_INSOURCE || current_token == REDIR_APPEND)
-			{
-				i++;
-				end = i;
-				continue;
-			}
+			buf[buf_index] = '\0';
+			//curr = add_token(curr, buf, "WORD");
+			buf_index = 0;
 		}
-		end = i;
 		i++;
 	}
-	make_token(s, start, end);
+	return curr;
 }
 
 int main(int argc, char **argv)
 {
+	char input[] = "echo hello >> file.txt | cat << input.txt";
+
 	t_tree *root;
-	char *s = argv[1];
-	//looping_string(s);
-	loop(s, &root);
-	int i = 0;
-	enum token_types current_token = is_not_word("pwd", 0);
+	root = tokenize(input);
 
-	// if(current_token == SEP)
-	// 	printf("separator");
-	// else if(current_token == REDIR_INSOURCE)
-	// 	printf("heredoc");
-	// else if(current_token == REDIR_APPEND)
-	// 	printf("append");
-	// else if(current_token == PIPE)
-	// 	printf("pipe");
-	// else if(current_token == REDIR_OUT)
-	// 	printf("output");
-	// else if(current_token == REDIR_IN)
-	// 	printf("input");
-	// else if(current_token == END)
-	// 	printf("end of line");
-	// else
-	// 	printf("probabily the start of a word");
-
-	/*
-
-	*/
 
 }
