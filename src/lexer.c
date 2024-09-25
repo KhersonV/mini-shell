@@ -6,19 +6,22 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 21:23:27 by lynchsama         #+#    #+#             */
-/*   Updated: 2024/09/25 20:01:56 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/09/25 20:13:18 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 typedef struct s_tree
 {
 	char 			*type;
 	char			*name;
-	struct s_tree	*left;
+	struct s_tree	*next;
 	struct s_tree	*right;
 }					t_tree;
 
@@ -84,6 +87,33 @@ char  *print_token(enum token_types current_token)
 		return ("probabily the start of a word");
 }
 
+t_tree *create_node(char *name, char *type)
+{
+	t_tree *new_node = (t_tree *)malloc(sizeof(t_tree));
+	if(!new_node)
+		return (NULL);
+	new_node->name = strdup(name);
+	new_node->type = strdup(type);
+	new_node->next = NULL;
+	return new_node;
+}
+
+t_tree *add_token(t_tree *node, char *name, char *type)
+{
+	t_tree *new_node = create_node(name, type);
+	if(!new_node)
+		return NULL;
+	if(!node)
+		return new_node;
+
+	t_tree *curr = node;
+	while(curr->next)
+	{
+		curr = curr->next;
+	}
+	curr->next = new_node;
+	return node;
+}
 
 
 t_tree *tokenize(char *s)
@@ -103,12 +133,25 @@ t_tree *tokenize(char *s)
 		if(s[i] == '|' || s[i] == '<' || s[i] == '>')
 		{
 			buf[buf_index] = '\0';
-			//curr = add_token(curr, buf, "WORD");
+			curr = add_token(curr, buf, "WORD");
 			buf_index = 0;
+		} else
+		{
+			buf[buf_index++] = s[i];
 		}
 		i++;
 	}
 	return curr;
+}
+
+void print_tokens(t_tree *node)
+{
+	t_tree *curr = node;
+	while(curr)
+	{
+		printf("Token: %s, Type: %s\n", curr->name, curr->type);
+		curr = curr->next;
+	}
 }
 
 int main(int argc, char **argv)
@@ -117,6 +160,7 @@ int main(int argc, char **argv)
 
 	t_tree *root;
 	root = tokenize(input);
+	print_tokens(root);
 
 
 }
