@@ -6,7 +6,7 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 21:23:27 by lynchsama         #+#    #+#             */
-/*   Updated: 2024/09/25 20:13:18 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/09/26 19:41:42 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,14 +132,44 @@ t_tree *tokenize(char *s)
 		printf("%c\n", s[i]);
 		if(s[i] == '|' || s[i] == '<' || s[i] == '>')
 		{
+			if(buf_index > 0)
+			{
 			buf[buf_index] = '\0';
 			curr = add_token(curr, buf, "WORD");
 			buf_index = 0;
+			}
+			if(s[i] == '|')
+			{
+				curr = add_token(curr, "|", "PIPE");
+			} else if(s[i] == '<')
+			{
+				if(s[i + 1] == '<')
+				{
+					curr = add_token(curr, "<<", "REDIR_INSOURCE");
+					i++;
+				} else
+				{
+					curr = add_token(curr, "<", "REDIR_IN");
+				}
+			} else if(s[i] == '>')
+			{
+				if(s[i + 1] == '>')
+				{
+					curr = add_token(curr, ">>", "REDIR_APPEND");
+					i++;
+				} else {
+					curr = add_token(curr, ">", "REDIR_OUT");
+				}
+			}
 		} else
 		{
 			buf[buf_index++] = s[i];
 		}
 		i++;
+	}
+	if(buf_index > 0){
+		buf[buf_index] = '\0';
+		curr = add_token(curr, buf, "WORD");
 	}
 	return curr;
 }
