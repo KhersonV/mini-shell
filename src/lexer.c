@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   lexer.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 21:23:27 by lynchsama         #+#    #+#             */
-/*   Updated: 2024/09/29 14:23:14 by snazarov         ###   ########.fr       */
+/*   Updated: 2024/10/03 14:21:43 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,47 +120,61 @@ t_tree *add_token(t_tree *node, char *name, char *type)
 int is_quotes_closed(char *s)
 {
 	char left_quote;
-	int i;
-	
+	int i = 1;
+
 	left_quote = *s;
 	s++;
 	while(s[i])
 	{
-		if(left_quote = s[i])
+		if(left_quote == s[i])
 			return i;
 		i++;
 	}
 		return 0;
 }
 
-char *dup_string(char *s, int start, int end, int len)
+char *dup_field(char *s, int len)
 {
+	char *out;
+	int i = 0;
+	out = malloc((sizeof(char) * len) + 1);
+
+	while(i < len)
+	{
+		out[i] = s[i];
+		i++;
+	}
+	out[i] = '\0';
+	return out;
 
 }
 
-int extract_field(char *s, int *i, t_tree *element)
+int extract_field(char *s, t_tree *element)
 {
-	int type;
+	int len = 0;
 	char quote = *s;
-	if(*s == '\'')
-		type = 1;
-	else if(*s == '"')
-		type = 2;
-	
-	*(i++);
-	int start = *i;
-	while(s[*i] != quote)
-		*(i++);
-	int end = *i;
-	
-
+	char *field;
+	s++;
+	while(s[len] != quote && s[len] != '\0')
+		len++;
+	if(s[len] == '\0')
+		{
+			printf("Syntax error, unmatched quote\n");
+			exit(1);
+		}
+	field = dup_field(s, len);
+	if(quote == '"')
+		add_token(element, field, "EXP_FIELD");
+	else if(quote == '\'')
+		add_token(element, field, "FIELD");
+	return (len + 2);
 }
 
 
 t_tree *tokenize(char *s)
 {
 	t_tree *curr;
-	int i;
+	int i = 0;
 	char buf[256];
 	int buf_index;
 	int token_type;
@@ -208,14 +222,15 @@ t_tree *tokenize(char *s)
 			/*field condition*/
 		} else if(s[i] == '\'' || s[i] == '"')
 		{
-			if(is_quotes_closed(s[i]))
+			if(is_quotes_closed(&s[i]))
 			{
-				extract_field(s[i], &i, curr);
+				i += extract_field(&s[i], curr);
 			} else
 			{
 				printf("quotes are not closed, syntax error");
+				exit(1);
 			}
-		} else 
+		} else
 		{
 			buf[buf_index++] = s[i];
 		}
@@ -240,11 +255,25 @@ void print_tokens(t_tree *node)
 
 int main(int argc, char **argv)
 {
-	char input[] = "echo hello >> file.txt | cat << input.txt";
+	char input[] = "echo \'hello	>> file.txt | cat << input.txt";
+	//char input[] = "echo hello >> \"file.txt\" | cat << input.txt";
 
 	t_tree *root;
 	root = tokenize(input);
 	print_tokens(root);
+
+	// char test[] = "test of \"the\" quotes";
+	// char *ptr = &test;
+	// while(*ptr)
+	// {
+	// 	if(*ptr == '\\')
+	// 	{
+	// 		printf("error");
+	// 	}
+	// 	printf("%c", *ptr);
+	// 	ptr++;
+
+	// }
 
 
 }
