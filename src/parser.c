@@ -6,7 +6,7 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 12:53:34 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/03 17:50:51 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/10/03 19:48:06 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,17 +29,56 @@ int	ft_strcmp(const char *s1, const char *s2)
 	return ((unsigned char)*s1 - (unsigned char)*s2);
 }
 
-
-typedef struct Node
+Queue *createQueue()
 {
-	void *data;
-	struct Node *next;
-} Node;
+	Queue *queue = (Queue *)malloc(sizeof(Queue));
+	queue->front = queue->rear = NULL;
+	return queue;
+}
 
-typedef struct Stack
+void enqueue(Queue *queue, void *data)
 {
-	Node *top;
-} Stack;
+	Node *node = createNode(data);
+	if(queue->rear == NULL)
+	{
+		queue->front = queue->rear = node;
+		return ;
+	}
+
+	queue->rear->next = node;
+	queue->rear = node;
+}
+
+void *dequeue(Queue *queue)
+{
+	if(queue->front == NULL)
+	{
+		printf("Queue is empty");
+		return NULL;
+	}
+
+	Node *temp = queue->front;
+	void *data = temp->data;
+
+	if(queue->front == NULL)
+	{
+		queue->rear = NULL;
+	}
+
+	free(temp);
+	return data;
+}
+
+int isEmptyQueue(Queue *queue)
+{
+	return queue->front == NULL;
+}
+
+void shunting_yard(t_tree *tokens)
+{
+
+}
+
 
 Stack *createStack()
 {
@@ -122,6 +161,8 @@ void adjusting_token_tree(t_tree **tree)
 		curr = curr->next;
 	}
 }
+
+
 
 int main()
 {
