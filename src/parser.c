@@ -6,7 +6,7 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 12:53:34 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/03 19:48:06 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/10/03 20:06:17 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,9 +74,50 @@ int isEmptyQueue(Queue *queue)
 	return queue->front == NULL;
 }
 
+int is_command_or_argument(t_tree *token)
+{
+		return (!ft_strcmp(token->type, "WORD")
+	|| !ft_strcmp(token->type, "FIELD")
+	|| !ft_strcmp(token->type, "FILE")
+	|| !ft_strcmp(token->type, "REDIR_INSOURCE")
+	);
+}
+
+int is_operator(t_tree *token)
+{
+	return (!ft_strcmp(token->type, "REDIR_IN")
+	|| !ft_strcmp(token->type, "REDIR_OUT")
+	|| !ft_strcmp(token->type, "REDIR_APPEND")
+	|| !ft_strcmp(token->type, "REDIR_INSOURCE")
+	);
+}
+
 void shunting_yard(t_tree *tokens)
 {
+	Stack *operator_stack = createStack();
+	Queue *output_queue = createQueue();
 
+	t_tree *curr = tokens;
+
+	while(curr != NULL)
+	{
+		if(is_command_or_argument(curr))
+			enqueue(output_queue, curr);
+		else if(is_operator(curr))
+		{
+			while(!isEmpty(operator_stack)
+			&& precendence(peek(operator_stack)) >= precedence(curr))
+			{
+				enqueue(output_queue, pop(operator_stack));
+			}
+			push(operator_stack, curr);
+		}
+		curr = curr->next;
+	}
+	while(!isEmpty(operator_stack))
+	{
+		enqueue(output_queue, pop(operator_stack));
+	}
 }
 
 
