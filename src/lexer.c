@@ -6,7 +6,7 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 21:23:27 by lynchsama         #+#    #+#             */
-/*   Updated: 2024/09/26 19:41:42 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/10/03 17:32:38 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,40 +16,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "l_p.h"
 
-typedef struct s_tree
-{
-	char 			*type;
-	char			*name;
-	struct s_tree	*next;
-	struct s_tree	*right;
-}					t_tree;
-
-typedef struct s_token
-{
-	char	*str;
-	int		type;
-	struct s_token *next;
-	struct s_token *prev;
-}	t_token;
-
-enum token_types {
-	SEP = 1,
-	WORD,
-	FIELD,
-	EXP_FIELD,
-	REDIR_OUT,
-	REDIR_IN,
-	REDIR_APPEND,
-	REDIR_INSOURCE,
-	PIPE,
-	END
-};
 
 int is_not_word(char *str, int i)
 {
 	if((str[i]  > 8 && str[i] < 14) || (str[i] == 32))
-		return SEP;
+		return SPACE;
 	else if(str[i] == '<' && str[i+1] == '<')
 		return REDIR_INSOURCE;
 	else if(str[i] == '>' && str[i + 1] == '>')
@@ -69,7 +42,7 @@ int is_not_word(char *str, int i)
 
 char  *print_token(enum token_types current_token)
 {
-	if(current_token == SEP)
+	if(current_token == SPACE)
 		return ("separator");
 	else if(current_token == REDIR_INSOURCE)
 		return ("heredoc");
@@ -87,20 +60,21 @@ char  *print_token(enum token_types current_token)
 		return ("probabily the start of a word");
 }
 
-t_tree *create_node(char *name, char *type)
+t_tree *create_node(char *name, char *type, int pres)
 {
 	t_tree *new_node = (t_tree *)malloc(sizeof(t_tree));
 	if(!new_node)
 		return (NULL);
 	new_node->name = strdup(name);
 	new_node->type = strdup(type);
+	new_node->precedence = pres;
 	new_node->next = NULL;
 	return new_node;
 }
 
-t_tree *add_token(t_tree *node, char *name, char *type)
+t_tree *add_token(t_tree *node, char *name, char *type, int pres)
 {
-	t_tree *new_node = create_node(name, type);
+	t_tree *new_node = create_node(name, type, pres);
 	if(!new_node)
 		return NULL;
 	if(!node)
@@ -115,11 +89,64 @@ t_tree *add_token(t_tree *node, char *name, char *type)
 	return node;
 }
 
+int is_quotes_closed(char *s)
+{
+	char left_quote;
+	int i = 1;
+
+	left_quote = *s;
+	s++;
+	while(s[i])
+	{
+		if(left_quote == s[i])
+			return i;
+		i++;
+	}
+		return 0;
+}
+
+char *dup_field(char *s, int len)
+{
+	char *out;
+	int i = 0;
+	out = malloc((sizeof(char) * len) + 1);
+
+	while(i < len)
+	{
+		out[i] = s[i];
+		i++;
+	}
+	out[i] = '\0';
+	return out;
+
+}
+
+int extract_field(char *s, t_tree *element)
+{
+	int len = 0;
+	char quote = *s;
+	char *field;
+	s++;
+	while(s[len] != quote && s[len] != '\0')
+		len++;
+	if(s[len] == '\0')
+		{
+			printf("Syntax error, unmatched quote\n");
+			exit(1);
+		}
+	field = dup_field(s, len);
+	if(quote == '"')
+		add_token(element, field, "EXP_FIELD", 2);
+	else if(quote == '\'')
+		add_token(element, field, "FIELD", 2);
+	return (len + 2);
+}
+
 
 t_tree *tokenize(char *s)
 {
 	t_tree *curr;
-	int i;
+	int i = 0;
 	char buf[256];
 	int buf_index;
 	int token_type;
@@ -130,36 +157,50 @@ t_tree *tokenize(char *s)
 	while(s[i] != '\0')
 	{
 		printf("%c\n", s[i]);
-		if(s[i] == '|' || s[i] == '<' || s[i] == '>')
+		if(s[i] == '|' || s[i] == '<' || s[i] == '>' || s[i] == ' ')
 		{
 			if(buf_index > 0)
 			{
 			buf[buf_index] = '\0';
-			curr = add_token(curr, buf, "WORD");
+			curr = add_token(curr, buf, "WORD", 2);
 			buf_index = 0;
 			}
 			if(s[i] == '|')
 			{
-				curr = add_token(curr, "|", "PIPE");
+				curr = add_token(curr, "|", "PIPE", 1);
 			} else if(s[i] == '<')
 			{
 				if(s[i + 1] == '<')
 				{
-					curr = add_token(curr, "<<", "REDIR_INSOURCE");
+					curr = add_token(curr, "<<", "REDIR_INSOURCE", 3);
 					i++;
 				} else
 				{
-					curr = add_token(curr, "<", "REDIR_IN");
+					curr = add_token(curr, "<", "REDIR_IN", 3);
 				}
 			} else if(s[i] == '>')
 			{
 				if(s[i + 1] == '>')
 				{
-					curr = add_token(curr, ">>", "REDIR_APPEND");
+					curr = add_token(curr, ">>", "REDIR_APPEND", 3);
 					i++;
 				} else {
-					curr = add_token(curr, ">", "REDIR_OUT");
+					curr = add_token(curr, ">", "REDIR_OUT", 3);
 				}
+			} else if(s[i] == ' ')
+			{
+				curr = add_token(curr, "[]", "SPACE", 2);
+			}
+			/*field condition*/
+		} else if(s[i] == '\'' || s[i] == '"')
+		{
+			if(is_quotes_closed(&s[i]))
+			{
+				i += extract_field(&s[i], curr);
+			} else
+			{
+				printf("quotes are not closed, syntax error");
+				exit(1);
 			}
 		} else
 		{
@@ -169,7 +210,7 @@ t_tree *tokenize(char *s)
 	}
 	if(buf_index > 0){
 		buf[buf_index] = '\0';
-		curr = add_token(curr, buf, "WORD");
+		curr = add_token(curr, buf, "WORD", 2);
 	}
 	return curr;
 }
@@ -184,13 +225,28 @@ void print_tokens(t_tree *node)
 	}
 }
 
-int main(int argc, char **argv)
-{
-	char input[] = "echo hello >> file.txt | cat << input.txt";
 
-	t_tree *root;
-	root = tokenize(input);
-	print_tokens(root);
+// int main(int argc, char **argv)
+// {
+// 	// char input[] = "echo \'hello	>> file.txt | cat << input.txt";
+// 	// //char input[] = "echo hello >> \"file.txt\" | cat << input.txt";
+
+// 	// t_tree *root;
+// 	// root = tokenize(input);
+// 	// print_tokens(root);
+
+// 	// char test[] = "test of \"the\" quotes";
+// 	// char *ptr = &test;
+// 	// while(*ptr)
+// 	// {
+// 	// 	if(*ptr == '\\')
+// 	// 	{
+// 	// 		printf("error");
+// 	// 	}
+// 	// 	printf("%c", *ptr);
+// 	// 	ptr++;
+
+// 	// }
 
 
-}
+// }
