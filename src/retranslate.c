@@ -3,45 +3,45 @@
 /*                                                        :::      ::::::::   */
 /*   retranslate.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/25 14:13:39 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/09/27 13:18:05 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-void	execute_command_with_redirect(char **args, char *outfile, int append,
-		char **envp)
-{
-	pid_t	pid;
-	int		status;
-	int		fd;
+// void	execute_command_with_redirect(char **args, char *outfile, int append,
+// 		char **envp)
+// {
+// 	pid_t	pid;
+// 	int		status;
+// 	int		fd;
 
-	pid = fork();
-	if (pid == -1)
-		return (perror("minishell: fork"));
-	else if (pid == 0)
-	{
-		if (append)
-			fd = open(outfile, O_WRONLY | O_CREAT | O_APPEND, 0644);
-		else
-			fd = open(outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-		if (fd == -1)
-		{
-			perror("minishell: open");
-			exit(1);
-		}
-		dup2(fd, STDOUT_FILENO);
-		close(fd);
-		execve(find_command(args[0]), args, envp);
-		perror("minishell: execve");
-		exit(1);
-	}
-	else
-		waitpid(pid, &status, 0);
-}
+// 	pid = fork();
+// 	if (pid == -1)
+// 		return (perror("minishell: fork"));
+// 	else if (pid == 0)
+// 	{
+// 		if (append)
+// 			fd = open(outfile, O_WRONLY | O_CREAT | O_APPEND, 0644);
+// 		else
+// 			fd = open(outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+// 		if (fd == -1)
+// 		{
+// 			perror("minishell: open");
+// 			exit(1);
+// 		}
+// 		dup2(fd, STDOUT_FILENO);
+// 		close(fd);
+// 		execve(find_command(args[0]), args, envp);
+// 		perror("minishell: execve");
+// 		exit(1);
+// 	}
+// 	else
+// 		waitpid(pid, &status, 0);
+// }
 
 void	execute_pipeline(char ***cmds, char **envp)
 {
@@ -64,7 +64,7 @@ void	execute_pipeline(char ***cmds, char **envp)
 		dup2(fd[1], STDOUT_FILENO);
 		close(fd[0]);
 		close(fd[1]);
-		execve(find_command(cmds[0][0]), cmds[0], envp);
+		execve(find_command(cmds[0][0], envp), cmds[0], envp);
 		perror("minishell: execve");
 		exit(1);
 	}
@@ -79,7 +79,7 @@ void	execute_pipeline(char ***cmds, char **envp)
 		dup2(fd[0], STDIN_FILENO);
 		close(fd[0]);
 		close(fd[1]);
-		execve(find_command(cmds[1][0]), cmds[1], envp);
+		execve(find_command(cmds[1][0],envp), cmds[1], envp);
 		perror("minishell: execve");
 		exit(1);
 	}
@@ -89,31 +89,38 @@ void	execute_pipeline(char ***cmds, char **envp)
 	waitpid(pid2, NULL, 0);
 }
 
-char	*find_command(char *command)
+char    *find_command(char *command, char **envp)
 {
-	char		*path_env;
-	char		*paths;
-	char		*token;
-	char		full_path[PATH_MAX];
-	struct stat	sb;
+    char    *path_env;
+    char    **paths;
+    char    *full_path;
+    struct stat sb;
+    int     i;
 
-	path_env = getenv("PATH");
-	if (!path_env)
-		return (NULL);
-	paths = ft_strdup(path_env);
-	token = strtok(paths, ":");
-	while (token)
-	{
-		snprintf(full_path, sizeof(full_path), "%s/%s", token, command);
-		if (stat(full_path, &sb) == 0 && sb.st_mode & S_IXUSR)
-		{
-			free(paths);
-			return (ft_strdup(full_path));
-		}
-		token = strtok(NULL, ":");
-	}
-	free(paths);
-	return (NULL);
+    path_env = getenv("PATH");
+    if (!path_env)
+        return (NULL);
+    paths = ft_split(path_env, ':');
+    if (!paths)
+        return (NULL);
+    i = 0;
+    full_path = NULL;
+    while (paths[i])
+    {
+        full_path = malloc(PATH_MAX);
+        if (!full_path)
+            break ;
+        ft_strcpy(full_path, paths[i]);
+        ft_strcat(full_path, "/");
+        ft_strcat(full_path, command);
+        if (stat(full_path, &sb) == 0 && sb.st_mode & S_IXUSR)
+            break ;
+        free(full_path);
+        full_path = NULL;
+        i++;
+    }
+    ft_free_args(paths);
+    return (full_path);
 }
 
 void	execute_command(char **args, char **envp)
@@ -127,7 +134,7 @@ void	execute_command(char **args, char **envp)
 		return (perror("minishell: fork"));
 	else if (pid == 0)
 	{
-		path = find_command(args[0]);
+		path = find_command(args[0], envp);
 		if (!path)
 		{
 			fprintf(stderr, "minishell: command not found: %s\n", args[0]);
