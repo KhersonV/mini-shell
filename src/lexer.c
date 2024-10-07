@@ -6,7 +6,7 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 21:23:27 by lynchsama         #+#    #+#             */
-/*   Updated: 2024/10/03 17:32:38 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/10/07 22:02:25 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,15 +60,18 @@ char  *print_token(enum token_types current_token)
 		return ("probabily the start of a word");
 }
 
+
 t_tree *create_node(char *name, char *type, int pres)
 {
 	t_tree *new_node = (t_tree *)malloc(sizeof(t_tree));
 	if(!new_node)
 		return (NULL);
+
 	new_node->name = strdup(name);
 	new_node->type = strdup(type);
 	new_node->precedence = pres;
 	new_node->next = NULL;
+	new_node->prev = NULL;
 	return new_node;
 }
 
@@ -77,6 +80,7 @@ t_tree *add_token(t_tree *node, char *name, char *type, int pres)
 	t_tree *new_node = create_node(name, type, pres);
 	if(!new_node)
 		return NULL;
+
 	if(!node)
 		return new_node;
 
@@ -85,7 +89,10 @@ t_tree *add_token(t_tree *node, char *name, char *type, int pres)
 	{
 		curr = curr->next;
 	}
+
 	curr->next = new_node;
+	new_node->prev = curr;
+
 	return node;
 }
 
@@ -156,7 +163,6 @@ t_tree *tokenize(char *s)
 
 	while(s[i] != '\0')
 	{
-		printf("%c\n", s[i]);
 		if(s[i] == '|' || s[i] == '<' || s[i] == '>' || s[i] == ' ')
 		{
 			if(buf_index > 0)
