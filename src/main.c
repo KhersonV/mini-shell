@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 11:46:57 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/25 14:13:08 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/10/07 16:26:59 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,47 +26,55 @@ void	ft_free_args(char **args)
 	}
 	free(args);
 }
-
-int	main(char **envp)
-
+int main(int argc, char **argv, char **envp)
 {
-	t_command *command_node;
-	char *line;
-	char **args;
+    t_command   *cmd;
+    char        *line;
+    char        **args;
+    char        **shell_env;
 
-	while (1)
-	{
-		line = readline("minishell> ");
-		if (!line)
-			break ;
-		args = ft_split(line, ' ');
-		free(line);
-		if (!args || !args[0])
-		{
-			ft_free_args(args);
-			continue ;
-		}
-		if (strcmp(args[0], "exit") == 0)
-		{
-			ft_free_args(args);
-			break ;
-		}
-		command_node = malloc(sizeof(t_command));
-		if (!command_node)
-		{
-			perror("malloc");
-			ft_free_args(args);
-			return (1);
-		}
-		command_node->name = ft_strdup(args[0]);
-		command_node->args = args;
-        command_node->infile = NULL;
-        command_node->outfile = NULL;
-        command_node->append = 0;
-        command_node->next = NULL;
-		ft_retranslate(command_node, envp);
-		free(command_node->name);
-		free(command_node);
-	}
-	return (0);
+    (void)argc;
+    (void)argv;
+    shell_env = copy_envp(envp);
+    if (!shell_env)
+    {
+        perror("Failed to copy environment");
+        return (1);
+    }
+    while (1)
+    {
+        line = readline("minishell> ");
+        if (!line)
+            break ;
+        args = ft_split(line, ' ');
+        free(line);
+        if (!args || !args[0])
+        {
+            ft_free_args(args);
+            continue ;
+        }
+        if (ft_strcmp(args[0], "exit") == 0)
+        {
+            ft_free_args(args);
+            break ;
+        }
+        cmd = malloc(sizeof(t_command));
+        if (!cmd)
+        {
+            perror("malloc");
+            ft_free_args(args);
+            return (1);
+        }
+        cmd->name = ft_strdup(args[0]);
+        cmd->args = args;
+        cmd->infile = NULL;
+        cmd->outfile = NULL;
+        cmd->append = 0;
+        cmd->next = NULL;
+        ft_retranslate(cmd, shell_env);
+        free(cmd->name);
+        free(cmd);
+    }
+    ft_free_args(shell_env);
+    return (0);
 }
