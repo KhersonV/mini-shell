@@ -6,7 +6,7 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 12:53:34 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/07 21:56:07 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/10/07 22:18:49 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,6 +93,8 @@ int is_command_or_argument(t_tree *token)
 	|| !ft_strcmp(token->type, "FIELD")
 	|| !ft_strcmp(token->type, "FILE")
 	|| !ft_strcmp(token->type, "HEREDOC_MARKER")
+	|| !ft_strcmp(token->type, "COMMAND")
+	|| !ft_strcmp(token->type, "ARGUMENT")
 	);
 }
 
@@ -201,25 +203,10 @@ void shunting_yard(t_tree *tokens) {
     t_tree *curr = tokens;
 
     while (curr != NULL) {
-		if(skip_spaces(curr))
-		{
-			curr = curr->next;
-			continue;
-		}
+
         if (is_command_or_argument(curr)) {
             enqueue(output_queue, (void *)curr);
         } else if (is_operator(curr)) {
-			if(is_redir_operator(curr))
-			{
-				if (curr->next && ft_strcmp(curr->next->type, "SPACE") == 0)
-                    curr = curr->next;
-				if(curr->next && is_file(curr->next))
-				{
-					printf("current redir : %s and %s \n", curr->name, curr->type);
-					enqueue(output_queue, (void *)curr->next);
-					curr = curr->next;
-				}
-			}
             while (!isEmpty(operator_stack) &&
                    precedence(peek(operator_stack)) >= curr->precedence) {
                 enqueue(output_queue, pop(operator_stack));
@@ -240,7 +227,7 @@ void shunting_yard(t_tree *tokens) {
 	 print_queue(output_queue);
 	 print_stack(operator_stack);
 	 printf("--------------------\n");
-	 print_tokens(tokens);
+	 //print_tokens(tokens);
 }
 
 // void adjusting_token_tree(t_tree **tree)
@@ -273,41 +260,63 @@ void shunting_yard(t_tree *tokens) {
 // 	}
 // }
 
+void remove_spaces(t_tree **tree) {
+    t_tree *curr = *tree;
+
+    while (curr != NULL) {
+
+        if (ft_strcmp(curr->type, "SPACE") == 0) {
+            t_tree *node_to_remove = curr;
+
+            if (node_to_remove == *tree) {
+                *tree = node_to_remove->next;
+                if (*tree != NULL) {
+                    (*tree)->prev = NULL;
+                }
+            } else {
+                if (node_to_remove->prev != NULL) {
+                    node_to_remove->prev->next = node_to_remove->next;
+                }
+                if (node_to_remove->next != NULL) {
+                    node_to_remove->next->prev = node_to_remove->prev;
+                }
+            }
+
+            curr = curr->next;
+            free(node_to_remove);
+        } else {
+            curr = curr->next;
+        }
+    }
+}
+
 void adjusting_token_tree(t_tree **tree)
 {
     t_tree *curr = *tree;
-    int command_found = 0;  // Флаг, чтобы следить за первой встреченной командой
+    int command_found = 0;
 
-    while(curr != NULL)
+    while (curr != NULL)
     {
-        // Пропуск пробелов
-        if(!(ft_strcmp(curr->type, "SPACE"))) {
-            curr = curr->next;
-            continue;
+        if (!(ft_strcmp(curr->type, "PIPE"))) {
+            command_found = 0;
         }
 
-        // Определение команды и аргументов
         if (!command_found && !(ft_strcmp(curr->type, "WORD"))) {
-            curr->type = "COMMAND";  // Первое слово — команда
+            curr->type = "COMMAND";
             command_found = 1;
         } else if (command_found && !(ft_strcmp(curr->type, "WORD"))) {
-            curr->type = "ARGUMENT";  // Последующие слова — аргументы
+            curr->type = "ARGUMENT";
         }
 
-        // Обработка редиректов и их файлов
-        if(!(ft_strcmp(curr->type, "REDIR_IN"))
-        || !(ft_strcmp(curr->type, "REDIR_OUT"))
-        || !(ft_strcmp(curr->type, "REDIR_APPEND"))) {
-            if(!(ft_strcmp(curr->next->type, "SPACE")))
-                curr = curr->next;  // Пропускаем пробелы
-            if(curr->next != NULL ) {
-                curr->next->type = "FILE";  // Помечаем файл для редиректа
+        if (!(ft_strcmp(curr->type, "REDIR_IN"))
+            || !(ft_strcmp(curr->type, "REDIR_OUT"))
+            || !(ft_strcmp(curr->type, "REDIR_APPEND"))) {
+            if (curr->next != NULL) {
+                curr->next->type = "FILE";
             }
-        } else if(!(ft_strcmp(curr->type, "REDIR_INSOURCE"))) {
-            if(!(ft_strcmp(curr->next->type, "SPACE")))
-                curr = curr->next;  // Пропускаем пробелы
-            if(curr->next != NULL) {
-                curr->next->type = "HEREDOC_MARKER";  // Помечаем маркер heredoc
+        } else if (!(ft_strcmp(curr->type, "REDIR_INSOURCE"))) {
+            if (curr->next != NULL) {
+                curr->next->type = "HEREDOC_MARKER";
             }
         }
 
@@ -324,11 +333,12 @@ int main()
 
 	t_tree *root;
 	root = tokenize(input);
+	remove_spaces(&root);
 	adjusting_token_tree(&root);
 	//printf("after");
-	print_tokens(root);
+	//print_tokens(root);
 
-	//shunting_yard(root);
+	shunting_yard(root);
 	// Queue *output_queue = createQueue();
 	// Stack *operator_stack = createStack();
 
