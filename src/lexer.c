@@ -6,7 +6,7 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 21:23:27 by lynchsama         #+#    #+#             */
-/*   Updated: 2024/10/07 22:02:25 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/10/10 21:43:14 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ char  *print_token(enum token_types current_token)
 }
 
 
-t_tree *create_node(char *name, char *type, int pres)
+t_tree *create_token_node(char *name, char *type, int pres)
 {
 	t_tree *new_node = (t_tree *)malloc(sizeof(t_tree));
 	if(!new_node)
@@ -77,7 +77,7 @@ t_tree *create_node(char *name, char *type, int pres)
 
 t_tree *add_token(t_tree *node, char *name, char *type, int pres)
 {
-	t_tree *new_node = create_node(name, type, pres);
+	t_tree *new_node = create_token_node(name, type, pres);
 	if(!new_node)
 		return NULL;
 

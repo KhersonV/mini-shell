@@ -19,23 +19,6 @@ typedef struct s_token
 	struct s_token *prev;
 }	t_token;
 
-typedef struct Node
-{
-	void *data;
-	struct Node *next;
-} Node;
-
-typedef struct Stack
-{
-	Node *top;
-} Stack;
-
-typedef struct Queue
-{
-	Node *front;
-	Node *rear;
-} Queue;
-
 enum token_types {
 	SPACE = 1,
 	WORD,
