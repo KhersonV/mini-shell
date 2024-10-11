@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/11 22:36:45 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/12 00:15:05 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,17 +121,16 @@ void	execute_pipeline(char ***cmds, char **envp)
 	waitpid(pid1, NULL, 0);
 	waitpid(pid2, NULL, 0);
 }
-
 char	*find_command(char *command, char **envp)
 {
 	char		*path_env;
 	char		**paths;
+	char		*partial_path;
 	char		*full_path;
 	struct stat	sb;
 	int			i;
-	
-	(void)envp;
 
+	(void)envp;
 	path_env = getenv("PATH");
 	if (!path_env)
 		return (NULL);
@@ -139,14 +138,22 @@ char	*find_command(char *command, char **envp)
 	if (!paths)
 		return (NULL);
 	i = 0;
-	full_path = "";
+	full_path = NULL;
 	while (paths[i])
 	{
+		partial_path = ft_strjoin(paths[i], "/");
+		if (!partial_path)
+		{
+			i++;
+			continue ;
+		}
+		full_path = ft_strjoin(partial_path, command);
+		free(partial_path);
 		if (!full_path)
-			break ;
-		ft_strcpy(full_path, paths[i]);
-		ft_strjoin(full_path, "/");
-		ft_strjoin(full_path, command);
+		{
+			i++;
+			continue ;
+		}
 		if (stat(full_path, &sb) == 0 && sb.st_mode & S_IXUSR)
 			break ;
 		free(full_path);
@@ -154,7 +161,10 @@ char	*find_command(char *command, char **envp)
 		i++;
 	}
 	ft_free_args(paths);
-	return (full_path);
+	if (full_path)
+		return (full_path);
+	else
+		return (NULL);
 }
 
 void	execute_command(char **args, char **envp)
