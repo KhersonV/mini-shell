@@ -6,7 +6,7 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 12:53:34 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/10 21:58:14 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/10/11 22:02:11 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,11 +87,9 @@ void print_ast(Node *root, int level) {
         printf("  ");
     }
 
-
     if (root->data != NULL) {
         printf("Node: %s\n", root->data);
     }
-
 
     if (root->args != NULL) {
         for (int i = 0; i < level + 1; i++) {
@@ -107,15 +105,14 @@ void print_ast(Node *root, int level) {
         printf("Redirect: %s -> %s\n", root->redirect_op, root->redirect_file);
     }
 
-
     if (root->left != NULL) {
         print_ast(root->left, level + 1);
     }
+
     if (root->right != NULL) {
         print_ast(root->right, level + 1);
     }
 }
-
 int skip_spaces(t_tree *token)
 {
 	return !ft_strcmp(token->type, "SPACE");
@@ -166,44 +163,52 @@ void attach_redirect(Node *command, char *redirect_op, char *file) {
     }
 }
 
-
 Node *parse_tokens(t_tree *tokens) {
     Node *root = NULL;
-    Node *left_command = NULL;
-    Node *right_command = NULL;
+    Node *current_command = NULL;
+    Node *last_pipe = NULL;
 
     t_tree *curr = tokens;
 
     while (curr != NULL) {
         if (!(ft_strcmp(curr->type, "COMMAND"))) {
-            if (root == NULL) {
-                left_command = create_node(curr->name);  // Создаём левую команду
-                root = left_command;                    // Если нет пайпа, команда становится корнем
-            } else {
-                right_command = create_node(curr->name); // Создаём правую команду
+            if (current_command == NULL) {
+                current_command = create_node(curr->name);
+                if (root == NULL) {
+                    root = current_command;
+                }
             }
         } else if (!(ft_strcmp(curr->type, "PIPE"))) {
-            // PIPE становится корнем для левой и правой команды
-            root = create_node("PIPE");
-            attach_left(root, left_command);  // Левое поддерево
-            left_command = NULL;              // Сбрасываем левую команду
+            Node *new_pipe = create_node("PIPE");
+            if (last_pipe == NULL) {
+                attach_left(new_pipe, root);
+            } else {
+                attach_right(last_pipe, current_command);
+                attach_left(new_pipe, last_pipe);
+            }
+            last_pipe = new_pipe;
+            current_command = NULL;
         } else if (!(ft_strcmp(curr->type, "ARGUMENT"))) {
-            // Аргумент команды
-            attach_argument(left_command != NULL ? left_command : right_command, curr->name);
+            attach_argument(current_command, curr->name);
         } else if (is_redir_operator(curr)) {
-            // Обрабатываем редирект и файл
-            attach_redirect(left_command != NULL ? left_command : right_command, curr->name, curr->next->name);
-            curr = curr->next;  // Пропускаем файл
+            attach_redirect(current_command, curr->name, curr->next->name);
+            curr = curr->next;
         }
         curr = curr->next;
     }
 
-    if (root != NULL && right_command != NULL) {
-        attach_right(root, right_command);  // Связываем правую команду с корнем (для пайпа)
+
+    if (last_pipe != NULL && current_command != NULL) {
+        attach_right(last_pipe, current_command);
     }
 
-    return root;
+    if (last_pipe == NULL) {
+        return root;
+    }
+
+    return last_pipe;
 }
+
 void remove_spaces(t_tree **tree) {
     t_tree *curr = *tree;
 
@@ -225,7 +230,6 @@ void remove_spaces(t_tree **tree) {
                     node_to_remove->next->prev = node_to_remove->prev;
                 }
             }
-
             curr = curr->next;
             free(node_to_remove);
         } else {
@@ -233,6 +237,7 @@ void remove_spaces(t_tree **tree) {
         }
     }
 }
+
 
 void adjusting_token_tree(t_tree **tree)
 {
@@ -244,14 +249,12 @@ void adjusting_token_tree(t_tree **tree)
         if (!(ft_strcmp(curr->type, "PIPE"))) {
             command_found = 0;
         }
-
         if (!command_found && !(ft_strcmp(curr->type, "WORD"))) {
             curr->type = "COMMAND";
             command_found = 1;
         } else if (command_found && (!(ft_strcmp(curr->type, "WORD")) || command_found && !(ft_strcmp(curr->type, "FIELD")))) {
             curr->type = "ARGUMENT";
         }
-
         if (!(ft_strcmp(curr->type, "REDIR_IN"))
             || !(ft_strcmp(curr->type, "REDIR_OUT"))
             || !(ft_strcmp(curr->type, "REDIR_APPEND"))) {
@@ -263,18 +266,16 @@ void adjusting_token_tree(t_tree **tree)
                 curr->next->type = "HEREDOC_MARKER";
             }
         }
-
         curr = curr->next;
     }
 }
 
 
-
 int main()
 {
-	char input[] = "echo \'hello\'	>> file.txt | cat << input.txt";
+	//char input[] = "echo \'hello\'	>> file.txt | cat << input.txt | ls >> out.txt | grep 'hi' ";
 	//char input[] = "echo 'test' > output.txt | cat";
-	//char input[] = "ls -l > output.txt";
+    char input[] = "ls -l > output.txt";
 
 	t_tree *root;
 	Node *output;
@@ -286,16 +287,6 @@ int main()
 	print_tokens(root);
 	printf("------\n");
 	print_ast(output, 1);
-
-
-
-	//shunting_yard(root);
-	// Queue *output_queue = createQueue();
-	// Stack *operator_stack = createStack();
-
-	// print_queue(output_queue);
-	// print_stack(operator_stack);
-
 
 	return 0;
 }
