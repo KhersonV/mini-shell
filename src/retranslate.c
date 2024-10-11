@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/11 21:00:19 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/11 22:36:45 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,6 +129,8 @@ char	*find_command(char *command, char **envp)
 	char		*full_path;
 	struct stat	sb;
 	int			i;
+	
+	(void)envp;
 
 	path_env = getenv("PATH");
 	if (!path_env)
@@ -137,15 +139,14 @@ char	*find_command(char *command, char **envp)
 	if (!paths)
 		return (NULL);
 	i = 0;
-	full_path = NULL;
+	full_path = "";
 	while (paths[i])
 	{
-		full_path = malloc(PATH_MAX);
 		if (!full_path)
 			break ;
 		ft_strcpy(full_path, paths[i]);
-		ft_strcat(full_path, "/");
-		ft_strcat(full_path, command);
+		ft_strjoin(full_path, "/");
+		ft_strjoin(full_path, command);
 		if (stat(full_path, &sb) == 0 && sb.st_mode & S_IXUSR)
 			break ;
 		free(full_path);
