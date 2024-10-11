@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/09/27 13:18:05 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/11 21:00:19 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,39 @@
 // 	else
 // 		waitpid(pid, &status, 0);
 // }
+
+char	**copy_envp(char **envp)
+{
+	int		i;
+	int		j;
+	char	**env_copy;
+
+	i = 0;
+	while (envp[i])
+		i++;
+	env_copy = malloc(sizeof(char *) * (i + 1));
+	if (!env_copy)
+		return (NULL);
+	i = 0;
+	while (envp[i])
+	{
+		env_copy[i] = ft_strdup(envp[i]);
+		if (!env_copy[i])
+		{
+			j = 0;
+			while (j - i)
+			{
+				free(env_copy[j]);
+				j++;
+			}
+			free(env_copy);
+			return (NULL);
+		}
+		i++;
+	}
+	env_copy[i] = NULL;
+	return (env_copy);
+}
 
 void	execute_pipeline(char ***cmds, char **envp)
 {
@@ -79,7 +112,7 @@ void	execute_pipeline(char ***cmds, char **envp)
 		dup2(fd[0], STDIN_FILENO);
 		close(fd[0]);
 		close(fd[1]);
-		execve(find_command(cmds[1][0],envp), cmds[1], envp);
+		execve(find_command(cmds[1][0], envp), cmds[1], envp);
 		perror("minishell: execve");
 		exit(1);
 	}
@@ -89,38 +122,38 @@ void	execute_pipeline(char ***cmds, char **envp)
 	waitpid(pid2, NULL, 0);
 }
 
-char    *find_command(char *command, char **envp)
+char	*find_command(char *command, char **envp)
 {
-    char    *path_env;
-    char    **paths;
-    char    *full_path;
-    struct stat sb;
-    int     i;
+	char		*path_env;
+	char		**paths;
+	char		*full_path;
+	struct stat	sb;
+	int			i;
 
-    path_env = getenv("PATH");
-    if (!path_env)
-        return (NULL);
-    paths = ft_split(path_env, ':');
-    if (!paths)
-        return (NULL);
-    i = 0;
-    full_path = NULL;
-    while (paths[i])
-    {
-        full_path = malloc(PATH_MAX);
-        if (!full_path)
-            break ;
-        ft_strcpy(full_path, paths[i]);
-        ft_strcat(full_path, "/");
-        ft_strcat(full_path, command);
-        if (stat(full_path, &sb) == 0 && sb.st_mode & S_IXUSR)
-            break ;
-        free(full_path);
-        full_path = NULL;
-        i++;
-    }
-    ft_free_args(paths);
-    return (full_path);
+	path_env = getenv("PATH");
+	if (!path_env)
+		return (NULL);
+	paths = ft_split(path_env, ':');
+	if (!paths)
+		return (NULL);
+	i = 0;
+	full_path = NULL;
+	while (paths[i])
+	{
+		full_path = malloc(PATH_MAX);
+		if (!full_path)
+			break ;
+		ft_strcpy(full_path, paths[i]);
+		ft_strcat(full_path, "/");
+		ft_strcat(full_path, command);
+		if (stat(full_path, &sb) == 0 && sb.st_mode & S_IXUSR)
+			break ;
+		free(full_path);
+		full_path = NULL;
+		i++;
+	}
+	ft_free_args(paths);
+	return (full_path);
 }
 
 void	execute_command(char **args, char **envp)
@@ -150,29 +183,26 @@ void	execute_command(char **args, char **envp)
 		waitpid(pid, &status, 0);
 }
 
-#include "minishell.h"
-
-void    ft_retranslate(t_command *cmd, char **envp)
+void	ft_retranslate(t_command *cmd, char **envp)
 {
-    if (ft_strcmp(cmd->name, "echo") == 0)
-        ft_echo(cmd->args);
-    else if (ft_strcmp(cmd->name, "cd") == 0)
-        ft_cd(cmd->args);
-    else if (ft_strcmp(cmd->name, "pwd") == 0)
-        ft_pwd();
-    else if (ft_strcmp(cmd->name, "export") == 0)
-        ft_export(cmd->args, &envp);
-    else if (ft_strcmp(cmd->name, "unset") == 0)
-        ft_unset(cmd->args, &envp);
-    else if (ft_strcmp(cmd->name, "env") == 0)
-        ft_env(envp);
-    else if (ft_strcmp(cmd->name, "exit") == 0)
-        ft_exit(cmd->args);
-    else
-        execute_command(cmd->args, envp);
-    ft_free_args(cmd->args);
+	if (ft_strcmp(cmd->name, "echo") == 0)
+		ft_echo(cmd->args);
+	else if (ft_strcmp(cmd->name, "cd") == 0)
+		ft_cd(cmd->args);
+	else if (ft_strcmp(cmd->name, "pwd") == 0)
+		ft_pwd();
+	else if (ft_strcmp(cmd->name, "export") == 0)
+		ft_export(cmd->args, &envp);
+	else if (ft_strcmp(cmd->name, "unset") == 0)
+		ft_unset(cmd->args, &envp);
+	else if (ft_strcmp(cmd->name, "env") == 0)
+		ft_env(envp);
+	else if (ft_strcmp(cmd->name, "exit") == 0)
+		ft_exit(cmd->args);
+	else
+		execute_command(cmd->args, envp);
+	ft_free_args(cmd->args);
 }
-
 
 /*
 Предлагаю типизировать все билд ины
