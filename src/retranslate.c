@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/13 15:23:17 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/13 15:36:19 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ char	**copy_envp(char **envp)
 		if (!env_copy[i])
 		{
 			j = 0;
-			while (j - i)
+			while (j < i)
 			{
 				free(env_copy[j]);
 				j++;
@@ -84,6 +84,7 @@ void	execute_pipeline(t_command *cmds, char **envp)
 	pid_t		*pid;
 	int			**fd;
 	t_command	*current_cmd;
+	char		*path;
 
 	num_cmds = 0;
 	current_cmd = cmds;
@@ -108,7 +109,7 @@ void	execute_pipeline(t_command *cmds, char **envp)
 	i = 0;
 	while (i < num_cmds - 1)
 	{
-		fd[i] = malloc(sizeof(int *) * 2);
+		fd[i] = malloc(sizeof(int) * 2);
 		if (pipe(fd[i]) == -1)
 		{
 			perror("pipe");
@@ -133,7 +134,7 @@ void	execute_pipeline(t_command *cmds, char **envp)
 		if (pid[i] == -1)
 		{
 			perror("fork");
-			return;
+			return ;
 		}
 		else if (pid[i] == 0)
 		{
@@ -145,7 +146,6 @@ void	execute_pipeline(t_command *cmds, char **envp)
 					exit(1);
 				}
 			}
-		
 			if (i < num_cmds - 1)
 			{
 				if (dup2(fd[i][1], STDOUT_FILENO) == -1)
@@ -177,10 +177,11 @@ void	execute_pipeline(t_command *cmds, char **envp)
 				ft_exit(current_cmd->args);
 			else
 			{
-				char *path = find_command(current_cmd->args[0], envp);
+				path = find_command(current_cmd->args[0], envp);
 				if (!path)
 				{
-					fprintf(stderr, "minishell: command not found: %s\n", current_cmd->args[0]);
+					fprintf(stderr, "minishell: command not found: %s\n",
+						current_cmd->args[0]);
 					exit(127);
 				}
 				if (execve(path, current_cmd->args, envp) == -1)
@@ -215,11 +216,12 @@ void	execute_pipeline(t_command *cmds, char **envp)
 /*Подсчёт команд: Сначала мы считаем количество команд в списке t_command.
 Выделение памяти: Выделяем память для массивов pid и fd.
 Создание пайпов: Создаём необходимое количество пайпов.
-Выполнение команд: Для каждой команды создаём дочерний процесс, настраиваем ввод/вывод через пайпы и выполняем команду.
-Обработка встроенных команд: В дочерних процессах выполняем встроенные команды так же, как и внешние.
+Выполнение команд: Для каждой команды создаём дочерний процесс,
+	настраиваем ввод/вывод через пайпы и выполняем команду.
+Обработка встроенных команд: В дочерних процессах выполняем встроенные команды так же,
+	как и внешние.
 Закрытие пайпов: Закрываем все пайпы в родительском процессе.
 Ожидание процессов: Ожидаем завершения всех дочерних процессов.*/
-
 
 char	*find_command(char *command, char **envp)
 {
@@ -301,22 +303,25 @@ void	ft_retranslate(t_command *cmd, t_info *info, char **envp)
 	{
 		execute_pipeline(cmd, envp);
 	}
-	if (ft_strcmp(cmd->name, "echo") == 0)
-		ft_echo(cmd->args);
-	else if (ft_strcmp(cmd->name, "cd") == 0)
-		ft_cd(cmd->args);
-	else if (ft_strcmp(cmd->name, "pwd") == 0)
-		ft_pwd();
-	else if (ft_strcmp(cmd->name, "export") == 0)
-		ft_export(cmd->args, &envp);
-	else if (ft_strcmp(cmd->name, "unset") == 0)
-		ft_unset(cmd->args, &envp);
-	else if (ft_strcmp(cmd->name, "env") == 0)
-		ft_env(envp);
-	else if (ft_strcmp(cmd->name, "exit") == 0)
-		ft_exit(cmd->args);
 	else
-		execute_command(cmd->args, envp);
+	{
+		if (ft_strcmp(cmd->name, "echo") == 0)
+			ft_echo(cmd->args);
+		else if (ft_strcmp(cmd->name, "cd") == 0)
+			ft_cd(cmd->args);
+		else if (ft_strcmp(cmd->name, "pwd") == 0)
+			ft_pwd();
+		else if (ft_strcmp(cmd->name, "export") == 0)
+			ft_export(cmd->args, &envp);
+		else if (ft_strcmp(cmd->name, "unset") == 0)
+			ft_unset(cmd->args, &envp);
+		else if (ft_strcmp(cmd->name, "env") == 0)
+			ft_env(envp);
+		else if (ft_strcmp(cmd->name, "exit") == 0)
+			ft_exit(cmd->args);
+		else
+			execute_command(cmd->args, envp);
+	}
 	ft_free_args(cmd->args);
 }
 
