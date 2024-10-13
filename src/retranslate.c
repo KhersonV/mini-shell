@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/13 13:47:54 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/13 15:23:17 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,13 +95,13 @@ void	execute_pipeline(t_command *cmds, char **envp)
 	pid = malloc(sizeof(pid_t) * num_cmds);
 	if (!pid)
 	{
-		perror('malloc');
+		perror("malloc");
 		return ;
 	}
 	fd = malloc(sizeof(int *) * (num_cmds - 1));
 	if (!fd)
 	{
-		perror('malloc');
+		perror("malloc");
 		free(pid);
 		return ;
 	}
@@ -111,7 +111,7 @@ void	execute_pipeline(t_command *cmds, char **envp)
 		fd[i] = malloc(sizeof(int *) * 2);
 		if (pipe(fd[i]) == -1)
 		{
-			perror('pipe');
+			perror("pipe");
 			while (i > 0)
 			{
 				close(fd[i - 1][0]);
@@ -132,7 +132,7 @@ void	execute_pipeline(t_command *cmds, char **envp)
 		pid[i] = fork();
 		if (pid[i] == -1)
 		{
-			perror('fork');
+			perror("fork");
 			return;
 		}
 		else if (pid[i] == 0)
@@ -300,7 +300,6 @@ void	ft_retranslate(t_command *cmd, t_info *info, char **envp)
 	if (info->pipes > 0)
 	{
 		execute_pipeline(cmd, envp);
-		info->pipes--;
 	}
 	if (ft_strcmp(cmd->name, "echo") == 0)
 		ft_echo(cmd->args);

@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 11:46:57 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/12 15:24:56 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/13 15:29:16 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,12 @@ int	main(int argc, char **argv, char **envp)
 
 	(void)argc;
 	(void)argv;
+	info = malloc(sizeof(t_command));
+	if (!info)
+	{
+		perror("malloc");
+		return (1);
+	}
 	info->envp = copy_envp(envp);
 	if (!info->envp)
 	{
@@ -65,6 +71,7 @@ int	main(int argc, char **argv, char **envp)
 			perror("malloc");
 			ft_free_args(args);
 			free(line);
+			free(info);
 			return (1);
 		}
 		cmd->name = ft_strdup(args[0]);
@@ -81,5 +88,6 @@ int	main(int argc, char **argv, char **envp)
 		free(line);
 	}
 	ft_free_args(info->envp);
+	free(info);
 	return (0);
 }
