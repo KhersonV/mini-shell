@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 11:46:57 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/12 00:18:52 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/12 15:24:56 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,15 +28,15 @@ void	ft_free_args(char **args)
 }
 int	main(int argc, char **argv, char **envp)
 {
+	t_info		*info;
 	t_command	*cmd;
 	char		*line;
 	char		**args;
-	char		**shell_env;
 
 	(void)argc;
 	(void)argv;
-	shell_env = copy_envp(envp);
-	if (!shell_env)
+	info->envp = copy_envp(envp);
+	if (!info->envp)
 	{
 		perror("Failed to copy environment");
 		return (1);
@@ -69,16 +69,17 @@ int	main(int argc, char **argv, char **envp)
 		}
 		cmd->name = ft_strdup(args[0]);
 		cmd->args = args;
-		cmd->infile = NULL;
-		cmd->outfile = NULL;
-		cmd->append = 0;
+		cmd->file = "file.txt";
+		cmd->redirection = ">>";
 		cmd->next = NULL;
-		ft_retranslate(cmd, shell_env);
+		info->pipes = 4;
+		
+		ft_retranslate(cmd, info, info->envp);
 		free(cmd->name);
 		free(cmd);
 		
 		free(line);
 	}
-	ft_free_args(shell_env);
+	ft_free_args(info->envp);
 	return (0);
 }

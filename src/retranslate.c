@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/12 00:15:05 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/12 15:26:49 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,8 +194,16 @@ void	execute_command(char **args, char **envp)
 		waitpid(pid, &status, 0);
 }
 
-void	ft_retranslate(t_command *cmd, char **envp)
+void	ft_retranslate(t_command *cmd, t_info *info, char **envp)
 {
+	while (info->pipes)
+	{
+		
+		info->pipes--;
+	}
+	
+
+	
 	if (ft_strcmp(cmd->name, "echo") == 0)
 		ft_echo(cmd->args);
 	else if (ft_strcmp(cmd->name, "cd") == 0)
