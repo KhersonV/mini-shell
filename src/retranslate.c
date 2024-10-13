@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/13 12:47:28 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/13 13:47:54 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,7 @@ void	execute_pipeline(t_command *cmds, char **envp)
 {
 	int			num_cmds;
 	int			i;
+	int			j;
 	pid_t		*pid;
 	int			**fd;
 	t_command	*current_cmd;
@@ -124,7 +125,101 @@ void	execute_pipeline(t_command *cmds, char **envp)
 		}
 		i++;
 	}
+	current_cmd = cmds;
+	i = 0;
+	while (current_cmd)
+	{
+		pid[i] = fork();
+		if (pid[i] == -1)
+		{
+			perror('fork');
+			return;
+		}
+		else if (pid[i] == 0)
+		{
+			if (i > 0)
+			{
+				if (dup2(fd[i - 1][0], STDIN_FILENO) == -1)
+				{
+					perror("dup2");
+					exit(1);
+				}
+			}
+		
+			if (i < num_cmds - 1)
+			{
+				if (dup2(fd[i][1], STDOUT_FILENO) == -1)
+				{
+					perror("dup2");
+					exit(1);
+				}
+			}
+			j = 0;
+			while (j < num_cmds - 1)
+			{
+				close(fd[j][0]);
+				close(fd[j][1]);
+				j++;
+			}
+			if (ft_strcmp(current_cmd->name, "echo") == 0)
+				ft_echo(current_cmd->args);
+			else if (ft_strcmp(current_cmd->name, "cd") == 0)
+				ft_cd(current_cmd->args);
+			else if (ft_strcmp(current_cmd->name, "pwd") == 0)
+				ft_pwd();
+			else if (ft_strcmp(current_cmd->name, "export") == 0)
+				ft_export(current_cmd->args, &envp);
+			else if (ft_strcmp(current_cmd->name, "unset") == 0)
+				ft_unset(current_cmd->args, &envp);
+			else if (ft_strcmp(current_cmd->name, "env") == 0)
+				ft_env(envp);
+			else if (ft_strcmp(current_cmd->name, "exit") == 0)
+				ft_exit(current_cmd->args);
+			else
+			{
+				char *path = find_command(current_cmd->args[0], envp);
+				if (!path)
+				{
+					fprintf(stderr, "minishell: command not found: %s\n", current_cmd->args[0]);
+					exit(127);
+				}
+				if (execve(path, current_cmd->args, envp) == -1)
+				{
+					perror("minishell: execve");
+					exit(1);
+				}
+			}
+			exit(0);
+		}
+		current_cmd = current_cmd->next;
+		i++;
+	}
+	i = 0;
+	while (i < num_cmds - 1)
+	{
+		close(fd[i][0]);
+		close(fd[i][1]);
+		free(fd[i]);
+		i++;
+	}
+	if (num_cmds > 1)
+		free(fd);
+	i = 0;
+	while (i < num_cmds)
+	{
+		waitpid(pid[i], NULL, 0);
+		i++;
+	}
+	free(pid);
 }
+/*Подсчёт команд: Сначала мы считаем количество команд в списке t_command.
+Выделение памяти: Выделяем память для массивов pid и fd.
+Создание пайпов: Создаём необходимое количество пайпов.
+Выполнение команд: Для каждой команды создаём дочерний процесс, настраиваем ввод/вывод через пайпы и выполняем команду.
+Обработка встроенных команд: В дочерних процессах выполняем встроенные команды так же, как и внешние.
+Закрытие пайпов: Закрываем все пайпы в родительском процессе.
+Ожидание процессов: Ожидаем завершения всех дочерних процессов.*/
+
 
 char	*find_command(char *command, char **envp)
 {
@@ -192,6 +287,7 @@ void	execute_command(char **args, char **envp)
 		if (execve(path, args, envp) == -1)
 		{
 			perror("minishell: execve");
+			free(path);
 			exit(1);
 		}
 	}
