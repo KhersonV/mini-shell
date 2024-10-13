@@ -6,11 +6,11 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 21:23:27 by lynchsama         #+#    #+#             */
-/*   Updated: 2024/10/12 19:54:37 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/13 22:35:55 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "l_p.h"
+#include "../minishell.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -154,7 +154,6 @@ t_tree	*tokenize(char *s)
 	int		i;
 	char	buf[256];
 	int		buf_index;
-	int		token_type;
 
 	i = 0;
 	curr = NULL;

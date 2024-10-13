@@ -6,25 +6,15 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 12:53:34 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/12 19:54:28 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/13 22:36:33 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "l_p.h"
+#include "../minishell.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-typedef struct Node
-{
-	char		*data;
-	struct Node	*left;
-	struct Node	*right;
-	char		*args;
-	char		*redirect_op;
-	char		*redirect_file;
-}				Node;
 
 int	ft_strcmp(const char *s1, const char *s2)
 {
@@ -289,7 +279,7 @@ void	adjusting_token_tree(t_tree **tree)
 			command_found = 1;
 		}
 		else if (command_found && (!(ft_strcmp(curr->type, "WORD"))
-				|| command_found && !(ft_strcmp(curr->type, "FIELD"))))
+				|| (command_found && !(ft_strcmp(curr->type, "FIELD")))))
 		{
 			curr->type = "ARGUMENT";
 		}
@@ -312,22 +302,22 @@ void	adjusting_token_tree(t_tree **tree)
 	}
 }
 
-int	main(void)
-{
-	// char input[] = "echo \'hello\'	>> file.txt | cat << input.txt | ls >> out.txt | grep 'hi' ";
-	// char input[] = "echo 'test' > output.txt | cat";
-	char input[] = "ls -l > output.txt";
+// int	main(void)
+// {
+// 	// char input[] = "echo \'hello\'	>> file.txt | cat << input.txt | ls >> out.txt | grep 'hi' ";
+// 	// char input[] = "echo 'test' > output.txt | cat";
+// 	char input[] = "ls -l > output.txt";
 
-	t_tree *root;
-	Node *output;
-	root = tokenize(input);
-	remove_spaces(&root);
-	adjusting_token_tree(&root);
-	output = parse_tokens(root);
-	// printf("after");
-	print_tokens(root);
-	printf("------\n");
-	print_ast(output, 1);
+// 	t_tree *root;
+// 	Node *output;
+// 	root = tokenize(input);
+// 	remove_spaces(&root);
+// 	adjusting_token_tree(&root);
+// 	output = parse_tokens(root);
+// 	// printf("after");
+// 	print_tokens(root);
+// 	printf("------\n");
+// 	print_ast(output, 1);
 
-	return (0);
-}
+// 	return (0);
+// }

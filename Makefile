@@ -2,7 +2,7 @@ NAME = minishell
 
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror
-SRC = src/main.c src/retranslate.c src/builtins.c
+SRC = src/main.c src/retranslate.c src/builtins.c src/parser.c src/lexer.c
 OBJ = $(SRC:.c=.o)
 LIBFT = libft/libft.a
 INC = -Iinclude

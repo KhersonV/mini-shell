@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 11:46:57 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/13 15:29:16 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/13 22:18:35 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,23 +26,62 @@ void	ft_free_args(char **args)
 	}
 	free(args);
 }
+
+void	ft_free_array(char **array)
+{
+	int	i = 0;
+
+	while (array[i])
+	{
+		free(array[i]);
+		i++;
+	}
+	free(array);
+}
+
+void	free_token_list(t_tree *tokens)
+{
+	t_tree	*temp;
+
+	while (tokens)
+	{
+		temp = tokens;
+		tokens = tokens->next;
+		free(temp->name);
+		free(temp->type);
+		free(temp);
+	}
+}
+
+void	free_ast(Node *node)
+{
+	if (!node)
+		return ;
+	if (node->data)
+		free(node->data);
+	if (node->args)
+		free(node->args);
+	if (node->redirect_op)
+		free(node->redirect_op);
+	if (node->redirect_file)
+		free(node->redirect_file);
+	free_ast(node->left);
+	free_ast(node->right);
+	free(node);
+}
+
 int	main(int argc, char **argv, char **envp)
 {
-	t_info		*info;
-	t_command	*cmd;
-	char		*line;
-	char		**args;
+	char	*line;
+	t_tree	*tokens;
+	Node	*ast_root;
+	t_info	info;
 
 	(void)argc;
 	(void)argv;
-	info = malloc(sizeof(t_command));
-	if (!info)
-	{
-		perror("malloc");
-		return (1);
-	}
-	info->envp = copy_envp(envp);
-	if (!info->envp)
+	
+	info.envp = copy_envp(envp);
+	if (!info.envp)
 	{
 		perror("Failed to copy environment");
 		return (1);
@@ -52,42 +91,21 @@ int	main(int argc, char **argv, char **envp)
 		line = readline("minishell> ");
 		if (!line)
 			break ;
-		args = ft_split(line, ' ');
-		if (!args || !args[0])
-		{
-			ft_free_args(args);
-			free(line);
-			continue ;
-		}
-		if (ft_strcmp(args[0], "exit") == 0)
-		{
-			ft_free_args(args);
-			free(line);
-			break ;
-		}
-		cmd = malloc(sizeof(t_command));
-		if (!cmd)
-		{
-			perror("malloc");
-			ft_free_args(args);
-			free(line);
-			free(info);
-			return (1);
-		}
-		cmd->name = ft_strdup(args[0]);
-		cmd->args = args;
-		cmd->file = "file.txt";
-		cmd->redirection = ">>";
-		cmd->next = NULL;
-		info->pipes = 4;
-		
-		ft_retranslate(cmd, info, info->envp);
-		free(cmd->name);
-		free(cmd);
-		
+		if (*line)
+			add_history(line);
+		tokens = tokenize(line);
 		free(line);
+		if (!tokens)
+			continue ;
+		remove_spaces(&tokens);
+		adjusting_token_tree(&tokens);
+		ast_root = parse_tokens(tokens);
+		free_token_list(tokens);
+		if (!ast_root)
+			continue ;
+		execute_ast(ast_root, &info);
+		free_ast(ast_root);
 	}
-	ft_free_args(info->envp);
-	free(info);
+	ft_free_args(info.envp);
 	return (0);
 }

@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/13 15:36:19 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/13 22:29:09 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,152 +76,58 @@ char	**copy_envp(char **envp)
 	return (env_copy);
 }
 
-void	execute_pipeline(t_command *cmds, char **envp)
+void	execute_pipe(Node *node, t_info *info)
 {
-	int			num_cmds;
-	int			i;
-	int			j;
-	pid_t		*pid;
-	int			**fd;
-	t_command	*current_cmd;
-	char		*path;
+	int		fd[2];
+	pid_t	pid1;
+	pid_t	pid2;
 
-	num_cmds = 0;
-	current_cmd = cmds;
-	while (current_cmd)
+	if (pipe(fd) == -1)
 	{
-		num_cmds++;
-		current_cmd = current_cmd->next;
-	}
-	pid = malloc(sizeof(pid_t) * num_cmds);
-	if (!pid)
-	{
-		perror("malloc");
+		perror("pipe");
 		return ;
 	}
-	fd = malloc(sizeof(int *) * (num_cmds - 1));
-	if (!fd)
+	pid1 = fork();
+	if (pid1 == -1)
 	{
-		perror("malloc");
-		free(pid);
+		perror("fork");
 		return ;
 	}
-	i = 0;
-	while (i < num_cmds - 1)
+	if (pid1 == 0)
 	{
-		fd[i] = malloc(sizeof(int) * 2);
-		if (pipe(fd[i]) == -1)
+		close(fd[0]);
+		if (dup2(fd[1], STDOUT_FILENO) == -1)
 		{
-			perror("pipe");
-			while (i > 0)
-			{
-				close(fd[i - 1][0]);
-				close(fd[i - 1][1]);
-				free(fd[i - 1]);
-				i--;
-			}
-			free(fd);
-			free(pid);
-			return ;
+			perror("dup2");
+			exit(1);
 		}
-		i++;
+		close(fd[1]);
+		execute_ast(node->left, info);
+		exit(0);
 	}
-	current_cmd = cmds;
-	i = 0;
-	while (current_cmd)
+	pid2 = fork();
+	if (pid2 == -1)
 	{
-		pid[i] = fork();
-		if (pid[i] == -1)
+		perror("fork");
+		return ;
+	}
+	if (pid2 == 0)
+	{
+		close(fd[1]);
+		if (dup2(fd[0], STDIN_FILENO) == -1)
 		{
-			perror("fork");
-			return ;
+			perror("dup2");
+			exit(1);
 		}
-		else if (pid[i] == 0)
-		{
-			if (i > 0)
-			{
-				if (dup2(fd[i - 1][0], STDIN_FILENO) == -1)
-				{
-					perror("dup2");
-					exit(1);
-				}
-			}
-			if (i < num_cmds - 1)
-			{
-				if (dup2(fd[i][1], STDOUT_FILENO) == -1)
-				{
-					perror("dup2");
-					exit(1);
-				}
-			}
-			j = 0;
-			while (j < num_cmds - 1)
-			{
-				close(fd[j][0]);
-				close(fd[j][1]);
-				j++;
-			}
-			if (ft_strcmp(current_cmd->name, "echo") == 0)
-				ft_echo(current_cmd->args);
-			else if (ft_strcmp(current_cmd->name, "cd") == 0)
-				ft_cd(current_cmd->args);
-			else if (ft_strcmp(current_cmd->name, "pwd") == 0)
-				ft_pwd();
-			else if (ft_strcmp(current_cmd->name, "export") == 0)
-				ft_export(current_cmd->args, &envp);
-			else if (ft_strcmp(current_cmd->name, "unset") == 0)
-				ft_unset(current_cmd->args, &envp);
-			else if (ft_strcmp(current_cmd->name, "env") == 0)
-				ft_env(envp);
-			else if (ft_strcmp(current_cmd->name, "exit") == 0)
-				ft_exit(current_cmd->args);
-			else
-			{
-				path = find_command(current_cmd->args[0], envp);
-				if (!path)
-				{
-					fprintf(stderr, "minishell: command not found: %s\n",
-						current_cmd->args[0]);
-					exit(127);
-				}
-				if (execve(path, current_cmd->args, envp) == -1)
-				{
-					perror("minishell: execve");
-					exit(1);
-				}
-			}
-			exit(0);
-		}
-		current_cmd = current_cmd->next;
-		i++;
+		close(fd[0]);
+		execute_ast(node->right, info);
+		exit(0);
 	}
-	i = 0;
-	while (i < num_cmds - 1)
-	{
-		close(fd[i][0]);
-		close(fd[i][1]);
-		free(fd[i]);
-		i++;
-	}
-	if (num_cmds > 1)
-		free(fd);
-	i = 0;
-	while (i < num_cmds)
-	{
-		waitpid(pid[i], NULL, 0);
-		i++;
-	}
-	free(pid);
+	close(fd[0]);
+	close(fd[1]);
+	waitpid(pid1, NULL, 0);
+	waitpid(pid2, NULL, 0);
 }
-/*Подсчёт команд: Сначала мы считаем количество команд в списке t_command.
-Выделение памяти: Выделяем память для массивов pid и fd.
-Создание пайпов: Создаём необходимое количество пайпов.
-Выполнение команд: Для каждой команды создаём дочерний процесс,
-	настраиваем ввод/вывод через пайпы и выполняем команду.
-Обработка встроенных команд: В дочерних процессах выполняем встроенные команды так же,
-	как и внешние.
-Закрытие пайпов: Закрываем все пайпы в родительском процессе.
-Ожидание процессов: Ожидаем завершения всех дочерних процессов.*/
 
 char	*find_command(char *command, char **envp)
 {
@@ -297,32 +203,20 @@ void	execute_command(char **args, char **envp)
 		waitpid(pid, &status, 0);
 }
 
-void	ft_retranslate(t_command *cmd, t_info *info, char **envp)
+void	execute_command_node(Node *node, t_info *info)
 {
-	if (info->pipes > 0)
-	{
-		execute_pipeline(cmd, envp);
-	}
+	(void)node;
+	(void)info;
+}
+
+void	execute_ast(Node *node, t_info *info)
+{
+	if (!node)
+		return ;
+	if (ft_strcmp(node->data, "PIPE") == 0)
+		execute_pipe(node, info);
 	else
-	{
-		if (ft_strcmp(cmd->name, "echo") == 0)
-			ft_echo(cmd->args);
-		else if (ft_strcmp(cmd->name, "cd") == 0)
-			ft_cd(cmd->args);
-		else if (ft_strcmp(cmd->name, "pwd") == 0)
-			ft_pwd();
-		else if (ft_strcmp(cmd->name, "export") == 0)
-			ft_export(cmd->args, &envp);
-		else if (ft_strcmp(cmd->name, "unset") == 0)
-			ft_unset(cmd->args, &envp);
-		else if (ft_strcmp(cmd->name, "env") == 0)
-			ft_env(envp);
-		else if (ft_strcmp(cmd->name, "exit") == 0)
-			ft_exit(cmd->args);
-		else
-			execute_command(cmd->args, envp);
-	}
-	ft_free_args(cmd->args);
+		execute_command_node(node, info);
 }
 
 /*
