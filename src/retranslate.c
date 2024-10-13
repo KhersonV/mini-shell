@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/12 15:26:49 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/13 12:47:28 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,51 +76,56 @@ char	**copy_envp(char **envp)
 	return (env_copy);
 }
 
-void	execute_pipeline(char ***cmds, char **envp)
+void	execute_pipeline(t_command *cmds, char **envp)
 {
-	int	fd[2];
+	int			num_cmds;
+	int			i;
+	pid_t		*pid;
+	int			**fd;
+	t_command	*current_cmd;
 
-	pid_t pid1, pid2;
-	if (pipe(fd) == -1)
+	num_cmds = 0;
+	current_cmd = cmds;
+	while (current_cmd)
 	{
-		perror("minishell: pipe");
+		num_cmds++;
+		current_cmd = current_cmd->next;
+	}
+	pid = malloc(sizeof(pid_t) * num_cmds);
+	if (!pid)
+	{
+		perror('malloc');
 		return ;
 	}
-	pid1 = fork();
-	if (pid1 == -1)
+	fd = malloc(sizeof(int *) * (num_cmds - 1));
+	if (!fd)
 	{
-		perror("minishell: fork");
+		perror('malloc');
+		free(pid);
 		return ;
 	}
-	if (pid1 == 0)
+	i = 0;
+	while (i < num_cmds - 1)
 	{
-		dup2(fd[1], STDOUT_FILENO);
-		close(fd[0]);
-		close(fd[1]);
-		execve(find_command(cmds[0][0], envp), cmds[0], envp);
-		perror("minishell: execve");
-		exit(1);
+		fd[i] = malloc(sizeof(int *) * 2);
+		if (pipe(fd[i]) == -1)
+		{
+			perror('pipe');
+			while (i > 0)
+			{
+				close(fd[i - 1][0]);
+				close(fd[i - 1][1]);
+				free(fd[i - 1]);
+				i--;
+			}
+			free(fd);
+			free(pid);
+			return ;
+		}
+		i++;
 	}
-	pid2 = fork();
-	if (pid2 == -1)
-	{
-		perror("minishell: fork");
-		return ;
-	}
-	if (pid2 == 0)
-	{
-		dup2(fd[0], STDIN_FILENO);
-		close(fd[0]);
-		close(fd[1]);
-		execve(find_command(cmds[1][0], envp), cmds[1], envp);
-		perror("minishell: execve");
-		exit(1);
-	}
-	close(fd[0]);
-	close(fd[1]);
-	waitpid(pid1, NULL, 0);
-	waitpid(pid2, NULL, 0);
 }
+
 char	*find_command(char *command, char **envp)
 {
 	char		*path_env;
@@ -196,14 +201,11 @@ void	execute_command(char **args, char **envp)
 
 void	ft_retranslate(t_command *cmd, t_info *info, char **envp)
 {
-	while (info->pipes)
+	if (info->pipes > 0)
 	{
-		
+		execute_pipeline(cmd, envp);
 		info->pipes--;
 	}
-	
-
-	
 	if (ft_strcmp(cmd->name, "echo") == 0)
 		ft_echo(cmd->args);
 	else if (ft_strcmp(cmd->name, "cd") == 0)
