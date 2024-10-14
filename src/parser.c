@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 12:53:34 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/14 16:00:34 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/14 16:06:34 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -215,8 +215,8 @@ Node	*parse_tokens(t_tree *tokens)
 			free_ast(root);
 			return (NULL);
 		}
-	}
 	curr = curr->next;
+	}
 	if (last_pipe != NULL && current_command != NULL)
 	{
 		attach_right(last_pipe, current_command);
