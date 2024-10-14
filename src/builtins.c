@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:08:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/11 23:49:44 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/14 17:49:08 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,17 +35,40 @@ void	ft_echo(char **args)
 		printf("\n");
 }
 
-void	ft_cd(char **args)
+int		set_env_var(char ***envp, char *var, char *value)
 {
-	char		*dir;
-	char		cwd[PATH_MAX];
-	static char	prev_dir[PATH_MAX] = "";
-	char		*home;
-	char		new_dir[PATH_MAX];
+	
+}
+
+char	*get_env_value(char **envp, char *var)
+{
+	int i;
+	int len;
+
+	len = ft_strlen(var);
+	i = 0;
+	while (envp[i])
+	{
+		if (ft_strncmp(envp[i], var, len) == 0 && envp[i][len] == '=')
+			return (envp[i] + len + 1);
+		i++;
+	}
+	return (NULL);
+}
+
+
+void	ft_cd(char **args, char ***envp)
+{
+	char	*dir;
+	char	cwd[PATH_MAX];
+	char	*old_pwd;
+	char	*home;
+	char	new_dir[PATH_MAX];
+	char	*pwd_value;
 
 	if (!args[1] || ft_strcmp(args[1], "~") == 0)
 	{
-		home = getenv("HOME");
+		home = get_env_value(*envp, "HOME");
 		if (!home)
 		{
 			printf("minishell: cd: HOME not set\n");
@@ -55,17 +78,18 @@ void	ft_cd(char **args)
 	}
 	else if (ft_strcmp(args[1], "-") == 0)
 	{
-		if (prev_dir[0] == '\0')
+		old_pwd = get_env_value(*envp, "OLDPWD");
+		if (!old_pwd)
 		{
 			printf("minishell: cd: OLDPWD not set\n");
 			return ;
 		}
-		dir = prev_dir;
+		dir = old_pwd;
 		printf("%s\n", dir);
 	}
 	else if (args[1][0] == '~')
 	{
-		home = getenv("HOME");
+		home = get_env_value(*envp, "HOME");
 		if (!home)
 		{
 			printf("minishell: cd: HOME not set\n");
@@ -82,10 +106,36 @@ void	ft_cd(char **args)
 		perror("minishell: getcwd");
 		return ;
 	}
-	ft_strlcpy(prev_dir, cwd, PATH_MAX);
 	if (chdir(dir) != 0)
 	{
 		perror("minishell: cd");
+		return ;
+	}
+	pwd_value = get_env_value(*envp, "PWD");
+	if (pwd_value != NULL)
+	{
+		if (set_env_var(envp, "OLDPWD", pwd_value) == -1)
+		{
+			printf("minishell: cd: failed to set OLDPWD\n");
+			return ;
+		}
+	}
+	else
+	{
+		if (set_env_var(envp, "OLDPWD", cwd) == -1)
+		{
+			printf("minishell: cd: failed to set OLDPWD\n");
+			return ;
+		}
+	}
+	if (getcwd(cwd, sizeof(cwd)) == NULL)
+	{
+		perror("minishell: getcwd");
+		return ;
+	}
+	if (set_env_var(envp, "PWD", cwd) == -1)
+	{
+		printf("minishell: cd: failed to set PWD\n");
 		return ;
 	}
 }
@@ -112,11 +162,9 @@ void	print_env(char **env)
 	}
 }
 
-void    ft_add_env_var(char ***envp, char *key, char *value)
+void	ft_add_env_var(char ***envp, char *key, char *value)
 {
-	(void)envp;
-	(void)key;
-	(void)value;
+	set_env_var(envp, key, value);
 }
 
 void	ft_export(char **args, char ***env)
@@ -124,14 +172,13 @@ void	ft_export(char **args, char ***env)
 	int		i;
 	char	*key;
 	char	*value;
+
 	// char	*new_var;
-	
 	if (!args[1])
 	{
 		print_env(*env);
-		return;
+		return ;
 	}
-	
 	i = 1;
 	while (args[i])
 	{
@@ -144,13 +191,13 @@ void	ft_export(char **args, char ***env)
 			ft_add_env_var(env, key, value);
 		}
 		else
-            printf("minishell: export: `%s': not a valid identifier\n", args[i]);
-        i++;
+			printf("minishell: export: `%s': not a valid identifier\n",
+				args[i]);
+		i++;
 	}
-	
 }
 
-void    ft_remove_env_var(char ***envp, char *key)
+void	ft_remove_env_var(char ***envp, char *key)
 {
 	(void)envp;
 	(void)key;
