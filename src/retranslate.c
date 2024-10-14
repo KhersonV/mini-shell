@@ -6,42 +6,11 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/14 14:47:18 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/14 15:31:23 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
-
-// void	execute_command_with_redirect(char **args, char *outfile, int append,
-// 		char **envp)
-// {
-// 	pid_t	pid;
-// 	int		status;
-// 	int		fd;
-
-// 	pid = fork();
-// 	if (pid == -1)
-// 		return (perror("minishell: fork"));
-// 	else if (pid == 0)
-// 	{
-// 		if (append)
-// 			fd = open(outfile, O_WRONLY | O_CREAT | O_APPEND, 0644);
-// 		else
-// 			fd = open(outfile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-// 		if (fd == -1)
-// 		{
-// 			perror("minishell: open");
-// 			exit(1);
-// 		}
-// 		dup2(fd, STDOUT_FILENO);
-// 		close(fd);
-// 		execve(find_command(args[0]), args, envp);
-// 		perror("minishell: execve");
-// 		exit(1);
-// 	}
-// 	else
-// 		waitpid(pid, &status, 0);
-// }
 
 char	**copy_envp(char **envp)
 {
@@ -134,6 +103,7 @@ char	*find_command(char *command, char **envp)
 	char		*path_env;
 	char		**paths;
 	char		*full_path;
+	char		*partial_path;
 	struct stat	sb;
 	int			i;
 
@@ -148,7 +118,14 @@ char	*find_command(char *command, char **envp)
 	full_path = NULL;
 	while (paths[i])
 	{
-		full_path = ft_strjoin(ft_strjoin(paths[i], "/"), command);
+		partial_path = ft_strjoin(paths[i], "/");
+		if (!partial_path)
+		{
+			i++;
+			continue ;
+		}
+		full_path = ft_strjoin(partial_path, command);
+		free(partial_path);
 		if (!full_path)
 		{
 			i++;
@@ -171,27 +148,143 @@ void	execute_command(char **args, char **envp)
 {
 	char	*path;
 
-		path = find_command(args[0], envp);
-		if (!path)
-		{
-			ft_putstr_fd("minishell: command not found: ", 2);
-			ft_putstr_fd(args[0], 2);
-			ft_putstr_fd("\n", 2);
-			exit(127);
-		}
-		if (execve(path, args, envp) == -1)
-		{
-			perror("minishell: execve");
-			free(path);
-			exit(1);
-		}
+	path = find_command(args[0], envp);
+	if (!path)
+	{
+		ft_putstr_fd("minishell: command not found: ", 2);
+		ft_putstr_fd(args[0], 2);
+		ft_putstr_fd("\n", 2);
+		exit(127);
+	}
+	if (execve(path, args, envp) == -1)
+	{
+		perror("minishell: execve");
+		free(path);
+		exit(1);
+	}
 	free(path);
 }
 
 void	execute_command_node(Node *node, t_info *info)
 {
-	(void)node;
-	(void)info;
+	pid_t	pid;
+	int		status;
+	char	**args;
+	char	**args_split;
+	int		arg_count;
+	int		i;
+	int		fd_in;
+	int		fd_out;
+
+	fd_in = -1;
+	fd_out = -1;
+	if (node->args)
+	{
+		args_split = ft_split(node->args, ' ');
+		arg_count = 0;
+		while (args_split[arg_count])
+			arg_count++;
+		args = malloc(sizeof(char *) * (arg_count + 2));
+		if (!args)
+		{
+			perror("malloc");
+			ft_free_args(args_split);
+			return ;
+		}
+		args[0] = ft_strdup(node->data);
+		i = 0;
+		while (i < arg_count)
+		{
+			args[i + 1] = ft_strdup(args_split[i]);
+			i++;
+		}
+		args[arg_count + 1] = NULL;
+		ft_free_args(args_split);
+	}
+	else
+	{
+		args = malloc(sizeof(char *) * 2);
+		if (!args)
+		{
+			perror("malloc");
+			return ;
+		}
+		args[0] = ft_strdup(node->data);
+		args[1] = NULL;
+	}
+	pid = fork();
+	if (pid == -1)
+	{
+		perror("fork");
+		ft_free_args(args);
+		return ;
+	}
+	if (pid == 0)
+	{
+		if (node->redirect_op)
+		{
+			if (ft_strcmp(node->redirect_op, "<") == 0)
+				fd_in = open(node->redirect_file, O_RDONLY);
+			else if (ft_strcmp(node->redirect_op, ">") == 0)
+				fd_out = open(node->redirect_file, O_WRONLY | O_CREAT | O_TRUNC,
+						0644);
+			else if (ft_strcmp(node->redirect_op, ">>") == 0)
+				fd_out = open(node->redirect_file,
+						O_WRONLY | O_CREAT | O_APPEND, 0644);
+			else
+			{
+				ft_putstr_fd("Unsupported redirection operator\n", 2);
+				exit(1);
+			}
+			if ((fd_in == -1 && node->redirect_op[0] == '<') || (fd_out == -1
+					&& node->redirect_op[0] == '>'))
+			{
+				perror("open");
+				exit(1);
+			}
+			if (fd_in != -1)
+			{
+				if (dup2(fd_in, STDIN_FILENO) == -1)
+				{
+					perror("dup2");
+					exit(1);
+				}
+				close(fd_in);
+			}
+			if (fd_out != -1)
+			{
+				if (dup2(fd_out, STDOUT_FILENO) == -1)
+				{
+					perror("dup2");
+					exit(1);
+				}
+				close(fd_out);
+			}
+		}
+		if (ft_strcmp(args[0], "echo") == 0)
+			ft_echo(args);
+		else if (ft_strcmp(args[0], "cd") == 0)
+			ft_cd(args);
+		else if (ft_strcmp(args[0], "pwd") == 0)
+			ft_pwd();
+		else if (ft_strcmp(args[0], "export") == 0)
+			ft_export(args, &(info->envp));
+		else if (ft_strcmp(args[0], "unset") == 0)
+			ft_unset(args, &(info->envp));
+		else if (ft_strcmp(args[0], "env") == 0)
+			ft_env(info->envp);
+		else if (ft_strcmp(args[0], "exit") == 0)
+			ft_exit(args);
+		else
+			execute_command(args, info->envp);
+		ft_free_args(args);
+		exit(0);
+	}
+	else
+	{
+		waitpid(pid, &status, 0);
+	}
+	ft_free_args(args);
 }
 
 void	execute_ast(Node *node, t_info *info)

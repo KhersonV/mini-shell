@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/13 22:32:49 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/14 14:51:35 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,6 +96,7 @@ void				ft_exit(char **args);
 void				execute_command(char **args, char **envp);
 char				*find_command(char *command, char **envp);
 void				ft_free_args(char **args);
+void				ft_free_array(char **array);
 char				**copy_envp(char **envp);
 void				execute_ast(Node *node, t_info *info);
 void				execute_command_node(Node *node, t_info *info);

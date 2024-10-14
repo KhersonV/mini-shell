@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 12:53:34 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/13 22:36:33 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/14 15:51:16 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -275,32 +275,37 @@ void	adjusting_token_tree(t_tree **tree)
 		}
 		if (!command_found && !(ft_strcmp(curr->type, "WORD")))
 		{
-			curr->type = "COMMAND";
+			free(curr->type);
+			curr->type = ft_strdup("COMMAND");
 			command_found = 1;
 		}
 		else if (command_found && (!(ft_strcmp(curr->type, "WORD"))
 				|| (command_found && !(ft_strcmp(curr->type, "FIELD")))))
 		{
-			curr->type = "ARGUMENT";
+			free(curr->type);
+			curr->type = ft_strdup("ARGUMENT");
 		}
 		if (!(ft_strcmp(curr->type, "REDIR_IN")) || !(ft_strcmp(curr->type,
 					"REDIR_OUT")) || !(ft_strcmp(curr->type, "REDIR_APPEND")))
 		{
 			if (curr->next != NULL)
 			{
-				curr->next->type = "FILE";
+				free(curr->next->type);
+				curr->next->type = ft_strdup("FILE");
 			}
 		}
 		else if (!(ft_strcmp(curr->type, "REDIR_INSOURCE")))
 		{
 			if (curr->next != NULL)
 			{
-				curr->next->type = "HEREDOC_MARKER";
+				free(curr->next->type);
+				curr->next->type = ft_strdup("HEREDOC_MARKER");
 			}
 		}
 		curr = curr->next;
 	}
 }
+
 
 // int	main(void)
 // {

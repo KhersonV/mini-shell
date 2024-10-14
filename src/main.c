@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 11:46:57 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/13 22:18:35 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/14 15:40:47 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,11 @@ void	ft_free_args(char **args)
 
 void	ft_free_array(char **array)
 {
-	int	i = 0;
+	int	i;
 
+	i = 0;
+	if (!array)
+		return ;
 	while (array[i])
 	{
 		free(array[i]);
@@ -65,8 +68,14 @@ void	free_ast(Node *node)
 		free(node->redirect_op);
 	if (node->redirect_file)
 		free(node->redirect_file);
-	free_ast(node->left);
-	free_ast(node->right);
+	if (node->left)
+	{
+		free_ast(node->left);
+	}
+	if (node->right)
+	{
+		free_ast(node->right);
+	}
 	free(node);
 }
 
@@ -79,7 +88,6 @@ int	main(int argc, char **argv, char **envp)
 
 	(void)argc;
 	(void)argv;
-	
 	info.envp = copy_envp(envp);
 	if (!info.envp)
 	{
