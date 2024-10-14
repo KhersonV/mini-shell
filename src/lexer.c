@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 21:23:27 by lynchsama         #+#    #+#             */
-/*   Updated: 2024/10/13 22:35:55 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/14 16:20:14 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,8 +63,8 @@ t_tree	*create_token_node(char *name, char *type, int pres)
 	new_node = (t_tree *)malloc(sizeof(t_tree));
 	if (!new_node)
 		return (NULL);
-	new_node->name = strdup(name);
-	new_node->type = strdup(type);
+	new_node->name = ft_strdup(name);
+	new_node->type = ft_strdup(type);
 	new_node->precedence = pres;
 	new_node->next = NULL;
 	new_node->prev = NULL;
