@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/13 22:29:09 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/14 14:47:18 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,7 +133,6 @@ char	*find_command(char *command, char **envp)
 {
 	char		*path_env;
 	char		**paths;
-	char		*partial_path;
 	char		*full_path;
 	struct stat	sb;
 	int			i;
@@ -149,47 +148,35 @@ char	*find_command(char *command, char **envp)
 	full_path = NULL;
 	while (paths[i])
 	{
-		partial_path = ft_strjoin(paths[i], "/");
-		if (!partial_path)
-		{
-			i++;
-			continue ;
-		}
-		full_path = ft_strjoin(partial_path, command);
-		free(partial_path);
+		full_path = ft_strjoin(ft_strjoin(paths[i], "/"), command);
 		if (!full_path)
 		{
 			i++;
 			continue ;
 		}
 		if (stat(full_path, &sb) == 0 && sb.st_mode & S_IXUSR)
-			break ;
+		{
+			ft_free_array(paths);
+			return (full_path);
+		}
 		free(full_path);
 		full_path = NULL;
 		i++;
 	}
-	ft_free_args(paths);
-	if (full_path)
-		return (full_path);
-	else
-		return (NULL);
+	ft_free_array(paths);
+	return (NULL);
 }
 
 void	execute_command(char **args, char **envp)
 {
-	pid_t	pid;
-	int		status;
 	char	*path;
 
-	pid = fork();
-	if (pid == -1)
-		return (perror("minishell: fork"));
-	else if (pid == 0)
-	{
 		path = find_command(args[0], envp);
 		if (!path)
 		{
-			fprintf(stderr, "minishell: command not found: %s\n", args[0]);
+			ft_putstr_fd("minishell: command not found: ", 2);
+			ft_putstr_fd(args[0], 2);
+			ft_putstr_fd("\n", 2);
 			exit(127);
 		}
 		if (execve(path, args, envp) == -1)
@@ -198,9 +185,7 @@ void	execute_command(char **args, char **envp)
 			free(path);
 			exit(1);
 		}
-	}
-	else
-		waitpid(pid, &status, 0);
+	free(path);
 }
 
 void	execute_command_node(Node *node, t_info *info)
