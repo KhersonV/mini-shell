@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 12:53:34 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/14 15:51:16 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/14 16:00:34 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,6 +111,9 @@ Node	*create_node(char *data)
 	new_node->data = strdup(data);
 	new_node->left = NULL;
 	new_node->right = NULL;
+	new_node->args = NULL;
+	new_node->redirect_op = NULL;
+	new_node->redirect_file = NULL;
 	return (new_node);
 }
 
@@ -207,8 +210,13 @@ Node	*parse_tokens(t_tree *tokens)
 			attach_redirect(current_command, curr->name, curr->next->name);
 			curr = curr->next;
 		}
-		curr = curr->next;
+		else
+		{
+			free_ast(root);
+			return (NULL);
+		}
 	}
+	curr = curr->next;
 	if (last_pipe != NULL && current_command != NULL)
 	{
 		attach_right(last_pipe, current_command);
@@ -305,7 +313,6 @@ void	adjusting_token_tree(t_tree **tree)
 		curr = curr->next;
 	}
 }
-
 
 // int	main(void)
 // {
