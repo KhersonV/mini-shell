@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:08:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/14 17:49:08 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/15 13:33:08 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,9 +35,79 @@ void	ft_echo(char **args)
 		printf("\n");
 }
 
+int finf_envp_var(char **envp, char *var)
+{
+	int	leng;
+	int i;
+	
+	i = 0;
+	leng = ft_strlen(var);
+	while (envp[i])
+	{
+		if (ft_strncmp(envp[i], var, leng) == 0 && envp[i][leng] == '=')
+		{
+			return (i);
+		}
+		i++;
+	}
+	return (-1);
+}
+
+int ft_add_new(char ***envp, char *new_var) 
+{
+	int env_len;
+	char **new_envp;
+	int		i;
+
+	i = 0;
+	while ((*envp)[env_len])
+	{
+		env_len++;
+	}
+	new_envp = malloc(sizeof(char *) * (env_len + 2));
+	if (!new_envp)
+	{
+		free(new_var);
+		return (-1);
+	}
+	while (i < env_len)
+	{
+		new_envp[i] = (*envp[i]);
+		i++; 
+	}
+	new_envp[env_len] = new_var;
+	new_envp[env_len + 1] = NULL;
+	free(envp);
+	*envp = new_envp;
+	return (0);
+}
+
 int		set_env_var(char ***envp, char *var, char *value)
 {
+	int	i;
+	char	*new_var;
+	char	*temp;
+	char	**new_envp;
 	
+	i = finf_envp_var(*envp, var);
+	temp = ft_strjoin(var, "=");
+	if (!temp)
+		return (-1);
+	new_var = ft_strjoin(temp, value);
+	free(temp);
+	if (!new_var)
+		return (-1);
+	if (i >= 0)
+	{
+		free((*envp)[i]);
+		(*envp)[i] = new_var;
+	}
+	else
+	{
+		if (ft_add_new(envp, new_var) == -1)
+			return (-1);
+	}
+	return (0);
 }
 
 char	*get_env_value(char **envp, char *var)
