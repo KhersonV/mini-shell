@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:08:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/15 13:33:08 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/15 13:55:30 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ void	ft_echo(char **args)
 		printf("\n");
 }
 
-int finf_envp_var(char **envp, char *var)
+int find_envp_var(char **envp, char *var)
 {
 	int	leng;
 	int i;
@@ -60,6 +60,7 @@ int ft_add_new(char ***envp, char *new_var)
 	int		i;
 
 	i = 0;
+	env_len = 0;
 	while ((*envp)[env_len])
 	{
 		env_len++;
@@ -72,12 +73,12 @@ int ft_add_new(char ***envp, char *new_var)
 	}
 	while (i < env_len)
 	{
-		new_envp[i] = (*envp[i]);
+		new_envp[i] = (*envp)[i];
 		i++; 
 	}
 	new_envp[env_len] = new_var;
 	new_envp[env_len + 1] = NULL;
-	free(envp);
+	free(*envp);
 	*envp = new_envp;
 	return (0);
 }
@@ -87,9 +88,8 @@ int		set_env_var(char ***envp, char *var, char *value)
 	int	i;
 	char	*new_var;
 	char	*temp;
-	char	**new_envp;
 	
-	i = finf_envp_var(*envp, var);
+	i = find_envp_var(*envp, var);
 	temp = ft_strjoin(var, "=");
 	if (!temp)
 		return (-1);

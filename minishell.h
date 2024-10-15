@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/14 16:04:09 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/15 13:39:00 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,7 +87,7 @@ void				remove_spaces(t_tree **tree);
 t_tree				*tokenize(char *s);
 void				adjusting_token_tree(t_tree **tree);
 void				ft_echo(char **args);
-void				ft_cd(char **args);
+void				ft_cd(char **args, char ***envp);
 void				ft_pwd(void);
 void				ft_export(char **args, char ***env);
 void				ft_unset(char **args, char ***envp);
