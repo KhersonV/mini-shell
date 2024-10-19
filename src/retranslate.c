@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/14 16:33:13 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/15 23:49:28 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,6 +165,84 @@ void	execute_command(char **args, char **envp)
 	free(path);
 }
 
+int	is_builtin(char *command)
+{
+	if (ft_strcmp(command, "echo") == 0)
+		return (1);
+	if (ft_strcmp(command, "cd") == 0)
+		return (1);
+	if (ft_strcmp(command, "pwd") == 0)
+		return (1);
+	if (ft_strcmp(command, "export") == 0)
+		return (1);
+	if (ft_strcmp(command, "unset") == 0)
+		return (1);
+	if (ft_strcmp(command, "env") == 0)
+		return (1);
+	if (ft_strcmp(command, "exit") == 0)
+		return (1);
+	return (0);
+}
+
+int	handle_redirections(Node *node, int *fd_in, int *fd_out)
+{
+	if (node->redirect_op)
+	{
+		if (ft_strcmp(node->redirect_op, "<") == 0)
+			*fd_in = open(node->redirect_file, O_RDONLY);
+		else if (ft_strcmp(node->redirect_op, ">") == 0)
+			*fd_out = open(node->redirect_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		else if (ft_strcmp(node->redirect_op, ">>") == 0)
+			*fd_out = open(node->redirect_file, O_WRONLY | O_CREAT | O_APPEND, 0644);
+		else
+		{
+			ft_putstr_fd("Unsupported redirection operator\n", 2);
+			return (0);
+		}
+		if ((*fd_in == -1 && node->redirect_op[0] == '<') ||
+			(*fd_out == -1 && node->redirect_op[0] == '>'))
+		{
+			perror("open");
+			return (0);
+		}
+		if (*fd_in != -1)
+		{
+			if (dup2(*fd_in, STDIN_FILENO) == -1)
+			{
+				perror("dup2");
+				return (0);
+			}
+			close(*fd_in);
+		}
+		if (*fd_out != -1)
+		{
+			if (dup2(*fd_out, STDOUT_FILENO) == -1)
+			{
+				perror("dup2");
+				return (0);
+			}
+			close(*fd_out);
+		}
+	}
+	return (1);
+}
+
+void	restore_standard_fds(int fd_in, int fd_out)
+{
+	if (fd_in != -1)
+	{
+		if (dup2(fd_in, STDIN_FILENO) == -1)
+			perror("dup2");
+		close(fd_in);
+	}
+	if (fd_out != -1)
+	{
+		if (dup2(fd_out, STDOUT_FILENO) == -1)
+			perror("dup2");
+		close(fd_out);
+	}
+}
+
 void	execute_command_node(Node *node, t_info *info)
 {
 	pid_t	pid;
@@ -211,6 +289,28 @@ void	execute_command_node(Node *node, t_info *info)
 		}
 		args[0] = ft_strdup(node->data);
 		args[1] = NULL;
+	}
+	if (is_builtin(args[0]))
+	{
+		if (node->redirect_op)
+		{
+			if (!handle_redirections(node, &fd_in, &fd_out))
+			{
+				ft_free_args(args);
+				return;
+			}
+		}
+		if (ft_strcmp(args[0], "cd") == 0)
+			ft_cd(args, &(info->envp));
+		else if (ft_strcmp(args[0], "exit") == 0)
+			ft_exit(args);
+		else if (ft_strcmp(args[0], "export") == 0)
+			ft_export(args, &(info->envp));
+		else if (ft_strcmp(args[0], "unset") == 0)
+			ft_unset(args, &(info->envp));
+		restore_standard_fds(fd_in, fd_out);
+		ft_free_args(args);
+		return;
 	}
 	pid = fork();
 	if (pid == -1)
@@ -264,7 +364,7 @@ void	execute_command_node(Node *node, t_info *info)
 		if (ft_strcmp(args[0], "echo") == 0)
 			ft_echo(args);
 		else if (ft_strcmp(args[0], "cd") == 0)
-			ft_cd(args);
+			ft_cd(args, &(info->envp));
 		else if (ft_strcmp(args[0], "pwd") == 0)
 			ft_pwd();
 		else if (ft_strcmp(args[0], "export") == 0)
