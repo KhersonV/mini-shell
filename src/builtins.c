@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:08:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/15 13:55:30 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/21 13:35:35 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -269,9 +269,38 @@ void	ft_export(char **args, char ***env)
 
 void	ft_remove_env_var(char ***envp, char *key)
 {
-	(void)envp;
-	(void)key;
+	int		i;
+	int		j;
+	int		len;
+	char	**new_envp;
+
+	len = ft_strlen(key);
+	i = 0;
+	while ((*envp)[i])
+	{
+		if (ft_strncmp((*envp)[i], key, len) == 0 && ((*envp)[i][len] == '=' || (*envp)[i][len] == '\0'))
+			break;
+		i++;
+	}
+	if (!(*envp)[i])
+		return;
+	new_envp = malloc(sizeof(char *) * (i + 1));
+	if (!new_envp)
+		return;
+	j = 0;
+	while ((*envp)[j])
+	{
+		if (j != i)
+			new_envp[j] = (*envp)[j];
+		else
+			free((*envp)[j]);
+		j++;
+	}
+	new_envp[j - 1] = NULL;
+	free(*envp);
+	*envp = new_envp;
 }
+
 
 void	ft_unset(char **args, char ***envp)
 {

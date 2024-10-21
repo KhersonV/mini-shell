@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/15 23:49:28 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/20 16:38:22 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -308,6 +308,12 @@ void	execute_command_node(Node *node, t_info *info)
 			ft_export(args, &(info->envp));
 		else if (ft_strcmp(args[0], "unset") == 0)
 			ft_unset(args, &(info->envp));
+		else if (ft_strcmp(args[0], "pwd") == 0)
+			ft_pwd();
+		else if (ft_strcmp(args[0], "env") == 0)
+			ft_env(info->envp);
+		else if (ft_strcmp(args[0], "echo") == 0)
+			ft_echo(args);
 		restore_standard_fds(fd_in, fd_out);
 		ft_free_args(args);
 		return;
