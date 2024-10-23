@@ -3,18 +3,19 @@
 /*                                                        :::      ::::::::   */
 /*   parser.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
+/*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 12:53:34 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/14 16:06:34 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/23 20:40:09 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../minishell.h"
+//#include "../minishell.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "l_p.h"
 
 int	ft_strcmp(const char *s1, const char *s2)
 {
@@ -25,6 +26,8 @@ int	ft_strcmp(const char *s1, const char *s2)
 	}
 	return ((unsigned char)*s1 - (unsigned char)*s2);
 }
+
+
 
 int	is_command_or_argument(t_tree *token)
 {
@@ -212,7 +215,7 @@ Node	*parse_tokens(t_tree *tokens)
 		}
 		else
 		{
-			free_ast(root);
+			//free_ast(root);
 			return (NULL);
 		}
 	curr = curr->next;
