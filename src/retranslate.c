@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/20 16:38:22 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/21 13:42:30 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,6 +108,13 @@ char	*find_command(char *command, char **envp)
 	int			i;
 
 	(void)envp;
+	if (command[0] == '/' || command[0] == '.')
+	{
+		if (stat(command, &sb) == 0 && sb.st_mode & S_IXUSR)
+			return (ft_strdup(command));
+		else
+			return (NULL);
+	}
 	path_env = getenv("PATH");
 	if (!path_env)
 		return (NULL);
