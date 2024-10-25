@@ -6,13 +6,13 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:08:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/21 13:35:35 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/26 00:03:48 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-void	ft_echo(char **args)
+void	ft_echo(char **args, t_info *info)
 {
 	int	i;
 	int	newline;
@@ -33,13 +33,14 @@ void	ft_echo(char **args)
 	}
 	if (newline)
 		printf("\n");
+	info->exit_status = 0;
 }
 
-int find_envp_var(char **envp, char *var)
+int	find_envp_var(char **envp, char *var)
 {
 	int	leng;
-	int i;
-	
+	int	i;
+
 	i = 0;
 	leng = ft_strlen(var);
 	while (envp[i])
@@ -53,10 +54,10 @@ int find_envp_var(char **envp, char *var)
 	return (-1);
 }
 
-int ft_add_new(char ***envp, char *new_var) 
+int	ft_add_new(char ***envp, char *new_var)
 {
-	int env_len;
-	char **new_envp;
+	int		env_len;
+	char	**new_envp;
 	int		i;
 
 	i = 0;
@@ -74,7 +75,7 @@ int ft_add_new(char ***envp, char *new_var)
 	while (i < env_len)
 	{
 		new_envp[i] = (*envp)[i];
-		i++; 
+		i++;
 	}
 	new_envp[env_len] = new_var;
 	new_envp[env_len + 1] = NULL;
@@ -83,12 +84,12 @@ int ft_add_new(char ***envp, char *new_var)
 	return (0);
 }
 
-int		set_env_var(char ***envp, char *var, char *value)
+int	set_env_var(char ***envp, char *var, char *value)
 {
-	int	i;
+	int		i;
 	char	*new_var;
 	char	*temp;
-	
+
 	i = find_envp_var(*envp, var);
 	temp = ft_strjoin(var, "=");
 	if (!temp)
@@ -112,8 +113,8 @@ int		set_env_var(char ***envp, char *var, char *value)
 
 char	*get_env_value(char **envp, char *var)
 {
-	int i;
-	int len;
+	int	i;
+	int	len;
 
 	len = ft_strlen(var);
 	i = 0;
@@ -126,8 +127,7 @@ char	*get_env_value(char **envp, char *var)
 	return (NULL);
 }
 
-
-void	ft_cd(char **args, char ***envp)
+void	ft_cd(char **args, char ***envp, t_info *info)
 {
 	char	*dir;
 	char	cwd[PATH_MAX];
@@ -142,6 +142,7 @@ void	ft_cd(char **args, char ***envp)
 		if (!home)
 		{
 			printf("minishell: cd: HOME not set\n");
+			info->exit_status = 1;
 			return ;
 		}
 		dir = home;
@@ -152,6 +153,7 @@ void	ft_cd(char **args, char ***envp)
 		if (!old_pwd)
 		{
 			printf("minishell: cd: OLDPWD not set\n");
+			info->exit_status = 1;
 			return ;
 		}
 		dir = old_pwd;
@@ -163,6 +165,7 @@ void	ft_cd(char **args, char ***envp)
 		if (!home)
 		{
 			printf("minishell: cd: HOME not set\n");
+			info->exit_status = 1;
 			return ;
 		}
 		ft_strlcpy(new_dir, home, PATH_MAX);
@@ -174,11 +177,13 @@ void	ft_cd(char **args, char ***envp)
 	if (getcwd(cwd, sizeof(cwd)) == NULL)
 	{
 		perror("minishell: getcwd");
+		info->exit_status = 1;
 		return ;
 	}
 	if (chdir(dir) != 0)
 	{
 		perror("minishell: cd");
+		info->exit_status = 1;
 		return ;
 	}
 	pwd_value = get_env_value(*envp, "PWD");
@@ -187,6 +192,7 @@ void	ft_cd(char **args, char ***envp)
 		if (set_env_var(envp, "OLDPWD", pwd_value) == -1)
 		{
 			printf("minishell: cd: failed to set OLDPWD\n");
+			info->exit_status = 1;
 			return ;
 		}
 	}
@@ -195,29 +201,39 @@ void	ft_cd(char **args, char ***envp)
 		if (set_env_var(envp, "OLDPWD", cwd) == -1)
 		{
 			printf("minishell: cd: failed to set OLDPWD\n");
+			info->exit_status = 1;
 			return ;
 		}
 	}
 	if (getcwd(cwd, sizeof(cwd)) == NULL)
 	{
 		perror("minishell: getcwd");
+		info->exit_status = 1;
 		return ;
 	}
 	if (set_env_var(envp, "PWD", cwd) == -1)
 	{
 		printf("minishell: cd: failed to set PWD\n");
+		info->exit_status = 1;
 		return ;
 	}
+	info->exit_status = 0;
 }
 
-void	ft_pwd(void)
+void	ft_pwd(t_info *info)
 {
 	char	cwd[PATH_MAX];
 
 	if (getcwd(cwd, sizeof(cwd)) != NULL)
+	{
 		printf("%s\n", cwd);
+		info->exit_status = 0;
+	}
 	else
+	{
 		perror("minishell: pwd");
+		info->exit_status = 1;
+	}
 }
 
 void	print_env(char **env)
@@ -236,17 +252,16 @@ void	ft_add_env_var(char ***envp, char *key, char *value)
 {
 	set_env_var(envp, key, value);
 }
-
-void	ft_export(char **args, char ***env)
+void	ft_export(char **args, char ***envp, t_info *info)
 {
 	int		i;
 	char	*key;
 	char	*value;
 
-	// char	*new_var;
 	if (!args[1])
 	{
-		print_env(*env);
+		print_env(*envp);
+		info->exit_status = 0;
 		return ;
 	}
 	i = 1;
@@ -258,13 +273,14 @@ void	ft_export(char **args, char ***env)
 		{
 			*value = '\0';
 			value++;
-			ft_add_env_var(env, key, value);
+			ft_add_env_var(envp, key, value);
 		}
 		else
 			printf("minishell: export: `%s': not a valid identifier\n",
 				args[i]);
 		i++;
 	}
+	info->exit_status = 0;
 }
 
 void	ft_remove_env_var(char ***envp, char *key)
@@ -278,15 +294,16 @@ void	ft_remove_env_var(char ***envp, char *key)
 	i = 0;
 	while ((*envp)[i])
 	{
-		if (ft_strncmp((*envp)[i], key, len) == 0 && ((*envp)[i][len] == '=' || (*envp)[i][len] == '\0'))
-			break;
+		if (ft_strncmp((*envp)[i], key, len) == 0 && ((*envp)[i][len] == '='
+				|| (*envp)[i][len] == '\0'))
+			break ;
 		i++;
 	}
 	if (!(*envp)[i])
-		return;
+		return ;
 	new_envp = malloc(sizeof(char *) * (i + 1));
 	if (!new_envp)
-		return;
+		return ;
 	j = 0;
 	while ((*envp)[j])
 	{
@@ -301,8 +318,7 @@ void	ft_remove_env_var(char ***envp, char *key)
 	*envp = new_envp;
 }
 
-
-void	ft_unset(char **args, char ***envp)
+void	ft_unset(char **args, char ***envp, t_info *info)
 {
 	int	i;
 
@@ -310,6 +326,7 @@ void	ft_unset(char **args, char ***envp)
 	if (!args[1])
 	{
 		printf("minishell: unset: not enough arguments\n");
+		info->exit_status = 1;
 		return ;
 	}
 	while (args[i])
@@ -317,9 +334,10 @@ void	ft_unset(char **args, char ***envp)
 		ft_remove_env_var(envp, args[i]);
 		i++;
 	}
+	info->exit_status = 0;
 }
 
-void	ft_env(char **env)
+void	ft_env(char **env, t_info *info)
 {
 	int	i;
 
@@ -329,14 +347,17 @@ void	ft_env(char **env)
 		printf("%s\n", env[i]);
 		i++;
 	}
+	info->exit_status = 0;
 }
 
-void	ft_exit(char **args)
+void	ft_exit(char **args, t_info *info)
 {
 	int	exit_status;
 
 	exit_status = 0;
 	if (args[1])
 		exit_status = ft_atoi(args[1]);
+		else
+		exit_status = info->exit_status;
 	exit(exit_status);
 }

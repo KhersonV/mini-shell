@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/25 23:00:59 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/26 00:04:49 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,19 +80,18 @@ enum				token_types
 };
 
 void				print_tokens(t_tree *node);
-
 int					skip_spaces(t_tree *token);
 Node				*parse_tokens(t_tree *tokens);
 void				remove_spaces(t_tree **tree);
 t_tree				*tokenize(char *s);
 void				adjusting_token_tree(t_tree **tree);
-void				ft_echo(char **args);
-void				ft_cd(char **args, char ***envp);
-void				ft_pwd(void);
-void				ft_export(char **args, char ***env);
-void				ft_unset(char **args, char ***envp);
-void				ft_env(char **env);
-void				ft_exit(char **args);
+void				ft_echo(char **args, t_info *info);
+void				ft_cd(char **args, char ***envp, t_info *info);
+void				ft_pwd(t_info *info);
+void				ft_export(char **args, char ***envp, t_info *info);
+void				ft_unset(char **args, char ***envp, t_info *info);
+void				ft_env(char **envp, t_info *info);
+void				ft_exit(char **args, t_info *info);
 void				execute_command(char **args, char **envp);
 char				*find_command(char *command, char **envp);
 void				ft_free_args(char **args);
@@ -101,5 +100,5 @@ void				free_ast(Node *node);
 char				**copy_envp(char **envp);
 void				execute_ast(Node *node, t_info *info);
 void				execute_command_node(Node *node, t_info *info);
-
+char				*get_env_value(char **envp, char *var);
 #endif

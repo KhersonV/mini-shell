@@ -39,7 +39,8 @@ cmd_notBUILDIN(tree *ast)
 *******************************************
 exit codes...
 *******************************************
-
+rework on pipes!!! should work 3- 5 -10.. not only 2!
+*******************************************
 при нажатии ctrl+c что-то не то с сигналами..
 
 (base) admin@MBP-von-Admin mini-shell % ./minishell

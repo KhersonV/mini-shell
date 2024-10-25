@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/25 23:28:04 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/26 00:10:32 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,20 +50,25 @@ void	execute_pipe(Node *node, t_info *info)
 	int		fd[2];
 	pid_t	pid1;
 	pid_t	pid2;
+	int		status;
 
 	if (pipe(fd) == -1)
 	{
 		perror("pipe");
+		info->exit_status = 1;
 		return ;
 	}
 	pid1 = fork();
 	if (pid1 == -1)
 	{
 		perror("fork");
+		info->exit_status = 1;
 		return ;
 	}
 	if (pid1 == 0)
 	{
+		signal(SIGINT, SIG_DFL);
+		signal(SIGQUIT, SIG_DFL);
 		close(fd[0]);
 		if (dup2(fd[1], STDOUT_FILENO) == -1)
 		{
@@ -72,16 +77,19 @@ void	execute_pipe(Node *node, t_info *info)
 		}
 		close(fd[1]);
 		execute_ast(node->left, info);
-		exit(0);
+		exit(info->exit_status);
 	}
 	pid2 = fork();
 	if (pid2 == -1)
 	{
 		perror("fork");
+		info->exit_status = 1;
 		return ;
 	}
 	if (pid2 == 0)
 	{
+		signal(SIGINT, SIG_DFL);
+		signal(SIGQUIT, SIG_DFL);
 		close(fd[1]);
 		if (dup2(fd[0], STDIN_FILENO) == -1)
 		{
@@ -90,12 +98,20 @@ void	execute_pipe(Node *node, t_info *info)
 		}
 		close(fd[0]);
 		execute_ast(node->right, info);
-		exit(0);
+		exit(info->exit_status);
 	}
 	close(fd[0]);
 	close(fd[1]);
-	waitpid(pid1, NULL, 0);
-	waitpid(pid2, NULL, 0);
+	waitpid(pid1, &status, 0);
+	if (WIFEXITED(status))
+		info->exit_status = WEXITSTATUS(status);
+	else if (WIFSIGNALED(status))
+		info->exit_status = 128 + WTERMSIG(status);
+	waitpid(pid2, &status, 0);
+	if (WIFEXITED(status))
+		info->exit_status = WEXITSTATUS(status);
+	else if (WIFSIGNALED(status))
+		info->exit_status = 128 + WTERMSIG(status);
 }
 
 char	*find_command(char *command, char **envp)
@@ -107,7 +123,6 @@ char	*find_command(char *command, char **envp)
 	struct stat	sb;
 	int			i;
 
-	(void)envp;
 	if (command[0] == '/' || command[0] == '.')
 	{
 		if (stat(command, &sb) == 0 && sb.st_mode & S_IXUSR)
@@ -115,7 +130,7 @@ char	*find_command(char *command, char **envp)
 		else
 			return (NULL);
 	}
-	path_env = getenv("PATH");
+	path_env = get_env_value(envp, "PATH");
 	if (!path_env)
 		return (NULL);
 	paths = ft_split(path_env, ':');
@@ -198,16 +213,18 @@ int	handle_redirections(Node *node, int *fd_in, int *fd_out)
 		if (ft_strcmp(node->redirect_op, "<") == 0)
 			*fd_in = open(node->redirect_file, O_RDONLY);
 		else if (ft_strcmp(node->redirect_op, ">") == 0)
-			*fd_out = open(node->redirect_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+			*fd_out = open(node->redirect_file, O_WRONLY | O_CREAT | O_TRUNC,
+					0644);
 		else if (ft_strcmp(node->redirect_op, ">>") == 0)
-			*fd_out = open(node->redirect_file, O_WRONLY | O_CREAT | O_APPEND, 0644);
+			*fd_out = open(node->redirect_file, O_WRONLY | O_CREAT | O_APPEND,
+					0644);
 		else
 		{
 			ft_putstr_fd("Unsupported redirection operator\n", 2);
 			return (0);
 		}
-		if ((*fd_in == -1 && node->redirect_op[0] == '<') ||
-			(*fd_out == -1 && node->redirect_op[0] == '>'))
+		if ((*fd_in == -1 && node->redirect_op[0] == '<') || (*fd_out == -1
+				&& node->redirect_op[0] == '>'))
 		{
 			perror("open");
 			return (0);
@@ -274,6 +291,7 @@ void	execute_command_node(Node *node, t_info *info)
 		{
 			perror("malloc");
 			ft_free_args(args_split);
+			info->exit_status = 1;
 			return ;
 		}
 		args[0] = ft_strdup(node->data);
@@ -292,6 +310,7 @@ void	execute_command_node(Node *node, t_info *info)
 		if (!args)
 		{
 			perror("malloc");
+			info->exit_status = 1;
 			return ;
 		}
 		args[0] = ft_strdup(node->data);
@@ -304,32 +323,34 @@ void	execute_command_node(Node *node, t_info *info)
 			if (!handle_redirections(node, &fd_in, &fd_out))
 			{
 				ft_free_args(args);
-				return;
+				info->exit_status = 1;
+				return ;
 			}
 		}
 		if (ft_strcmp(args[0], "cd") == 0)
-			ft_cd(args, &(info->envp));
+			ft_cd(args, &(info->envp), info);
 		else if (ft_strcmp(args[0], "exit") == 0)
-			ft_exit(args);
+			ft_exit(args, info);
 		else if (ft_strcmp(args[0], "export") == 0)
-			ft_export(args, &(info->envp));
+			ft_export(args, &(info->envp), info);
 		else if (ft_strcmp(args[0], "unset") == 0)
-			ft_unset(args, &(info->envp));
+			ft_unset(args, &(info->envp), info);
 		else if (ft_strcmp(args[0], "pwd") == 0)
-			ft_pwd();
+			ft_pwd(info);
 		else if (ft_strcmp(args[0], "env") == 0)
-			ft_env(info->envp);
+			ft_env(info->envp, info);
 		else if (ft_strcmp(args[0], "echo") == 0)
-			ft_echo(args);
+			ft_echo(args, info);
 		restore_standard_fds(fd_in, fd_out);
 		ft_free_args(args);
-		return;
+		return ;
 	}
 	pid = fork();
 	if (pid == -1)
 	{
 		perror("fork");
 		ft_free_args(args);
+		info->exit_status = 1;
 		return ;
 	}
 	if (pid == 0)
@@ -371,37 +392,3 @@ void	execute_ast(Node *node, t_info *info)
 	else
 		execute_command_node(node, info);
 }
-
-/*
-Предлагаю типизировать все билд ины
-а конкретно
-функция куда попадает дерево
-ft_tree_analys(tree **tree)
-{
-	далее смотрим сколько там "Групп". другими словами сколько пайпов
-	можно какие то доп переменные
-	и просто передаем указатель на группу в билд ин
-	например
-	< test1.txt ls -l | grep test | sort > output.txt
-	здесь мы смотрим, есть 3 группы
-	и у нас получается здесь три указателя
-	< test1.txt ls -l | grep test | sort > output.txt
-	|					|			|
-	первый				второй 		третий
-	то есть
-	tree *ptr1, *ptr2, ptr3
-	и таким образом
-	ft_ls(tree *ptr1)
-	ft_gret(tree *ptr2)
-	ft_sort(tree *ptr3)
-	выходит что мы их типизировали и не нужно думать че и куда мы будем передавать
-	это также поможет дальше, когда мы будем вызывать комманды через execve
-	мы передадим туда этот же поинтер
-	no_builtin_func(tree *ptr)
-	потому что execve берет:  -имя комманды, -аргументы, -переменные окружения
-	и это изи все может быть в струтуре
-}
-
-*/
-
-//  < test1.txt ls -l | grep test | sort > output.txt
