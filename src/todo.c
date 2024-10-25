@@ -32,3 +32,28 @@ cmd_notBUILDIN(tree *ast)
 думаю пока хватит :)
 
 */
+
+
+/*
+
+*******************************************
+exit codes...
+
+*******************************************
+не работает 
+
+minishell> export VAR="Hello"
+minishell> echo $VAR
+$VAR
+minishell> echo "$VAR World"
+minishell> 
+
+bash-3.2$ export VAR="Hello"
+bash-3.2$ echo $VAR
+Hello
+bash-3.2$ echo "$VAR World"
+Hello World
+bash-3.2$ 
+*********************************************
+
+*/

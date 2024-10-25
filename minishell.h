@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/15 13:39:00 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/25 23:00:59 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@
 
 typedef struct s_info
 {
-	int				pipes;
+	int				exit_status;
 	char			**envp;
 
 }					t_info;
