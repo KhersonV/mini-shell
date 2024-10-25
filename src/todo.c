@@ -38,7 +38,25 @@ cmd_notBUILDIN(tree *ast)
 
 *******************************************
 exit codes...
+*******************************************
 
+при нажатии ctrl+c что-то не то с сигналами..
+
+(base) admin@MBP-von-Admin mini-shell % ./minishell
+minishell> 
+minishell> ^C
+minishell> ^C
+minishell> ^C
+minishell> ^C
+minishell> 
+
+bash-3.2$ 
+bash-3.2$ 
+bash-3.2$ 
+bash-3.2$ 
+bash-3.2$ 
+bash-3.2$ 
+bash-3.2$ 
 *******************************************
 не работает 
 

@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 11:46:57 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/25 23:12:34 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/25 23:22:22 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,6 +101,7 @@ int	main(int argc, char **argv, char **envp)
 	signal(SIGINT, signal_handler);
 	signal(SIGQUIT, SIG_IGN);
 	info.envp = copy_envp(envp);
+	info.exit_status = 0;
 	if (!info.envp)
 	{
 		perror("Failed to copy environment");

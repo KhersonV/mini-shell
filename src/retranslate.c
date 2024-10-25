@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/24 13:52:06 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/25 23:28:04 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -354,6 +354,10 @@ void	execute_command_node(Node *node, t_info *info)
 	else
 	{
 		waitpid(pid, &status, 0);
+		if (WIFEXITED(status))
+			info->exit_status = WEXITSTATUS(status);
+		else if (WIFSIGNALED(status))
+			info->exit_status = 128 + WTERMSIG(status);
 	}
 	ft_free_args(args);
 }
