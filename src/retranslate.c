@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/21 13:42:30 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/24 13:52:06 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -334,64 +334,22 @@ void	execute_command_node(Node *node, t_info *info)
 	}
 	if (pid == 0)
 	{
+		signal(SIGINT, SIG_DFL);
+		signal(SIGQUIT, SIG_DFL);
 		if (node->redirect_op)
 		{
-			if (ft_strcmp(node->redirect_op, "<") == 0)
-				fd_in = open(node->redirect_file, O_RDONLY);
-			else if (ft_strcmp(node->redirect_op, ">") == 0)
-				fd_out = open(node->redirect_file, O_WRONLY | O_CREAT | O_TRUNC,
-						0644);
-			else if (ft_strcmp(node->redirect_op, ">>") == 0)
-				fd_out = open(node->redirect_file,
-						O_WRONLY | O_CREAT | O_APPEND, 0644);
-			else
+			if (!handle_redirections(node, &fd_in, &fd_out))
 			{
-				ft_putstr_fd("Unsupported redirection operator\n", 2);
+				ft_free_args(args);
 				exit(1);
-			}
-			if ((fd_in == -1 && node->redirect_op[0] == '<') || (fd_out == -1
-					&& node->redirect_op[0] == '>'))
-			{
-				perror("open");
-				exit(1);
-			}
-			if (fd_in != -1)
-			{
-				if (dup2(fd_in, STDIN_FILENO) == -1)
-				{
-					perror("dup2");
-					exit(1);
-				}
-				close(fd_in);
-			}
-			if (fd_out != -1)
-			{
-				if (dup2(fd_out, STDOUT_FILENO) == -1)
-				{
-					perror("dup2");
-					exit(1);
-				}
-				close(fd_out);
 			}
 		}
-		if (ft_strcmp(args[0], "echo") == 0)
-			ft_echo(args);
-		else if (ft_strcmp(args[0], "cd") == 0)
-			ft_cd(args, &(info->envp));
-		else if (ft_strcmp(args[0], "pwd") == 0)
-			ft_pwd();
-		else if (ft_strcmp(args[0], "export") == 0)
-			ft_export(args, &(info->envp));
-		else if (ft_strcmp(args[0], "unset") == 0)
-			ft_unset(args, &(info->envp));
-		else if (ft_strcmp(args[0], "env") == 0)
-			ft_env(info->envp);
-		else if (ft_strcmp(args[0], "exit") == 0)
-			ft_exit(args);
-		else
-			execute_command(args, info->envp);
+		execute_command(args, info->envp);
+		ft_putstr_fd("minishell: command not found: ", 2);
+		ft_putstr_fd(args[0], 2);
+		ft_putstr_fd("\n", 2);
 		ft_free_args(args);
-		exit(0);
+		exit(127);
 	}
 	else
 	{

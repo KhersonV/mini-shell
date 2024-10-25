@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 11:46:57 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/14 15:40:47 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/24 14:47:34 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,16 @@ void	free_ast(Node *node)
 	free(node);
 }
 
+void	signal_handler(int signo)
+{
+	if (signo == SIGINT)
+	{
+		write(1, "\nminishell> ", 12);
+		rl_on_new_line();
+		rl_redisplay();
+	}
+}
+
 int	main(int argc, char **argv, char **envp)
 {
 	char	*line;
@@ -88,6 +98,8 @@ int	main(int argc, char **argv, char **envp)
 
 	(void)argc;
 	(void)argv;
+	signal(SIGINT, signal_handler);
+	signal(SIGQUIT, SIG_IGN);
 	info.envp = copy_envp(envp);
 	if (!info.envp)
 	{
@@ -98,7 +110,10 @@ int	main(int argc, char **argv, char **envp)
 	{
 		line = readline("minishell> ");
 		if (!line)
+		{
+			write(1, "exit\n", 5);
 			break ;
+		}
 		if (*line)
 			add_history(line);
 		tokens = tokenize(line);
