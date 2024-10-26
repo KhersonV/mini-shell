@@ -40,6 +40,13 @@ cmd_notBUILDIN(tree *ast)
 exit codes...
 *******************************************
 rework on pipes!!! should work 3- 5 -10.. not only 2!
+
+minishell> echo start | cat -e | cat -e | cat -e | cat -e | cat -e | cat -e
+start$$$$$$
+minishell> 
+
+working good!
+
 *******************************************
 при нажатии ctrl+c что-то не то с сигналами..
 

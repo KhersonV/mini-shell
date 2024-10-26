@@ -3,24 +3,23 @@
 /*                                                        :::      ::::::::   */
 /*   lexer.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
+/*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 21:23:27 by lynchsama         #+#    #+#             */
-/*   Updated: 2024/10/20 11:44:59 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/10/26 11:37:46 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-//#include "../minishell.h"
+#include "../minishell.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "l_p.h"
 
 int	is_not_word(char *str, int i)
 {
 	if ((str[i] > 8 && str[i] < 14) || (str[i] == 32))
-		return (SPACE);
+		return (TOKEN_SPACE);
 	else if (str[i] == '<' && str[i + 1] == '<')
 		return (REDIR_INSOURCE);
 	else if (str[i] == '>' && str[i + 1] == '>')
@@ -39,7 +38,7 @@ int	is_not_word(char *str, int i)
 
 char	*print_token(enum token_types current_token)
 {
-	if (current_token == SPACE)
+	if (current_token == TOKEN_SPACE)
 		return ("separator");
 	else if (current_token == REDIR_INSOURCE)
 		return ("heredoc");
@@ -199,7 +198,7 @@ t_tree	*tokenize(char *s)
 			}
 			else if (s[i] == ' ')
 			{
-				curr = add_token(curr, "[]", "SPACE", 2);
+				curr = add_token(curr, "[]", "TOKEN_SPACE", 2);
 			}
 			/*field condition*/
 		}

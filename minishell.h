@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/26 00:04:49 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/26 11:29:27 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,13 @@
 # define MINISHELL_H
 
 # include "libft/libft.h"
+# include <stdio.h>
 # include <errno.h>
 # include <fcntl.h>
 # include <limits.h>
 # include <readline/history.h>
 # include <readline/readline.h>
 # include <signal.h>
-# include <stdio.h>
 # include <stdlib.h>
 # include <sys/stat.h>
 # include <sys/types.h>
@@ -67,7 +67,7 @@ typedef struct s_token
 
 enum				token_types
 {
-	SPACE = 1,
+	TOKEN_SPACE = 1,
 	WORD,
 	FIELD,
 	EXP_FIELD,

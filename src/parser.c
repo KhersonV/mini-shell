@@ -3,19 +3,18 @@
 /*                                                        :::      ::::::::   */
 /*   parser.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
+/*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 12:53:34 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/23 20:40:09 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/10/26 11:12:14 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-//#include "../minishell.h"
+#include "../minishell.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "l_p.h"
 
 int	ft_strcmp(const char *s1, const char *s2)
 {
@@ -239,7 +238,7 @@ void	remove_spaces(t_tree **tree)
 	curr = *tree;
 	while (curr != NULL)
 	{
-		if (ft_strcmp(curr->type, "SPACE") == 0)
+		if (ft_strcmp(curr->type, "TOKEN_SPACE") == 0)
 		{
 			node_to_remove = curr;
 			if (node_to_remove == *tree)

@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 11:46:57 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/25 23:22:22 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/26 11:21:55 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,23 +83,28 @@ void	signal_handler(int signo)
 {
 	if (signo == SIGINT)
 	{
-		write(1, "\nminishell> ", 12);
+		write(1, "\n", 1);
 		rl_on_new_line();
+		rl_replace_line("", 0);
 		rl_redisplay();
 	}
 }
 
 int	main(int argc, char **argv, char **envp)
 {
-	char	*line;
-	t_tree	*tokens;
-	Node	*ast_root;
-	t_info	info;
+	char				*line;
+	t_tree				*tokens;
+	Node				*ast_root;
+	t_info				info;
+	struct sigaction	sa;
 
+	sa.sa_handler = signal_handler;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART;
+	sigaction(SIGINT, &sa, NULL);
+	signal(SIGQUIT, SIG_IGN);
 	(void)argc;
 	(void)argv;
-	signal(SIGINT, signal_handler);
-	signal(SIGQUIT, SIG_IGN);
 	info.envp = copy_envp(envp);
 	info.exit_status = 0;
 	if (!info.envp)

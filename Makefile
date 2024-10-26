@@ -4,13 +4,18 @@ CC = gcc
 CFLAGS = -Wall -Wextra -Werror
 SRC = src/main.c src/retranslate.c src/builtins.c src/exec_redir.c src/parser.c src/lexer.c
 OBJ = $(SRC:.c=.o)
+
 LIBFT = libft/libft.a
 INC = -Iinclude
+
+READLINE_DIR = /usr/local/opt/readline
+CFLAGS += -I$(READLINE_DIR)/include
+LDFLAGS = -L$(READLINE_DIR)/lib -lreadline
 
 all: $(NAME)
 
 $(NAME): $(OBJ) $(LIBFT)
-	$(CC) $(CFLAGS) $(OBJ) $(LIBFT) -lreadline -o $(NAME)
+	$(CC) $(CFLAGS) $(OBJ) $(LIBFT) $(LDFLAGS) -o $(NAME)
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(INC) -c $< -o $@
