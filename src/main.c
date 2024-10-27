@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
+/*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 11:46:57 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/26 11:21:55 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/27 17:08:18 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,16 +114,16 @@ int	main(int argc, char **argv, char **envp)
 	}
 	while (1)
 	{
-		line = readline("minishell> ");
-		if (!line)
+		info.input = readline("minishell> ");
+		if (!info.input)
 		{
 			write(1, "exit\n", 5);
 			break ;
 		}
-		if (*line)
-			add_history(line);
-		tokens = tokenize(line);
-		free(line);
+		if (*info.input)
+			add_history(info.input);
+		tokens = tokenize(info.input);
+		free(info.input);
 		if (!tokens)
 			continue ;
 		remove_spaces(&tokens);
