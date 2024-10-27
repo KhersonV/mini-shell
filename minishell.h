@@ -6,7 +6,7 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/27 16:50:01 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/10/27 17:12:50 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,10 +32,10 @@
 
 typedef struct s_info
 {
+	char			*input;
 	int				exit_status;
 	char			**envp;
 	int				interactive;
-
 }					t_info;
 
 typedef struct Node
