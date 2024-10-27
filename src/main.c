@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 11:46:57 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/27 17:13:45 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/27 18:35:40 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,10 +83,13 @@ void	signal_handler(int signo)
 {
 	if (signo == SIGINT)
 	{
-		write(1, "\n", 1);
-		rl_on_new_line();
-		rl_replace_line("", 0);
-		rl_redisplay();
+		if (g_shell_interactive)
+		{
+			write(1, "\n", 1);
+			rl_on_new_line();
+			rl_replace_line("", 0);
+			rl_redisplay();
+		}
 	}
 }
 
@@ -97,11 +100,6 @@ int	main(int argc, char **argv, char **envp)
 	t_info				info;
 	struct sigaction	sa;
 
-	sa.sa_handler = signal_handler;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_RESTART;
-	sigaction(SIGINT, &sa, NULL);
-	signal(SIGQUIT, SIG_IGN);
 	(void)argc;
 	(void)argv;
 	info.envp = copy_envp(envp);
@@ -113,7 +111,14 @@ int	main(int argc, char **argv, char **envp)
 	}
 	while (1)
 	{
+		sa.sa_handler = signal_handler;
+		sigemptyset(&sa.sa_mask);
+		sa.sa_flags = SA_RESTART;
+		sigaction(SIGINT, &sa, NULL);
+		signal(SIGQUIT, SIG_IGN);
+		g_shell_interactive = 1;
 		info.input = readline("minishell> ");
+		g_shell_interactive = 0;
 		if (!info.input)
 		{
 			write(1, "exit\n", 5);
@@ -121,6 +126,7 @@ int	main(int argc, char **argv, char **envp)
 		}
 		if (*info.input)
 			add_history(info.input);
+		signal(SIGINT, SIG_IGN);
 		tokens = tokenize(info.input);
 		free(info.input);
 		if (!tokens)

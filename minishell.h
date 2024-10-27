@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
+/*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/27 17:12:50 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/10/27 18:33:02 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,8 @@
 
 # define TRUE 1
 # define FALSE 0
+
+int					g_shell_interactive;
 
 typedef struct s_info
 {
@@ -102,4 +104,5 @@ char				**copy_envp(char **envp);
 void				execute_ast(Node *node, t_info *info);
 void				execute_command_node(Node *node, t_info *info);
 char				*get_env_value(char **envp, char *var);
+void				signal_handler(int signo);
 #endif

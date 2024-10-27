@@ -6,7 +6,7 @@
 /*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/26 00:10:32 by admin            ###   ########.fr       */
+/*   Updated: 2024/10/27 18:36:11 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@ void	execute_pipe(Node *node, t_info *info)
 	pid_t	pid1;
 	pid_t	pid2;
 	int		status;
+	sigset_t	mask;
 
 	if (pipe(fd) == -1)
 	{
@@ -58,6 +59,7 @@ void	execute_pipe(Node *node, t_info *info)
 		info->exit_status = 1;
 		return ;
 	}
+	signal(SIGINT, SIG_IGN);
 	pid1 = fork();
 	if (pid1 == -1)
 	{
@@ -67,6 +69,10 @@ void	execute_pipe(Node *node, t_info *info)
 	}
 	if (pid1 == 0)
 	{
+		if (setpgid(0, 0) == -1)
+			perror("setpgid");
+		if (tcsetpgrp(STDIN_FILENO, getpid()) == -1)
+			perror("tcsetpgrp");
 		signal(SIGINT, SIG_DFL);
 		signal(SIGQUIT, SIG_DFL);
 		close(fd[0]);
@@ -88,6 +94,8 @@ void	execute_pipe(Node *node, t_info *info)
 	}
 	if (pid2 == 0)
 	{
+		if (setpgid(0, pid1) == -1)
+			perror("setpgid");
 		signal(SIGINT, SIG_DFL);
 		signal(SIGQUIT, SIG_DFL);
 		close(fd[1]);
@@ -102,12 +110,31 @@ void	execute_pipe(Node *node, t_info *info)
 	}
 	close(fd[0]);
 	close(fd[1]);
+	if (setpgid(pid1, pid1) == -1)
+		perror("setpgid");
+	if (setpgid(pid2, pid1) == -1)
+		perror("setpgid");
+	// Блокируем SIGTTOU
+	sigemptyset(&mask);
+	sigaddset(&mask, SIGTTOU);
+	if (sigprocmask(SIG_BLOCK, &mask, NULL) == -1)
+		perror("sigprocmask");
+	if (tcsetpgrp(STDIN_FILENO, pid1) == -1)
+		perror("tcsetpgrp");
+	// Разблокируем SIGTTOU
+	if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
+		perror("sigprocmask");
+	signal(SIGINT, signal_handler);
 	waitpid(pid1, &status, 0);
-	if (WIFEXITED(status))
-		info->exit_status = WEXITSTATUS(status);
-	else if (WIFSIGNALED(status))
-		info->exit_status = 128 + WTERMSIG(status);
 	waitpid(pid2, &status, 0);
+	// Блокируем SIGTTOU перед возвратом контроля терминала
+	if (sigprocmask(SIG_BLOCK, &mask, NULL) == -1)
+		perror("sigprocmask");
+	if (tcsetpgrp(STDIN_FILENO, getpid()) == -1)
+		perror("tcsetpgrp");
+	// Разблокируем SIGTTOU
+	if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
+		perror("sigprocmask");
 	if (WIFEXITED(status))
 		info->exit_status = WEXITSTATUS(status);
 	else if (WIFSIGNALED(status))
@@ -277,6 +304,7 @@ void	execute_command_node(Node *node, t_info *info)
 	int		i;
 	int		fd_in;
 	int		fd_out;
+	sigset_t	mask;
 
 	fd_in = -1;
 	fd_out = -1;
@@ -345,6 +373,7 @@ void	execute_command_node(Node *node, t_info *info)
 		ft_free_args(args);
 		return ;
 	}
+	signal(SIGINT, SIG_IGN);
 	pid = fork();
 	if (pid == -1)
 	{
@@ -355,6 +384,10 @@ void	execute_command_node(Node *node, t_info *info)
 	}
 	if (pid == 0)
 	{
+		if (setpgid(0, 0) == -1)
+			perror("setpgid");
+		if (tcsetpgrp(STDIN_FILENO, getpid()) == -1)
+			perror("tcsetpgrp");
 		signal(SIGINT, SIG_DFL);
 		signal(SIGQUIT, SIG_DFL);
 		if (node->redirect_op)
@@ -374,7 +407,28 @@ void	execute_command_node(Node *node, t_info *info)
 	}
 	else
 	{
+		if (setpgid(pid, pid) == -1)
+			perror("setpgid");
+		// Блокируем SIGTTOU
+		sigemptyset(&mask);
+		sigaddset(&mask, SIGTTOU);
+		if (sigprocmask(SIG_BLOCK, &mask, NULL) == -1)
+			perror("sigprocmask");
+		if (tcsetpgrp(STDIN_FILENO, pid) == -1)
+			perror("tcsetpgrp");
+		// Разблокируем SIGTTOU
+		if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
+			perror("sigprocmask");
 		waitpid(pid, &status, 0);
+		// Блокируем SIGTTOU перед возвратом контроля терминала
+		if (sigprocmask(SIG_BLOCK, &mask, NULL) == -1)
+			perror("sigprocmask");
+		if (tcsetpgrp(STDIN_FILENO, getpid()) == -1)
+			perror("tcsetpgrp");
+		// Разблокируем SIGTTOU
+		if (sigprocmask(SIG_UNBLOCK, &mask, NULL) == -1)
+			perror("sigprocmask");
+		signal(SIGINT, signal_handler);
 		if (WIFEXITED(status))
 			info->exit_status = WEXITSTATUS(status);
 		else if (WIFSIGNALED(status))
@@ -387,8 +441,10 @@ void	execute_ast(Node *node, t_info *info)
 {
 	if (!node)
 		return ;
+	g_shell_interactive = 0;
 	if (ft_strcmp(node->data, "PIPE") == 0)
 		execute_pipe(node, info);
 	else
 		execute_command_node(node, info);
+	g_shell_interactive = 1;
 }
