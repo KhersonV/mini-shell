@@ -6,7 +6,7 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/11/03 11:38:33 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/11/03 12:01:18 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ typedef struct s_info
 	char			**envp;
 	int				interactive;
 	char			*old_dir;
+	char			*curr_dir;
 	int				std_in_reserve;
 	int				std_out_reserve;
 }					t_info;
