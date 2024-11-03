@@ -6,7 +6,7 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 21:23:27 by lynchsama         #+#    #+#             */
-/*   Updated: 2024/11/03 16:07:27 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/11/03 16:44:58 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,9 +158,7 @@ t_tree *add_operator_token(t_tree *curr, char current_char, char next_char, int 
 			(*i)++;
 		}
 		else
-		{
 			curr = add_token(curr, "<", "REDIR_IN");
-		}
 	}
 	else if (current_char == '>')
 	{
@@ -170,14 +168,10 @@ t_tree *add_operator_token(t_tree *curr, char current_char, char next_char, int 
 			(*i)++;
 		}
 		else
-		{
 			curr = add_token(curr, ">", "REDIR_OUT");
-		}
 	}
 	else if (current_char == ' ')
-	{
 		curr = add_token(curr, "[]", "TOKEN_SPACE");
-	}
 	return curr;
 }
 
