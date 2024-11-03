@@ -1,7 +1,16 @@
 
 #include "../minishell.h"
 
+/*
+ TODO: add comparing envp's arrras function
+ TODO: add free two dim array function (or find it)
+*/
+
+
+
 void free_info_struct(t_info *info);
+int	ft_strcmp(const char *s1, const char *s2);
+
 
 // TODO : init.c line:60
 // int launch_setup(int argc, t_info *info)
@@ -18,6 +27,26 @@ void free_info_struct(t_info *info);
 // 	return 1;
 // }
 
+int envp_compare(char **saved, char **current)
+{
+	int curr_len = 0;
+	int saved_len = 0;
+	int i = 0;
+
+	while (current[curr_len])
+		curr_len++;
+	while (saved[saved_len])
+		saved_len++;
+	if (curr_len != saved_len)
+		return 1;
+	while(current[i])
+	{
+		if (ft_strcmp(current[i], saved[i]) != 0)
+			return 1;
+		i++;
+	}
+	return 0;
+}
 void main_init(t_info *info, char **envp)
 {
 	info->std_in_reserve = dup(STDIN_FILENO);
@@ -60,6 +89,7 @@ int main(int argc, char **argv, char **envp)
 	//	TODO: what are conditions to launch int/non-int mode, error cases?
 	main_init(info, envp);
 	temp_print_info(info);
+	envp_compare(info->envp, envp);
 
 	return 0;
 }
