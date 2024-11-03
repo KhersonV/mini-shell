@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   lexer.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
+/*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 21:23:27 by lynchsama         #+#    #+#             */
-/*   Updated: 2024/10/26 11:37:46 by admin            ###   ########.fr       */
+/*   Updated: 2024/11/03 16:07:27 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ char	*print_token(enum token_types current_token)
 		return ("probabily the start of a word");
 }
 
-t_tree	*create_token_node(char *name, char *type, int pres)
+t_tree	*create_token_node(char *name, char *type)
 {
 	t_tree	*new_node;
 
@@ -65,18 +65,17 @@ t_tree	*create_token_node(char *name, char *type, int pres)
 		return (NULL);
 	new_node->name = ft_strdup(name);
 	new_node->type = ft_strdup(type);
-	new_node->precedence = pres;
 	new_node->next = NULL;
 	new_node->prev = NULL;
 	return (new_node);
 }
 
-t_tree	*add_token(t_tree *node, char *name, char *type, int pres)
+t_tree	*add_token(t_tree *node, char *name, char *type)
 {
 	t_tree	*new_node;
 	t_tree	*curr;
 
-	new_node = create_token_node(name, type, pres);
+	new_node = create_token_node(name, type);
 	if (!new_node)
 		return (NULL);
 	if (!node)
@@ -142,22 +141,53 @@ int	extract_field(char *s, t_tree *element)
 	}
 	field = dup_field(s, len);
 	if (quote == '"')
-		add_token(element, field, "EXP_FIELD", 2);
+		add_token(element, field, "EXP_FIELD");
 	else if (quote == '\'')
-		add_token(element, field, "FIELD", 2);
+		add_token(element, field, "FIELD");
 	return (len + 2);
 }
-
-t_tree	*tokenize(char *s)
+t_tree *add_operator_token(t_tree *curr, char current_char, char next_char, int *i)
 {
-	t_tree	*curr;
-	int		i;
-	char	buf[256];
-	int		buf_index;
+	if (current_char == '|')
+		curr = add_token(curr, "|", "PIPE");
+	else if (current_char == '<')
+	{
+		if (next_char == '<')
+		{
+			curr = add_token(curr, "<<", "REDIR_INSOURCE");
+			(*i)++;
+		}
+		else
+		{
+			curr = add_token(curr, "<", "REDIR_IN");
+		}
+	}
+	else if (current_char == '>')
+	{
+		if (next_char == '>')
+		{
+			curr = add_token(curr, ">>", "REDIR_APPEND");
+			(*i)++;
+		}
+		else
+		{
+			curr = add_token(curr, ">", "REDIR_OUT");
+		}
+	}
+	else if (current_char == ' ')
+	{
+		curr = add_token(curr, "[]", "TOKEN_SPACE");
+	}
+	return curr;
+}
 
-	i = 0;
-	curr = NULL;
-	buf_index = 0;
+t_tree *tokenize(char *s)
+{
+	t_tree *curr = NULL;
+	int i = 0;
+	char buf[256];
+	int buf_index = 0;
+
 	while (s[i] != '\0')
 	{
 		if (s[i] == '|' || s[i] == '<' || s[i] == '>' || s[i] == ' ')
@@ -165,42 +195,10 @@ t_tree	*tokenize(char *s)
 			if (buf_index > 0)
 			{
 				buf[buf_index] = '\0';
-				curr = add_token(curr, buf, "WORD", 2);
+				curr = add_token(curr, buf, "WORD");
 				buf_index = 0;
 			}
-			if (s[i] == '|')
-			{
-				curr = add_token(curr, "|", "PIPE", 1);
-			}
-			else if (s[i] == '<')
-			{
-				if (s[i + 1] == '<')
-				{
-					curr = add_token(curr, "<<", "REDIR_INSOURCE", 3);
-					i++;
-				}
-				else
-				{
-					curr = add_token(curr, "<", "REDIR_IN", 3);
-				}
-			}
-			else if (s[i] == '>')
-			{
-				if (s[i + 1] == '>')
-				{
-					curr = add_token(curr, ">>", "REDIR_APPEND", 3);
-					i++;
-				}
-				else
-				{
-					curr = add_token(curr, ">", "REDIR_OUT", 3);
-				}
-			}
-			else if (s[i] == ' ')
-			{
-				curr = add_token(curr, "[]", "TOKEN_SPACE", 2);
-			}
-			/*field condition*/
+			curr = add_operator_token(curr, s[i], s[i + 1], &i);
 		}
 		else if (s[i] == '\'' || s[i] == '"')
 		{
@@ -210,7 +208,7 @@ t_tree	*tokenize(char *s)
 			}
 			else
 			{
-				printf("quotes are not closed, syntax error");
+				printf("quotes are not closed, syntax error\n");
 				exit(1);
 			}
 		}
@@ -223,12 +221,13 @@ t_tree	*tokenize(char *s)
 	if (buf_index > 0)
 	{
 		buf[buf_index] = '\0';
-		curr = add_token(curr, buf, "WORD", 2);
+		curr = add_token(curr, buf, "WORD");
 	}
-	return (curr);
+
+	return curr;
 }
 
-void	print_tokens(t_tree *node)
+void	temp_print_tokens(t_tree *node)
 {
 	t_tree	*curr;
 

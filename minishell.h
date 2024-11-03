@@ -6,7 +6,7 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/11/03 12:01:18 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/11/03 15:57:20 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,6 @@ typedef struct s_tree
 {
 	char			*type;
 	char			*name;
-	int				precedence;
 	struct s_tree	*next;
 	struct s_tree	*prev;
 }					t_tree;

@@ -2,14 +2,15 @@
 #include "../minishell.h"
 
 /*
- TODO: add comparing envp's arrras function
- TODO: add free two dim array function (or find it)
+ TODO: add comparing envp's arrras function +
+ TODO: add free two dim array function (or find it) +
 */
-
 
 
 void free_info_struct(t_info *info);
 int	ft_strcmp(const char *s1, const char *s2);
+t_tree	*tokenize(char *s);
+void	temp_print_tokens(t_tree *node);
 
 
 // TODO : init.c line:60
@@ -63,11 +64,13 @@ void temp_print_info(t_info *info)
 	printf("Input: %s\n", info->input ? info->input : "(null)");
 	printf("Exit Status: %d\n", info->exit_status);
 	printf("Environment Variables:\n");
-	if (info->envp) {
+	if (info->envp)
+	{
 		for (int i = 0; info->envp[i]; i++) {
 			printf("  [%d]: %s\n", i, info->envp[i]);
 		}
-	} else {
+	} else
+	{
 		printf("  (null)\n");
 	}
 	printf("Interactive Mode: %d\n", info->interactive);
@@ -80,6 +83,10 @@ void temp_print_info(t_info *info)
 int main(int argc, char **argv, char **envp)
 {
 	t_info *info;
+	t_tree *root;
+	char input[] = "echo \'hello \'	>> file.txt | cat << input.txt";
+	//char input[] = "echo hello >> \"file.txt\" | cat << input.txt";
+	//char input[] = "echo hello world";
 	info = malloc(sizeof(t_info));
 	if(!info)
 	{
@@ -88,8 +95,11 @@ int main(int argc, char **argv, char **envp)
 	}
 	//	TODO: what are conditions to launch int/non-int mode, error cases?
 	main_init(info, envp);
-	temp_print_info(info);
 	envp_compare(info->envp, envp);
+	root = tokenize(input);
+	temp_print_tokens(root);
+
+
 
 	return 0;
 }
