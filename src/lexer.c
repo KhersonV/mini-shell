@@ -6,7 +6,7 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 21:23:27 by lynchsama         #+#    #+#             */
-/*   Updated: 2024/11/17 12:29:15 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/11/17 14:47:33 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,7 +170,7 @@ t_tree *add_operator_token(t_tree *curr, char current_char, char next_char, int 
 		else
 			curr = add_token(curr, ">", "REDIR_OUT");
 	}
-	else if (current_char == ' ')
+	else if (current_char == ' ' || (current_char >= 9 && current_char <= 13))
 		curr = add_token(curr, "[]", "TOKEN_SPACE");
 	return curr;
 }
@@ -186,7 +186,7 @@ t_tree *tokenize(char *s)
 
 	while (s[i] != '\0')
 	{
-		if (s[i] == '|' || s[i] == '<' || s[i] == '>' || s[i] == ' ')
+		if (s[i] == '|' || s[i] == '<' || s[i] == '>' || s[i] == ' ' || (s[i] >= 9 && s[i] <= 13))
 		{
 			if (buf_index > 0)
 			{
@@ -195,49 +195,59 @@ t_tree *tokenize(char *s)
 				buf_index = 0;
 			}
 			curr = add_operator_token(curr, s[i], s[i + 1], &i);
+			i++;
 		}
 		else if (s[i] == '\'' || s[i] == '"')
 		{
+			if (buf_index > 0)
+			{
+				buf[buf_index] = '\0';
+				curr = add_token(curr, buf, "WORD");
+				buf_index = 0;
+			}
 			if (is_quotes_closed(&s[i]))
 			{
-				i += extract_field(&s[i], curr);
+				int len = extract_field(&s[i], curr);
+				i += (len);
 			}
 			else
 			{
 				printf("quotes are not closed, syntax error\n");
 				exit(1);
 			}
-		} else if(s[i] == '$')
+		}
+		else if(s[i] == '$')
 		{
+			if (buf_index > 0)
+			{
+				buf[buf_index] = '\0';
+				curr = add_token(curr, buf, "WORD");
+				buf_index = 0;
+			}
 			var_index = 0;
-
+			i++;
 			if ((s[i] >= 'a' && s[i] <= 'z') || (s[i] >= 'A' && s[i] <= 'Z') || s[i] == '_')
 			{
 				while ((s[i] >= 'a' && s[i] <= 'z') || (s[i] >= 'A' && s[i] <= 'Z') ||
-			  		 s[i] == '_' || (s[i] >= '0' && s[i] <= '9'))
+					   s[i] == '_' || (s[i] >= '0' && s[i] <= '9'))
 				{
 					variable_buffer[var_index++] = s[i++];
 				}
 				variable_buffer[var_index] = '\0';
-		curr = add_token(curr, variable_buffer, "VAR");
+				curr = add_token(curr, variable_buffer, "VAR");
+			}
 		}
 		else
 		{
-			curr = add_token(curr, "", "VAR");
+			buf[buf_index++] = s[i++];
 		}
-		}
-		else
-		{
-			buf[buf_index++] = s[i];
-		}
-		i++;
 	}
 	if (buf_index > 0)
 	{
 		buf[buf_index] = '\0';
 		curr = add_token(curr, buf, "WORD");
+		buf_index = 0;
 	}
-
 	return curr;
 }
 
