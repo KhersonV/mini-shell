@@ -6,7 +6,7 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 21:23:27 by lynchsama         #+#    #+#             */
-/*   Updated: 2024/11/03 16:44:58 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/11/17 12:29:15 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,7 +180,9 @@ t_tree *tokenize(char *s)
 	t_tree *curr = NULL;
 	int i = 0;
 	char buf[256];
+	char variable_buffer[256];
 	int buf_index = 0;
+	int var_index = 0;
 
 	while (s[i] != '\0')
 	{
@@ -205,6 +207,24 @@ t_tree *tokenize(char *s)
 				printf("quotes are not closed, syntax error\n");
 				exit(1);
 			}
+		} else if(s[i] == '$')
+		{
+			var_index = 0;
+
+			if ((s[i] >= 'a' && s[i] <= 'z') || (s[i] >= 'A' && s[i] <= 'Z') || s[i] == '_')
+			{
+				while ((s[i] >= 'a' && s[i] <= 'z') || (s[i] >= 'A' && s[i] <= 'Z') ||
+			  		 s[i] == '_' || (s[i] >= '0' && s[i] <= '9'))
+				{
+					variable_buffer[var_index++] = s[i++];
+				}
+				variable_buffer[var_index] = '\0';
+		curr = add_token(curr, variable_buffer, "VAR");
+		}
+		else
+		{
+			curr = add_token(curr, "", "VAR");
+		}
 		}
 		else
 		{
