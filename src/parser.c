@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
+/*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 12:53:34 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/26 11:12:14 by admin            ###   ########.fr       */
+/*   Updated: 2024/11/19 21:21:34 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,16 +16,15 @@
 #include <string.h>
 #include <unistd.h>
 
-int	ft_strcmp(const char *s1, const char *s2)
-{
-	while (*s1 && (*s1 == *s2))
-	{
-		s1++;
-		s2++;
-	}
-	return ((unsigned char)*s1 - (unsigned char)*s2);
-}
-
+// int	ft_strcmp(const char *s1, const char *s2)
+// {
+// 	while (*s1 && (*s1 == *s2))
+// 	{
+// 		s1++;
+// 		s2++;
+// 	}
+// 	return ((unsigned char)*s1 - (unsigned char)*s2);
+// }
 
 
 int	is_command_or_argument(t_tree *token)
@@ -290,7 +289,9 @@ void	adjusting_token_tree(t_tree **tree)
 			command_found = 1;
 		}
 		else if (command_found && (!(ft_strcmp(curr->type, "WORD"))
-				|| (command_found && !(ft_strcmp(curr->type, "FIELD")))))
+				|| (command_found && !(ft_strcmp(curr->type, "FIELD"))))
+				|| (command_found && !(ft_strcmp(curr->type, "EXP_FIELD")))
+				|| (command_found && !(ft_strcmp(curr->type, "VAR"))))
 		{
 			free(curr->type);
 			curr->type = ft_strdup("ARGUMENT");

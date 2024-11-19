@@ -97,7 +97,7 @@ int main(int argc, char **argv, char **envp)
 	*/
 	// char input[] = "echo 'This is unclosed string"; +
 	// char input[] = "cmd1||cmd2"; +
-	// char input[] = "cat>file.txt"; +
+	// char input[] = "cat>file.txt";
 	// char input[] = "filename_with-special.characters"; +
 	// char input[] = "echo    'hello' \t\t   world"; +
 	// char input[] = "echo 'line1\nline2'";
@@ -150,7 +150,9 @@ int main(int argc, char **argv, char **envp)
 	Token: [], Type: TOKEN_SPACE
 	Token: Single "Double" Single, Type: FIELD
 	*/
-	char input[] = "echo backslash\\test"; // +
+	// char input[] = "echo backslash\\test"; // +
+
+	char input[] = "export VAR=value";
 
 	info = malloc(sizeof(t_info));
 	if(!info)
@@ -162,9 +164,55 @@ int main(int argc, char **argv, char **envp)
 	main_init(info, envp);
 	envp_compare(info->envp, envp);
 	root = tokenize(input);
+	// printf("before:\n");
+	// temp_print_tokens(root);
+	// printf("\nafter \n:");
+	// remove_spaces(&root);
+	// adjusting_token_tree(&root);
+
 	temp_print_tokens(root);
 
 
 
 	return 0;
 }
+
+
+
+	/* more tests
+	*/
+	// char input[] = "echo hello world"; + +
+	// char input[] = "ls -la /home/user"; ++
+	// char input[] = "cat file.txt > output.txt";
+	// char input[] = "grep 'pattern' < input.txt";
+	// char input[] = "echo $HOME | wc -l";
+	/*
+	:Token: echo, Type: COMMAND
+	Token: HOME, Type: VAR - should be arg.
+	Token: |, Type: PIPE
+	Token: wc, Type: COMMAND
+	Token: -l, Type: ARGUMENT
+	*/
+	// char input[] = "sort < unsorted.txt > sorted.txt";
+	// char input[] = "command arg1 arg2 | another_command arg3";
+	// char input[] = "echo 'Hello World' >> output.txt";
+	// char input[] = "echo $USER $PATH";
+	/*
+	same
+	*/
+	// char input[] = "rm -rf /some/directory";
+	// char input[] = "mkdir new_folder && cd new_folder";
+	/*
+	:Token: mkdir, Type: COMMAND
+		Token: new_folder, Type: ARGUMENT
+		Token: &&, Type: ARGUMENT - doesn't understand &&, but fine
+		Token: cd, Type: ARGUMENT
+		Token: new_folder, Type: ARGUMENT
+	*/
+	// char input[] = "echo \"Nested 'quotes' test\""; -
+	/*
+	Token: echo, Type: COMMAND
+	Token: Nested 'quotes' test, Type: EXP_FIELD - should be arg
+	*/
+	// char input[] = "ps aux | grep 'process_name'";
+	// char input[] = "echo \"User: $USER, Path: $PATH\""; //same, exp_field to arg
