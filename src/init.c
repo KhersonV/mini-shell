@@ -84,9 +84,74 @@ int main(int argc, char **argv, char **envp)
 {
 	t_info *info;
 	t_tree *root;
-	char input[] = "echo \'hello \'	>> file.txt | cat << input.txt";
-	//char input[] = "echo hello >> \"file.txt\" | cat << input.txt";
-	//char input[] = "echo hello world";
+	// char input[] = ""; +
+	// char input[] = "| < << > >>"; +
+	// char input[] = "$var1 $var2 $var_3"; +
+	// char input[] = "echo$USER|grep$HOME"; +
+	// char input[] = "$9invalid $%notvar"; +
+	// char input[] = "'It''s a test' \"She said, \\\"Hello\\\"\""; -
+	/**
+	 * Token: It's a test, Type: FIELD
+	Token: [], Type: TOKEN_SPACE
+	Token: She said, \"Hello\", Type: EXP_FIELD
+	*/
+	// char input[] = "echo 'This is unclosed string"; +
+	// char input[] = "cmd1||cmd2"; +
+	// char input[] = "cat>file.txt"; +
+	// char input[] = "filename_with-special.characters"; +
+	// char input[] = "echo    'hello' \t\t   world"; +
+	// char input[] = "echo 'line1\nline2'";
+	// char input[] = "$VAR123abc$VAR_456$VAR$"; -
+	/**
+	 * Token: VAR123abc, Type: VAR
+		Token: VAR_456, Type: VAR
+		Token: VAR, Type: VAR
+		Token: $, Type: WORD
+	*/
+	// char input[] = "echo >| file"; +
+	// char input[] = "\"This is 'nested' quotes\"";  -
+	/**
+	 * Token: This is 'nested' quotes, Type: EXP_FIELD
+	*/
+	// char input[] = "command >"; +
+	// char input[] = "> output.txt"; +
+	// char input[] = "echo \"Hello\"World'!' $USER"; +
+	// char input[] = "echo file@name#with$pecial%chars"; -
+	/*
+	Token: echo, Type: WORD
+	Token: [], Type: TOKEN_SPACE
+	Token: file@name#with, Type: WORD
+	Token: pecial%chars, Type: WORD
+	*/
+	// char input[] = "echo $(date)"; -
+	/*
+	Token: echo, Type: WORD
+	Token: [], Type: TOKEN_SPACE
+	Token: $(date), Type: WORD
+	*/
+	// char input[] = "echoHello$USER"; +
+	// char input[] = "    echo    'test'   "; +
+	// char input[] = "$VAR|$ANOTHER_VAR>$OUTPUT"; +
+	// char input[] = "$"; -
+	/*
+	Token: $, Type: WORD
+	*/
+	// char input[] = "$VAR!$VAR?$$"; -
+	/*
+	Token: VAR, Type: VAR
+	Token: !, Type: WORD
+	Token: VAR, Type: VAR
+	Token: ?, Type: WORD
+	Token: $, Type: WORD
+	*/
+	// char input[] = "\"Double 'Single' Double\" 'Single \"Double\" Single'";
+	/*
+	Token: Double 'Single' Double, Type: EXP_FIELD
+	Token: [], Type: TOKEN_SPACE
+	Token: Single "Double" Single, Type: FIELD
+	*/
+	char input[] = "echo backslash\\test"; // +
+
 	info = malloc(sizeof(t_info));
 	if(!info)
 	{
