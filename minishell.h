@@ -6,7 +6,7 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/11/03 15:57:20 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/11/21 21:26:47 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,27 @@ typedef struct s_token
 	struct s_token	*next;
 	struct s_token	*prev;
 }					t_token;
+
+typedef struct s_redirection {
+	char	*filename;
+	int		fd;
+	int		is_append;
+	int		is_heredoc;
+	char	*heredoc_marker;
+	int		type;
+	struct s_redirection *next;
+} t_redirection;
+
+typedef struct s_exec_command {
+	char					*cmd_name;
+	char					*exec_path;
+	char					**args;
+	int						pipe_fds[2];
+	t_redirection			*redirects;
+	int						exit_status;
+	struct s_exec_command	*next_cmd;
+	struct s_exec_command	*prev_cmd;
+} t_exec_command;
 
 enum				token_types
 {
