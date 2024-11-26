@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parser.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
+/*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 12:53:34 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/11/19 21:21:34 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/11/26 12:54:37 by admin            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -289,9 +289,9 @@ void	adjusting_token_tree(t_tree **tree)
 			command_found = 1;
 		}
 		else if (command_found && (!(ft_strcmp(curr->type, "WORD"))
-				|| (command_found && !(ft_strcmp(curr->type, "FIELD"))))
+				|| ((command_found && !(ft_strcmp(curr->type, "FIELD"))))
 				|| (command_found && !(ft_strcmp(curr->type, "EXP_FIELD")))
-				|| (command_found && !(ft_strcmp(curr->type, "VAR"))))
+				|| (command_found && !(ft_strcmp(curr->type, "VAR")))))
 		{
 			free(curr->type);
 			curr->type = ft_strdup("ARGUMENT");
