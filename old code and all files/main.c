@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
+/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/07 11:46:57 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/27 18:35:40 by admin            ###   ########.fr       */
+/*   Updated: 2024/12/10 15:46:16 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,8 +100,8 @@ int	main(int argc, char **argv, char **envp)
 	t_info				info;
 	struct sigaction	sa;
 
-	(void)argc;
-	(void)argv;
+	if (argc != 1)
+		return (printf("minishell: %s: No such file or directory\n", argv[1]), 1);
 	info.envp = copy_envp(envp);
 	info.exit_status = 0;
 	if (!info.envp)
