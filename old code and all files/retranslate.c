@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/09 14:22:38 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/11 12:39:52 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,9 @@ char	**copy_envp(char **envp)
 	int		j;
 	char	**env_copy;
 
+	if (!envp)
+		return (NULL);
+	
 	i = 0;
 	while (envp[i])
 		i++;
