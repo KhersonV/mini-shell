@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:26:53 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/10 14:37:59 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/12 12:58:33 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 # include "minishell.h"
 # include <stdio.h>
 # include <stdlib.h>
-# include <string.h>
+
 # include <unistd.h>
 
 void	ft_echo(char **args, t_info *info);

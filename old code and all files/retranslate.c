@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/11 12:39:52 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/12 12:32:03 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,26 +196,8 @@ char	*find_command(char *command, char **envp)
 	return (NULL);
 }
 
-void	execute_command(char **args, char **envp)
-{
-	char	*path;
 
-	path = find_command(args[0], envp);
-	if (!path)
-	{
-		ft_putstr_fd("minishell: command not found: ", 2);
-		ft_putstr_fd(args[0], 2);
-		ft_putstr_fd("\n", 2);
-		exit(127);
-	}
-	if (execve(path, args, envp) == -1)
-	{
-		perror("minishell: execve");
-		free(path);
-		exit(1);
-	}
-	free(path);
-}
+
 
 int	is_builtin(char *command)
 {
