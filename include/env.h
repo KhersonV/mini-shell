@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 12:44:01 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/11 12:56:16 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/13 13:31:57 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 
 void	init_env(t_info *info, char **envp);
 
+int		is_valid_env_key(const char *key);
 char	*get_env_value(t_info *info, const char *key);
 int		env_key_compare(const char *env_entry, const char *key);
 char	*get_value_from_env(const char *env_entry);

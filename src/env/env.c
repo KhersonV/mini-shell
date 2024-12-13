@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 12:43:01 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/11 13:35:11 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/13 13:34:42 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,8 +73,11 @@ void	set_env(t_info *info, const char *key, const char *value)
 	int		i;
 	char	*new_entry;
 
-	if(!info || !key || !value)
+	if(!info || !key || !value || !is_valid_env_key(key))
+	{
+		printf(stderr, "minishell: export: `%s': not a valid identifier\n", key);
 		return;
+	}
 
 	new_entry = create_env_entry(key, value);
 
@@ -96,6 +99,11 @@ void	unset_env(t_info *info, const char *key)
 {
 	int	i;
 
+	 if (!info || !key || !is_valid_env_key(key))
+    {
+        printf(stderr, "minishell: unset: `%s': not a valid identifier\n", key);
+        return;
+    }
 	i = 0;
 	while (info->envp[i])
 	{

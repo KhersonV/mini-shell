@@ -6,11 +6,26 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 12:52:06 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/11 13:17:00 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/13 13:28:55 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/env.h"
+
+int is_valid_env_key(const char *key)
+{
+    int i = 0;
+
+    if (!key || !key[0])
+        return (0);
+    while (key[i])
+    {
+        if (!(ft_isalnum(key[i]) || key[i] == '_'))
+            return (0);
+        i++;
+    }
+    return (1);
+}
 
 int	env_key_compare(const char *env_entry, const char *key)
 {
