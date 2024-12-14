@@ -1,34 +1,48 @@
 NAME = minishell
 
+# Компилятор и флаги
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror
-SRC = src/main.c src/retranslate.c src/builtins.c src/exec_redir.c src/parser.c src/lexer.c
-OBJ = $(SRC:.c=.o)
+CFLAGS = -Wall -Wextra -Werror -g
 
+# Директории
+SRC_DIR = src
+OBJ_DIR = obj
+INC_DIR = include
+
+# Указание библиотеки libft
 LIBFT = libft/libft.a
-INC = -Iinclude
 
-READLINE_DIR = /usr/local/opt/readline
-CFLAGS += -I$(READLINE_DIR)/include
-LDFLAGS = -L$(READLINE_DIR)/lib -lreadline
+# Указание всех исходников проекта
+SRC = $(wildcard $(SRC_DIR)/**/*.c)
 
+# Преобразование исходников в объектные файлы
+OBJ = $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+
+# Основная цель
 all: $(NAME)
 
+# Сборка исполняемого файла
 $(NAME): $(OBJ) $(LIBFT)
-	$(CC) $(CFLAGS) $(OBJ) $(LIBFT) $(LDFLAGS) -o $(NAME)
+	$(CC) $(CFLAGS) $(OBJ) $(LIBFT) -o $(NAME)
 
-%.o: %.c
-	$(CC) $(CFLAGS) $(INC) -c $< -o $@
+# Компиляция объектных файлов
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -I$(INC_DIR) -Ilibft -c $< -o $@
 
+# Сборка libft
 $(LIBFT):
 	make -C libft
 
+# Очистка объектных файлов
 clean:
-	rm -f $(OBJ)
+	rm -rf $(OBJ_DIR)
 	make clean -C libft
 
+# Полная очистка
 fclean: clean
 	rm -f $(NAME)
 	make fclean -C libft
 
+# Пересобрать проект
 re: fclean all

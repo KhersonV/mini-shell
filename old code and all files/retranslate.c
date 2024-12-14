@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/22 11:19:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/12 12:32:03 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/14 13:59:17 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -150,48 +150,59 @@ char	*find_command(char *command, char **envp)
 	char		**paths;
 	char		*full_path;
 	char		*partial_path;
-	struct stat	sb;
 	int			i;
 
+	// Если команда начинается с '/' или './', проверяем её напрямую
 	if (command[0] == '/' || command[0] == '.')
 	{
-		if (stat(command, &sb) == 0 && sb.st_mode & S_IXUSR)
+		if (access(command, X_OK) == 0) // Проверяем, доступен ли файл для выполнения
 			return (ft_strdup(command));
 		else
 			return (NULL);
 	}
-	path_env = get_env_value(envp, "PATH");
+
+	// Получаем значение переменной PATH из окружения
+	path_env = get_env_value((t_info *)envp, "PATH");
 	if (!path_env)
 		return (NULL);
+
+	// Разбиваем PATH на массив директорий
 	paths = ft_split(path_env, ':');
 	if (!paths)
 		return (NULL);
+
+	// Перебираем все директории из PATH
 	i = 0;
 	full_path = NULL;
 	while (paths[i])
 	{
+		// Формируем полный путь: directory/command
 		partial_path = ft_strjoin(paths[i], "/");
 		if (!partial_path)
 		{
 			i++;
-			continue ;
+			continue;
 		}
 		full_path = ft_strjoin(partial_path, command);
 		free(partial_path);
 		if (!full_path)
 		{
 			i++;
-			continue ;
+			continue;
 		}
-		if (stat(full_path, &sb) == 0 && sb.st_mode & S_IXUSR)
+
+		// Проверяем, доступен ли полный путь для выполнения
+		if (access(full_path, X_OK) == 0)
 		{
 			ft_free_array(paths);
-			return (full_path);
+			return (full_path); // Если доступен, возвращаем полный путь
 		}
 		free(full_path);
 		full_path = NULL;
 		i++;
 	}
+
+	// Если команда не найдена, освобождаем память и возвращаем NULL
 	ft_free_array(paths);
 	return (NULL);
 }
