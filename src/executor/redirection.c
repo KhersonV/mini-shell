@@ -6,11 +6,11 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:12:26 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/12 13:51:28 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/16 12:15:15 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../include/executor.h"
+#include "../../include/minishell.h"
 
 int	create_heredoc_file(const char *heredoc_marker)
 {

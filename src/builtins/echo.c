@@ -6,11 +6,11 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:20 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/10 14:49:07 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/16 12:14:31 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-# include "../../include/builtins.h"
+#include "../../include/minishell.h"
 
 void	ft_echo(char **args, t_info *info)
 {

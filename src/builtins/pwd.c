@@ -6,11 +6,11 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:32 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/10 15:10:00 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/16 12:14:44 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../include/builtins.h"
+#include "../../include/minishell.h"
 
 void	ft_pwd(t_info *info)
 {

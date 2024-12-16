@@ -6,11 +6,11 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 12:43:01 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/13 13:34:42 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/16 12:14:56 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../include/env.h"
+#include "../../include/minishell.h"
 
 char	**copy_envp(char **envp)
 {

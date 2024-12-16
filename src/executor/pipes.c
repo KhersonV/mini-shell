@@ -6,11 +6,11 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:10:51 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/12 13:43:20 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/16 12:15:11 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../include/executor.h"
+#include "../../include/minishell.h"
 
 int	create_pipe(int fd[2])
 {

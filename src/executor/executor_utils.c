@@ -6,12 +6,11 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:09:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/12 13:45:55 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/16 12:15:01 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../include/executor.h"
-#include "../../include/lexer.h"
+#include "../../include/minishell.h"
 
 int	handle_redirections(t_redirection *redirects)
 {

@@ -6,11 +6,11 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 12:52:06 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/13 13:28:55 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/16 12:14:51 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../include/env.h"
+#include "../../include/minishell.h"
 
 int is_valid_env_key(const char *key)
 {

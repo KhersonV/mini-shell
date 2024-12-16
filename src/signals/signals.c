@@ -6,11 +6,11 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/27 20:00:00 by admin             #+#    #+#             */
-/*   Updated: 2024/12/11 12:26:18 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/16 12:15:35 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../include/signals.h"
+#include "../../include/minishell.h"
 
 static void	sigint_handler(int signo)
 {
