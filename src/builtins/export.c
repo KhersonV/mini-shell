@@ -6,16 +6,39 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:29 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/16 12:14:40 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/16 14:30:40 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
+void	sort_env(char **env)
+{
+	int		i;
+	int		j;
+	char	*tmp;
+
+	i = 0;
+	while (env[i])
+	{
+		j = i + 1;
+		while (env[j])
+		{
+			if (ft_strcmp(env[i], env[j]) > 0)
+			{
+				tmp = env[i];
+				env[i] = env[j];
+				env[j] = tmp;
+			}
+			j++;
+		}
+		i++;
+	}
+}
+
 void	ft_export(char **args, t_info *info)
 {
 	char	**sorted_env;
-	int		i;
 	int		i;
 	char	*key;
 	char	*value;
@@ -53,36 +76,13 @@ void	ft_export(char **args, t_info *info)
 		}
 		else
 		{
-			printf("minishell: export: `%s': not a valid identifier\n",
-				args[i]);
+			ft_putstr_fd("minishell: export: `", 2);
+			ft_putstr_fd(args[i], 2);
+			ft_putstr_fd("': not a valid identifier\n", 2);
 			info->exit_status = 1;
 		}
 		free(key);
 		free(value);
-		i++;
-	}
-}
-
-void	sort_env(char **env)
-{
-	int		i;
-	int		j;
-	char	*tmp;
-
-	i = 0;
-	while (env[i])
-	{
-		j = i + 1;
-		while (env[j])
-		{
-			if (ft_strcmp(env[i], env[j]) > 0)
-			{
-				tmp = env[i];
-				env[i] = env[j];
-				env[j] = tmp;
-			}
-			j++;
-		}
 		i++;
 	}
 }

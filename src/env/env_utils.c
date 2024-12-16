@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 12:52:06 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/16 12:14:51 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/16 14:41:09 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ int	env_key_compare(const char *env_entry, const char *key)
 	int	key_len;
 
 	key_len = ft_strlen(key);
-	return (strncmp(env_entry, key, key_len) == 0 && env_entry[key_len] == '=');
+	return (ft_strncmp(env_entry, key, key_len) == 0 && env_entry[key_len] == '=');
 }
 
 char	*get_value_from_env(const char *env_entry)
@@ -48,12 +48,10 @@ char	*get_value_from_env(const char *env_entry)
 char	*create_env_entry(const char *key, const char *value)
 {
 	char	*entry;
-	size_t	i;
-	size_t	j;
+	size_t	len_key;
+	size_t	len_value;
+	size_t	len;
 
-	size_t len_key, len_value, len;
-	i = 0;
-	j = 0;
 	if (!key || !value)
 		return (NULL);
 	len_key = ft_strlen(key);
@@ -62,15 +60,9 @@ char	*create_env_entry(const char *key, const char *value)
 	entry = (char *)malloc(len);
 	if (!entry)
 		exit(EXIT_FAILURE);
-	while (i < len_key)
-	{
-		entry[i] = key[i];
-		i++;
-	}
-	entry[i++] = '=';
-	while (j < len_value)
-		entry[i++] = value[j++];
-	entry[i] = '\0';
+	ft_strlcpy(entry, key, len_key + 1);
+	entry[len_key] = '=';
+	ft_strlcpy(entry + len_key + 1, value, len - len_key - 1);
 	return (entry);
 }
 
@@ -92,8 +84,8 @@ char	**append_env_entry(char **env, const char *entry)
 		new_env[i] = env[i];
 		i++;
 	}
-	new_env[count] = ft_strdup(entry);
-	new_env[count + 1] = NULL;
+	new_env[i] = ft_strdup(entry);
+	new_env[i + 1] = NULL;
 	free(env);
 	return (new_env);
 }
@@ -121,7 +113,22 @@ char	**remove_env_entry(char **env, int index)
 			free(env[i]);
 		i++;
 	}
-	new_env[count - 1] = NULL;
+	new_env[j] = NULL;
 	free(env);
 	return (new_env);
+}
+
+void	free_env_array(char **env)
+{
+    int i;
+
+    if (!env)
+        return;
+    i = 0;
+    while (env[i])
+    {
+        free(env[i]);
+        i++;
+    }
+    free(env);
 }

@@ -6,13 +6,13 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:04 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/16 12:14:12 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/16 14:06:38 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
-void	ft_cd(char **args, char ***envp, t_info *info)
+void	ft_cd(char **args, t_info *info)
 {
 	char	*dir;
 	char	cwd[PATH_MAX];
@@ -23,7 +23,7 @@ void	ft_cd(char **args, char ***envp, t_info *info)
 
 	if (!args[1] || ft_strcmp(args[1], "~") == 0)
 	{
-		home = get_env_value(*envp, "HOME");
+		home = get_env_value(info, "HOME");
 		if (!home)
 		{
 			printf("minishell: cd: HOME not set\n");
@@ -34,7 +34,7 @@ void	ft_cd(char **args, char ***envp, t_info *info)
 	}
 	else if (ft_strcmp(args[1], "-") == 0)
 	{
-		old_pwd = get_env_value(*envp, "OLDPWD");
+		old_pwd = get_env_value(info, "OLDPWD");
 		if (!old_pwd)
 		{
 			printf("minishell: cd: OLDPWD not set\n");
@@ -46,7 +46,7 @@ void	ft_cd(char **args, char ***envp, t_info *info)
 	}
 	else if (args[1][0] == '~')
 	{
-		home = get_env_value(*envp, "HOME");
+		home = get_env_value(info, "HOME");
 		if (!home)
 		{
 			printf("minishell: cd: HOME not set\n");
@@ -71,10 +71,10 @@ void	ft_cd(char **args, char ***envp, t_info *info)
 		info->exit_status = 1;
 		return ;
 	}
-	pwd_value = get_env_value(*envp, "PWD");
+	pwd_value = get_env_value(info, "PWD");
 	if (pwd_value != NULL)
 	{
-		if (set_env_var(envp, "OLDPWD", pwd_value) == -1)
+		if (set_env_var(info, "OLDPWD", pwd_value) == -1)
 		{
 			printf("minishell: cd: failed to set OLDPWD\n");
 			info->exit_status = 1;
@@ -83,7 +83,7 @@ void	ft_cd(char **args, char ***envp, t_info *info)
 	}
 	else
 	{
-		if (set_env_var(envp, "OLDPWD", cwd) == -1)
+		if (set_env_var(info, "OLDPWD", cwd) == -1)
 		{
 			printf("minishell: cd: failed to set OLDPWD\n");
 			info->exit_status = 1;
@@ -96,7 +96,7 @@ void	ft_cd(char **args, char ***envp, t_info *info)
 		info->exit_status = 1;
 		return ;
 	}
-	if (set_env_var(envp, "PWD", cwd) == -1)
+	if (set_env_var(info, "PWD", cwd) == -1)
 	{
 		printf("minishell: cd: failed to set PWD\n");
 		info->exit_status = 1;

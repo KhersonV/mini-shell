@@ -6,9 +6,10 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 12:43:01 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/16 12:14:56 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/16 14:40:10 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 #include "../../include/minishell.h"
 
@@ -73,13 +74,20 @@ void	set_env(t_info *info, const char *key, const char *value)
 	int		i;
 	char	*new_entry;
 
-	if(!info || !key || !value || !is_valid_env_key(key))
+	if (!info || !key || !value || !is_valid_env_key(key))
 	{
-		printf(stderr, "minishell: export: `%s': not a valid identifier\n", key);
+		fprintf(stderr, "minishell: export: `%s': not a valid identifier\n", key);
+		info->exit_status = 1;
 		return;
 	}
 
 	new_entry = create_env_entry(key, value);
+	if (!new_entry)
+	{
+		perror("minishell: export: failed to create env entry");
+		info->exit_status = 1;
+		return;
+	}
 
 	i = 0;
 	while (info->envp[i])
@@ -88,33 +96,13 @@ void	set_env(t_info *info, const char *key, const char *value)
 		{
 			free(info->envp[i]);
 			info->envp[i] = new_entry;
+			info->exit_status = 0;
 			return ;
 		}
 		i++;
 	}
 	info->envp = append_env_entry(info->envp, new_entry);
-}
-
-void	unset_env(t_info *info, const char *key)
-{
-	int	i;
-
-	 if (!info || !key || !is_valid_env_key(key))
-    {
-        printf(stderr, "minishell: unset: `%s': not a valid identifier\n", key);
-        return;
-    }
-	i = 0;
-	while (info->envp[i])
-	{
-		if (env_key_compare(info->envp[i], key))
-		{
-			free(info->envp[i]);
-			info->envp = remove_env_entry(info->envp, i);
-			break ;
-		}
-		i++;
-	}
+	info->exit_status = 0;
 }
 
 char	**env_to_array(t_info *info)
@@ -122,18 +110,18 @@ char	**env_to_array(t_info *info)
 	return (copy_envp(info->envp));
 }
 
-void free_env(t_info *info)
+void	free_env(t_info *info)
 {
-    int i;
+	int	i;
 
-    if (!info || !info->envp)
-        return;
+	if (!info || !info->envp)
+		return;
 	i = 0;
-    while (info->envp[i])
-    {
-        free(info->envp[i]);
-        i++;
-    }
-    free(info->envp);
-    info->envp = NULL;
+	while (info->envp[i])
+	{
+		free(info->envp[i]);
+		i++;
+	}
+	free(info->envp);
+	info->envp = NULL;
 }
