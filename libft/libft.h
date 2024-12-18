@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   libft.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
+/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 13:24:08 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/10/11 21:32:02 by admin            ###   ########.fr       */
+/*   Updated: 2024/12/18 12:38:06 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,5 +70,6 @@ t_list				*ft_lstmap(t_list *lst, void *(*f)(void *),
 						void (*del)(void *));
 int					ft_strcmp(const char *s1, const char *s2);
 char				*ft_strcpy(char *str, char *dst);
+char				*ft_strndup(const char *s, size_t n);
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/16 14:07:37 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/18 12:46:00 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,10 @@
 # include "../libft/libft.h"
 # include <fcntl.h>
 # include <limits.h>
+# include <stdio.h>
 # include <readline/history.h>
 # include <readline/readline.h>
 # include <signal.h>
-# include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
 # include <sys/stat.h>
@@ -109,15 +109,17 @@ void						ft_env(char **envp, t_info *info);
 void						ft_exit(char **args, t_info *info);
 
 /* Env */
+char						**copy_envp(char **envp);
 void						init_env(t_info *info, char **envp);
 char						*get_env_value(t_info *info, const char *key);
-void						set_env(t_info *info, const char *key,
+int							set_env(t_info *info, const char *key,
 								const char *value);
-void						unset_env(t_info *info, const char *key);
+void						unset_env(t_info *info, char *key);
 char						**env_to_array(t_info *info);
 void						free_env(t_info *info);
 
 /* Env utils */
+
 int							is_valid_env_key(const char *key);
 int							env_key_compare(const char *env_entry,
 								const char *key);
@@ -140,6 +142,8 @@ void						execute_builtin(t_exec_command *command,
 int							handle_redirections(t_redirection *redirects);
 void						restore_standard_fds(int fd_in, int fd_out);
 char						*find_command(char *command, char **envp);
+int							is_builtin(char *command);
+
 void						execute_external_command(char **args, char **envp);
 
 /* Lexer */

@@ -6,23 +6,23 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:35 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/16 14:32:19 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/18 12:43:32 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-
-
 #include "../../include/minishell.h"
 
-void	unset_env(t_info *info, const char *key)
+void	unset_env(t_info *info, char *key)
 {
 	int	i;
 
-	 if (!info || !key || !is_valid_env_key(key))
-    {
-        printf(stderr, "minishell: unset: `%s': not a valid identifier\n", key);
-        return;
-    }
+	if (!info || !key || !is_valid_env_key(key))
+	{
+		ft_putstr_fd("minishell: unset: `", 2);
+		ft_putstr_fd(key, 2);
+		ft_putstr_fd("': not a valid identifier\n", 2);
+		return ;
+	}
 	i = 0;
 	while (info->envp[i])
 	{
