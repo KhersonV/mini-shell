@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 12:52:06 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/17 13:11:17 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/19 12:59:48 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,21 @@ char	*get_value_from_env(const char *env_entry)
 	if (!equals)
 		return (NULL);
 	return (ft_strdup(equals + 1));
+}
+
+
+char *get_env_value_direct(char **envp, const char *key)
+{
+    int i = 0;
+    size_t key_len = strlen(key);
+
+    while (envp[i])
+    {
+        if (strncmp(envp[i], key, key_len) == 0 && envp[i][key_len] == '=')
+            return (strdup(envp[i] + key_len + 1));
+        i++;
+    }
+    return (NULL);
 }
 
 char	*create_env_entry(const char *key, const char *value)

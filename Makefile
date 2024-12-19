@@ -1,48 +1,54 @@
 NAME = minishell
 
-# Компилятор и флаги
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror
 
-# Директории
+# Папки
 SRC_DIR = src
 OBJ_DIR = obj
-INC_DIR = include
+LIBFT_DIR = libft
 
-# Указание библиотеки libft
-LIBFT = libft/libft.a
-
-# Указание всех исходников проекта
-SRC = $(wildcard $(SRC_DIR)/**/*.c)
+# Источники
+SRC = $(SRC_DIR)/main.c \
+      $(SRC_DIR)/builtins/cd.c $(SRC_DIR)/builtins/echo.c $(SRC_DIR)/builtins/env_builtin.c \
+      $(SRC_DIR)/builtins/exit_builtin.c $(SRC_DIR)/builtins/export.c $(SRC_DIR)/builtins/pwd.c \
+      $(SRC_DIR)/env/env.c $(SRC_DIR)/env/env_utils.c \
+      $(SRC_DIR)/executor/executor.c $(SRC_DIR)/executor/executor_utils.c \
+      $(SRC_DIR)/executor/herodoc.c $(SRC_DIR)/executor/pipes.c $(SRC_DIR)/executor/redirection.c \
+      $(SRC_DIR)/lexer/lexer.c $(SRC_DIR)/lexer/lexer_utils.c $(SRC_DIR)/lexer/tokenizer.c \
+      $(SRC_DIR)/parser/ast.c $(SRC_DIR)/parser/parser.c $(SRC_DIR)/parser/parser_utils.c \
+      $(SRC_DIR)/signals/signals.c $(SRC_DIR)/utils/errors.c $(SRC_DIR)/utils/free_utils.c 
 
 # Преобразование исходников в объектные файлы
 OBJ = $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+
+LIBFT = $(LIBFT_DIR)/libft.a
 
 # Основная цель
 all: $(NAME)
 
 # Сборка исполняемого файла
 $(NAME): $(OBJ) $(LIBFT)
-	$(CC) $(CFLAGS) $(OBJ) $(LIBFT) -o $(NAME)
+	$(CC) $(CFLAGS) $(OBJ) $(LIBFT) $(LDFLAGS) -lreadline -o $(NAME)
 
 # Компиляция объектных файлов
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -I$(INC_DIR) -Ilibft -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# Сборка libft
+# Сборка библиотеки libft
 $(LIBFT):
-	make -C libft
+	$(MAKE) -C $(LIBFT_DIR)
 
 # Очистка объектных файлов
 clean:
 	rm -rf $(OBJ_DIR)
-	make clean -C libft
+	$(MAKE) clean -C $(LIBFT_DIR)
 
-# Полная очистка
+# Полная очистка (включая минишелл)
 fclean: clean
 	rm -f $(NAME)
-	make fclean -C libft
+	$(MAKE) fclean -C $(LIBFT_DIR)
 
-# Пересобрать проект
+# Пересборка
 re: fclean all

@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/16 12:15:05 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/19 13:16:05 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,4 +121,22 @@ void	execute_pipeline(t_exec_command *commands, t_info *info)
 	}
 	while (wait(NULL) > 0)
 		;
+}
+
+void execute_builtin(t_exec_command *command, t_info *info)
+{
+    if (!command || !command->cmd_name)
+        return;
+    if (strcmp(command->cmd_name, "echo") == 0)
+        ft_echo(command->args, info);
+    else if (strcmp(command->cmd_name, "cd") == 0)
+        ft_cd(command->args, info);
+    else if (strcmp(command->cmd_name, "pwd") == 0)
+        ft_pwd(info);
+    else if (strcmp(command->cmd_name, "export") == 0)
+        ft_export(command->args, info);
+    else if (strcmp(command->cmd_name, "env") == 0)
+        ft_env(info->envp, info);
+    else if (strcmp(command->cmd_name, "exit") == 0)
+        ft_exit(command->args, info);
 }

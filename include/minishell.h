@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/18 12:46:00 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/19 13:19:46 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,13 @@ typedef enum e_token_type
 	TOKEN_REDIRECT_APPEND,
 	TOKEN_HEREDOC,
 	TOKEN_SPACE,
-	TOKEN_END
+	TOKEN_COMMAND,
+	TOKEN_ARGUMENT,
+	TOKEN_FIELD,
+	TOKEN_EXP_FIELD,
+	TOKEN_VAR,
+	TOKEN_FILE,
+	TOKEN_HEREDOC_MARKER
 }							t_token_type;
 
 /* Прототипы функций */
@@ -104,7 +110,7 @@ void						ft_echo(char **args, t_info *info);
 void						ft_cd(char **args, t_info *info);
 void						ft_pwd(t_info *info);
 void						ft_export(char **args, t_info *info);
-void						ft_unset(char **args, t_info *info);
+
 void						ft_env(char **envp, t_info *info);
 void						ft_exit(char **args, t_info *info);
 
@@ -116,7 +122,7 @@ int							set_env(t_info *info, const char *key,
 								const char *value);
 void						unset_env(t_info *info, char *key);
 char						**env_to_array(t_info *info);
-void						free_env(t_info *info);
+
 
 /* Env utils */
 
@@ -124,11 +130,14 @@ int							is_valid_env_key(const char *key);
 int							env_key_compare(const char *env_entry,
 								const char *key);
 char						*get_value_from_env(const char *env_entry);
+char 						*get_env_value_direct(char **envp, const char *key);
+
 char						*create_env_entry(const char *key,
 								const char *value);
 char						**append_env_entry(char **env, const char *entry);
 char						**remove_env_entry(char **env, int index);
-void						free_env_array(char **env);
+
+void						exit_shell(t_info *info);
 
 /* Executor */
 void						execute_commands(t_exec_command *commands,
@@ -144,20 +153,30 @@ void						restore_standard_fds(int fd_in, int fd_out);
 char						*find_command(char *command, char **envp);
 int							is_builtin(char *command);
 
-void						execute_external_command(char **args, char **envp);
+void						execute_commands(t_exec_command *commands, t_info *info);
 
 /* Lexer */
 t_token						*tokenize(char *input);
-void						free_tokens(t_token *tokens);
-void						print_tokens(t_token *tokens);
+void						remove_spaces(t_token **tree);
+void						adjusting_token_tree(t_token **tree);
+void						free_token_list(t_token *tokens);
 
 /* Parser */
 t_node						*parse_tokens(t_token *tokens);
-void						free_ast(t_node *node);
-void						print_ast(t_node *node);
+
+void						print_ast(t_node *node, int level);
+t_exec_command				*ast_to_exec_commands(t_node *ast);
 
 /* Signals */
 void						init_signals(void);
 void						reset_signals_to_default(void);
 
+/* utils - free_utils */
+void						ft_free_array(char **array);
+void						free_ast(t_node *node);
+void						free_env_array(char **env);
+void						free_commands(t_exec_command *commands);
+
+void						free_env(t_info *info);
+void						free_redirections(t_redirection *redirects);
 #endif

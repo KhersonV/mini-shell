@@ -1,4 +1,6 @@
 
+#include "../../include/minishell.h"
+
 void	ft_free_args(char **args)
 {
 	int	i;
@@ -29,39 +31,66 @@ void	ft_free_array(char **array)
 	free(array);
 }
 
-void	free_token_list(t_tree *tokens)
+void free_token_list(t_token *tokens)
 {
-	t_tree	*temp;
+    t_token *temp;
 
-	while (tokens)
-	{
-		temp = tokens;
-		tokens = tokens->next;
-		free(temp->name);
-		free(temp->type);
-		free(temp);
-	}
+    while (tokens)
+    {
+        temp = tokens;
+        free(temp->str);
+        tokens = tokens->next;
+        free(temp);
+    }
 }
 
-void	free_ast(Node *node)
+void free_ast(t_node *node)
 {
-	if (!node)
-		return ;
-	if (node->data)
-		free(node->data);
-	if (node->args)
-		free(node->args);
-	if (node->redirect_op)
-		free(node->redirect_op);
-	if (node->redirect_file)
-		free(node->redirect_file);
-	if (node->left)
-	{
-		free_ast(node->left);
-	}
-	if (node->right)
-	{
-		free_ast(node->right);
-	}
-	free(node);
+    if (!node)
+        return;
+    free_ast(node->left);
+    free_ast(node->right);
+    free(node->data);
+    free(node->args);
+    free(node->redirect_op);
+    free(node->redirect_file);
+    free(node);
+}
+
+
+void free_commands(t_exec_command *commands)
+{
+    t_exec_command *temp;
+
+    while (commands)
+    {
+        temp = commands;
+        free(commands->cmd_name);
+        ft_free_array(commands->args); // Освобождение массива аргументов
+        free_redirections(commands->redirects); // Освобождение редиректов
+        commands = commands->next_cmd;
+        free(temp);
+    }
+}
+
+
+
+void free_redirections(t_redirection *redirects)
+{
+    t_redirection *temp;
+
+    while (redirects)
+    {
+        temp = redirects;
+        free(redirects->filename); // Освобождаем имя файла
+        redirects = redirects->next;
+        free(temp); // Освобождаем текущую структуру
+    }
+}
+
+void exit_shell(t_info *info)
+{
+    free_env(info);
+    printf("Exiting minishell...\n");
+    exit(info->exit_status);
 }

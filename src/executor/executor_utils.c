@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:09:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/16 12:15:01 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/19 12:59:59 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,4 +72,40 @@ int	is_builtin(char *command)
 		|| strcmp(command, "pwd") == 0 || strcmp(command, "export") == 0
 		|| strcmp(command, "unset") == 0 || strcmp(command, "env") == 0
 		|| strcmp(command, "exit") == 0);
+}
+
+
+char *find_command(char *command, char **envp)
+{
+    char *path_env;
+    char **paths;
+    char *full_path;
+    char *temp;
+    int i;
+
+    path_env = get_env_value_direct(envp, "PATH");
+    if (!path_env)
+        return (NULL);
+
+    paths = ft_split(path_env, ':');
+    free(path_env);
+    if (!paths)
+        return (NULL);
+
+    i = 0;
+    while (paths[i])
+    {
+        temp = ft_strjoin(paths[i], "/");
+        full_path = ft_strjoin(temp, command);
+        free(temp);
+        if (access(full_path, X_OK) == 0)
+        {
+            ft_free_array(paths);
+            return (full_path);
+        }
+        free(full_path);
+        i++;
+    }
+    ft_free_array(paths);
+    return (NULL);
 }
