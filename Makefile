@@ -1,14 +1,14 @@
-# Имя исполняемого файла будет определяться после BUILD_DIR
+# Имя исполняемого файла
 DEBUG = 1
-ifeq ($(DEBUG), 0)
+ifeq ($(DEBUG), 1)
     CFLAGS = -g -Wall -Wextra -Werror
-    BUILD_DIR = build/Debug
+    BUILD_DIR = build/
 else
     CFLAGS = -Wall -Wextra -Werror
-    BUILD_DIR = build/Release
+    BUILD_DIR = build/
 endif
 
-NAME = $(BUILD_DIR)/minishell
+NAME = minishell
 
 # Компилятор
 CC = gcc
@@ -40,7 +40,7 @@ all: $(NAME)
 
 # Сборка исполняемого файла
 $(NAME): $(OBJ) $(LIBFT)
-	@mkdir -p $(dir $@)
+	@echo "Linking $@"
 	$(CC) $(CFLAGS) $(OBJ) $(LIBFT) $(LDFLAGS) -lreadline -o $@
 
 # Компиляция объектных файлов
@@ -52,13 +52,14 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 $(LIBFT):
 	$(MAKE) -C $(LIBFT_DIR)
 
-# Очистка объектных файлов и директории сборки
+# Очистка объектных файлов
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(OBJ_DIR)
 	$(MAKE) clean -C $(LIBFT_DIR)
 
-# Полная очистка (включая исполняемый файл)
+# Полная очистка (включая build и исполняемый файл)
 fclean: clean
+	rm -rf $(BUILD_DIR)
 	rm -f $(NAME)
 	$(MAKE) fclean -C $(LIBFT_DIR)
 
