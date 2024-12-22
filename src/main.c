@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/22 13:21:49 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/22 14:56:03 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,8 @@ int	main(int ac, char **av, char **envp)
 
 		// Построение списка команд
 		commands = parse_tokens_to_commands(tokens);
+		commands = build_fake_command_list();
+		
 		if (!commands)
 		{
 			free_token_list(tokens);

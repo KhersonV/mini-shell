@@ -92,156 +92,113 @@ static t_redirection *create_new_redir(const char *filename,
  *   (2) grep Hello < my_input_file >> my_output_file
  *    |
  *   (3) wc -l << EOF
- */
-t_exec_command *build_fake_command_list(void)
+ */t_exec_command *build_fake_command_list(void)
 {
     /*
      * --------------------------------
-     * Command #1: echo "Hello from command1"
+     * Command #1: cat
      * --------------------------------
      */
     t_exec_command *cmd1 = create_new_command();
-    cmd1->cmd_name = strdup("echo");
-    // If your executor uses exec_path differently, set it to NULL or an actual path
+    cmd1->cmd_name = strdup("cat");
     cmd1->exec_path = NULL;
     // Build args
-    char **args1 = (char **)calloc(3, sizeof(char *));
-    args1[0] = strdup("echo");
-    args1[1] = strdup("Hello from command1");
-    args1[2] = NULL;
+    char **args1 = (char **)calloc(2, sizeof(char *));
+    args1[0] = strdup("cat");
+    args1[1] = NULL;
     cmd1->args = args1;
-    // No redirections for cmd1
     cmd1->redirects = NULL;
     cmd1->exit_status = 0;
 
     /*
      * --------------------------------
-     * Command #2: grep Hello < my_input_file >> my_output_file
+     * Command #2: cat
      * --------------------------------
      */
     t_exec_command *cmd2 = create_new_command();
-    cmd2->cmd_name = strdup("grep");
+    cmd2->cmd_name = strdup("cat");
     cmd2->exec_path = NULL;
     // Build args
-    char **args2 = (char **)calloc(3, sizeof(char *));
-    args2[0] = strdup("grep");
-    args2[1] = strdup("Hello");
-    args2[2] = NULL;
+    char **args2 = (char **)calloc(2, sizeof(char *));
+    args2[0] = strdup("cat");
+    args2[1] = NULL;
     cmd2->args = args2;
+    cmd2->redirects = NULL;
     cmd2->exit_status = 0;
-
-    // Redirections for cmd2:
-    // 1) Input redirection from "my_input_file"
-    t_redirection *redir_in = create_new_redir(
-        "my_input_file",   // filename
-        0,                 // fd (stdin)
-        0,                 // is_append
-        0,                 // is_heredoc
-        NULL,              // no heredoc marker
-        REDIR_IN
-    );
-
-    // 2) Append output redirection to "my_output_file"
-    t_redirection *redir_out_append = create_new_redir(
-        "my_output_file",
-        1,    // fd (stdout)
-        1,    // is_append
-        0,    // is_heredoc
-        NULL, // no heredoc marker
-        REDIR_APPEND
-    );
-    
-    // Link them in a small linked list
-    redir_in->next = redir_out_append;
-    cmd2->redirects = redir_in;
 
     /*
      * --------------------------------
-     * Command #3: wc -l << EOF
+     * Command #3: ls
      * --------------------------------
      */
     t_exec_command *cmd3 = create_new_command();
-    cmd3->cmd_name = strdup("wc");
+    cmd3->cmd_name = strdup("ls");
     cmd3->exec_path = NULL;
     // Build args
-    char **args3 = (char **)calloc(3, sizeof(char *));
-    args3[0] = strdup("wc");
-    args3[1] = strdup("-l");
-    args3[2] = NULL;
+    char **args3 = (char **)calloc(2, sizeof(char *));
+    args3[0] = strdup("ls");
+    args3[1] = NULL;
     cmd3->args = args3;
+    cmd3->redirects = NULL;
     cmd3->exit_status = 0;
-
-    // Heredoc redirection
-    t_redirection *redir_heredoc = create_new_redir(
-        NULL,       // no filename for heredoc
-        0,          // fd (stdin)
-        0,          // is_append
-        1,          // is_heredoc
-        "EOF",      // heredoc marker
-        REDIR_HEREDOC
-    );
-    cmd3->redirects = redir_heredoc;
 
     /*
      * Link the commands together: cmd1 -> cmd2 -> cmd3
-     * so your executor can iterate them in order.
      */
     cmd1->next_cmd = cmd2;
     cmd2->prev_cmd = cmd1;
+
     cmd2->next_cmd = cmd3;
     cmd3->prev_cmd = cmd2;
-
-    // (Optional) set pipe_fds if you want to force them,
-    // or let your executor handle pipe creation.
 
     // Return the head of this chain
     return cmd1;
 }
 
-int main(void)
-{
-    // Build the fake command list
-    t_exec_command *cmd_list = build_fake_command_list();
+// int main(void)
+// {
+//     // Build the fake command list
+//     t_exec_command *cmd_list = build_fake_command_list();
     
-    // Pass cmd_list to your teammate’s executor here, or
-    // just print to verify the structure is correct:
-    t_exec_command *current = cmd_list;
-    while (current)
-    {
-        printf("Command: %s\n", current->cmd_name);
+//     // Pass cmd_list to your teammate’s executor here, or
+//     // just print to verify the structure is correct:
+//     t_exec_command *current = cmd_list;
+//     while (current)
+//     {
+//         printf("Command: %s\n", current->cmd_name);
 
-        // Print arguments
-        if (current->args)
-        {
-            int i = 0;
-            while (current->args[i])
-            {
-                printf("  arg[%d]: %s\n", i, current->args[i]);
-                i++;
-            }
-        }
+//         // Print arguments
+//         if (current->args)
+//         {
+//             int i = 0;
+//             while (current->args[i])
+//             {
+//                 printf("  arg[%d]: %s\n", i, current->args[i]);
+//                 i++;
+//             }
+//         }
 
-        // Print redirections
-        t_redirection *r = current->redirects;
-        while (r)
-        {
-            printf("  Redirection: type=%d, file=%s, "
-                   "is_heredoc=%d, is_append=%d\n",
-                   r->type,
-                   (r->filename ? r->filename : "(NULL)"),
-                   r->is_heredoc,
-                   r->is_append);
-            if (r->heredoc_marker)
-                printf("    heredoc marker: %s\n", r->heredoc_marker);
-            r = r->next;
-        }
-        printf("\n");
+//         // Print redirections
+//         t_redirection *r = current->redirects;
+//         while (r)
+//         {
+//             printf("  Redirection: type=%d, file=%s, "
+//                    "is_heredoc=%d, is_append=%d\n",
+//                    r->type,
+//                    (r->filename ? r->filename : "(NULL)"),
+//                    r->is_heredoc,
+//                    r->is_append);
+//             if (r->heredoc_marker)
+//                 printf("    heredoc marker: %s\n", r->heredoc_marker);
+//             r = r->next;
+//         }
+//         printf("\n");
 
-        current = current->next_cmd;
-    }
+//         current = current->next_cmd;
+//     }
 
-    // In a real project, you would free all memory here:
-    // free(cmd_list->args[..]), free(cmd_list->redirects, ...), etc.
+//     // In a real project, you would free all memory here:
+//     // free(cmd_list->args[..]), free(cmd_list->redirects, ...), etc.
 
-    return 0;
-}
+//     return 0;
+// }
