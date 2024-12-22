@@ -6,32 +6,35 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:20 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/16 12:14:31 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/22 14:32:12 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
-void	ft_echo(char **args, t_info *info)
+void ft_echo(char **args, t_info *info)
 {
-	int i;
-	int newline;
+    int i = 1; // Начинаем с первого аргумента
+    int newline = 1; // По умолчанию добавляем новую строку
 
-	i = 1;
-	newline = 1;
-	while (args[i] && ft_strcmp(args[i], "-n") == 0)
-	{
-		newline = 0;
-		i++;
-	}
-	while (args[i])
-	{
-		printf("%s", args[i]);
-		if (args[i + 1])
-			printf(" ");
-		i++;
-	}
-	if (newline)
-		printf("\n");
-	info->exit_status = 0;
+    // Проверяем, является ли первый аргумент флагом -n
+    while (args[i] && strcmp(args[i], "-n") == 0)
+    {
+        newline = 0; // Если флаг -n найден, не добавляем новую строку
+        i++;
+    }
+
+    // Вывод остальных аргументов
+    while (args[i])
+    {
+        printf("%s", args[i]);
+        if (args[i + 1]) // Добавляем пробел, если есть следующий аргумент
+            printf(" ");
+        i++;
+    }
+
+    if (newline) // Добавляем новую строку, если флаг -n не был установлен
+        printf("\n");
+
+    info->exit_status = 0; // Устанавливаем статус выполнения
 }

@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/19 13:16:05 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/22 13:57:52 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,52 +17,63 @@ void	execute_commands(t_exec_command *commands, t_info *info)
 	if (!commands)
 		return ;
 	if (commands->next_cmd)
+	{
 		execute_pipeline(commands, info);
+		return;
+	}
 	else
 		execute_single_command(commands, info);
 }
 
-void	execute_single_command(t_exec_command *command, t_info *info)
+void execute_single_command(t_exec_command *command, t_info *info)
 {
-	pid_t	pid;
-	int		status;
-	char	*path;
+    pid_t pid;
+    int status;
+    char *path;
 
-	if (is_builtin(command->cmd_name))
-	{
-		execute_builtin(command, info);
-		return ;
-	}
-	pid = fork();
-	if (pid == -1)
-	{
-		perror("fork");
-		return ;
-	}
-	if (pid == 0)
-	{
-		if (!handle_redirections(command->redirects))
-			exit(EXIT_FAILURE);
-		path = find_command(command->cmd_name, info->envp);
-		if (!path)
-		{
-			fprintf(stderr, "minishell: %s: command not found\n",
-				command->cmd_name);
-			exit(127);
-		}
-		execve(path, command->args, info->envp);
-		perror("execve");
-		free(path);
-		exit(EXIT_FAILURE);
-	}
-	else
-	{
-		waitpid(pid, &status, 0);
-		if (WIFEXITED(status))
-			info->exit_status = WEXITSTATUS(status);
-		else if (WIFSIGNALED(status))
-			info->exit_status = 128 + WTERMSIG(status);
-	}
+    // Если команда является встроенной, выполняем её
+    if (is_builtin(command->cmd_name))
+    {
+        execute_builtin(command, info);
+        return;
+    }
+
+    // Поиск команды
+    path = find_command(command->cmd_name, info->envp);
+    if (!path)
+    {
+        fprintf(stderr, "minishell: %s: command not found\n", command->cmd_name);
+        info->exit_status = 127;
+        return;
+    }
+
+    pid = fork(); // Создаём дочерний процесс
+    if (pid == -1)
+    {
+        perror("fork");
+        free(path);
+        return;
+    }
+
+    if (pid == 0) // Дочерний процесс
+    {
+        if (!handle_redirections(command->redirects))
+            exit(EXIT_FAILURE);
+
+        execve(path, command->args, info->envp); // Выполнение команды
+        perror("execve"); // Если execve вернул управление, произошла ошибка
+        free(path);
+        exit(EXIT_FAILURE);
+    }
+    else // Родительский процесс
+    {
+        free(path);
+        waitpid(pid, &status, 0); // Ожидание завершения дочернего процесса
+        if (WIFEXITED(status))
+            info->exit_status = WEXITSTATUS(status);
+        else if (WIFSIGNALED(status))
+            info->exit_status = 128 + WTERMSIG(status);
+    }
 }
 
 void	execute_pipeline(t_exec_command *commands, t_info *info)

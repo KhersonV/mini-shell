@@ -76,8 +76,6 @@ t_exec_command *create_command_node() {
 	cmd->exit_status = 0;
 	cmd->next_cmd = NULL;
 	cmd->prev_cmd = NULL;
-	cmd->pipe_fds[0] = -1;
-	cmd->pipe_fds[1] = -1;
 	return cmd;
 }
 
@@ -96,10 +94,10 @@ t_exec_command *parse_tokens_to_commands(t_token *tokens)
 				fprintf(stderr, "Syntax error: unexpected pipe\n");
 				return NULL;
 			}
-			current_cmd->pipe_fds[1] = 1;
+			
 
 			t_exec_command *new_cmd = create_command_node();
-			new_cmd->pipe_fds[0] = 1;
+			
 
 			// Link them
 			current_cmd->next_cmd = new_cmd;
@@ -218,10 +216,6 @@ void print_command_list(t_exec_command *cmd_list)
 		}
 		// Simple check: if pipe_fds[1] != -1 => it pipes out
 		// if pipe_fds[0] != -1 => it pipes in
-		if (cmd->pipe_fds[0] != -1 || cmd->pipe_fds[1] != -1)
-			printf("Pipe: Yes\n");
-		else
-			printf("Pipe: No\n");
 
 		printf("Exit Status: %d\n\n", cmd->exit_status);
 		cmd = cmd->next_cmd;
@@ -265,20 +259,20 @@ void adjusting_token_tree(t_token **tree)
 	}
 }
 
-int main()
-{
-	char *inputs = "echo 'Hello World' | grep Hello >> output.txt | wc -l < input.txt";
+// int main()
+// {
+// 	char *inputs = "echo 'Hello World' | grep Hello >> output.txt | wc -l < input.txt";
 
-		t_token *tokens = NULL;
+// 		t_token *tokens = NULL;
 
-		tokens = tokenize(inputs);
+// 		tokens = tokenize(inputs);
 
-		remove_spaces(&tokens);
-		adjusting_token_tree(&tokens);
+// 		remove_spaces(&tokens);
+// 		adjusting_token_tree(&tokens);
 
-		t_exec_command *commands = parse_tokens_to_commands(tokens);
+// 		t_exec_command *commands = parse_tokens_to_commands(tokens);
 
-		print_command_list(commands);
+// 		print_command_list(commands);
 
-	return 0;
-}
+// 	return 0;
+// }

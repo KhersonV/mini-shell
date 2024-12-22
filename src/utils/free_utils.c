@@ -44,19 +44,6 @@ void free_token_list(t_token *tokens)
     }
 }
 
-void free_ast(t_node *node)
-{
-    if (!node)
-        return;
-    free_ast(node->left);
-    free_ast(node->right);
-    free(node->data);
-    free(node->args);
-    free(node->redirect_op);
-    free(node->redirect_file);
-    free(node);
-}
-
 
 void free_commands(t_exec_command *commands)
 {

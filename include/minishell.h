@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/19 13:19:46 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/22 13:24:39 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,6 @@ typedef struct s_exec_command
 	char					*cmd_name;
 	char					*exec_path;
 	char					**args;
-	int						pipe_fds[2];
 	t_redirection			*redirects;
 	int						exit_status;
 	struct s_exec_command	*next_cmd;
@@ -74,15 +73,7 @@ typedef struct s_token
 	struct s_token			*prev;
 }							t_token;
 
-typedef struct s_node
-{
-	char					*data;
-	struct s_node			*left;
-	struct s_node			*right;
-	char					*args;
-	char					*redirect_op;
-	char					*redirect_file;
-}							t_node;
+
 
 /* Перечисления */
 typedef enum e_token_type
@@ -104,6 +95,9 @@ typedef enum e_token_type
 }							t_token_type;
 
 /* Прототипы функций */
+
+t_exec_command				*build_fake_command_list(void);
+t_exec_command				*parse_tokens_to_commands(t_token *tokens);
 
 /* Builtins */
 void						ft_echo(char **args, t_info *info);
@@ -161,11 +155,7 @@ void						remove_spaces(t_token **tree);
 void						adjusting_token_tree(t_token **tree);
 void						free_token_list(t_token *tokens);
 
-/* Parser */
-t_node						*parse_tokens(t_token *tokens);
 
-void						print_ast(t_node *node, int level);
-t_exec_command				*ast_to_exec_commands(t_node *ast);
 
 /* Signals */
 void						init_signals(void);
@@ -173,7 +163,7 @@ void						reset_signals_to_default(void);
 
 /* utils - free_utils */
 void						ft_free_array(char **array);
-void						free_ast(t_node *node);
+
 void						free_env_array(char **env);
 void						free_commands(t_exec_command *commands);
 

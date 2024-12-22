@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/19 11:55:09 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/22 13:21:49 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@ int	main(int ac, char **av, char **envp)
 	t_token			*tokens;
 	t_exec_command	*commands;
 	t_info			info;
-	t_node			*ast;
 
 	// Проверка аргументов
 	if (ac != 1)
@@ -53,9 +52,9 @@ int	main(int ac, char **av, char **envp)
 		remove_spaces(&tokens);
 		adjusting_token_tree(&tokens);
 
-		// Построение AST
-		ast = parse_tokens(tokens);
-		if (!ast)
+		// Построение списка команд
+		commands = parse_tokens_to_commands(tokens);
+		if (!commands)
 		{
 			free_token_list(tokens);
 			free(line);
@@ -63,16 +62,11 @@ int	main(int ac, char **av, char **envp)
 		}
 
 		// Выполнение команд
-		commands = ast_to_exec_commands(ast); // Преобразование AST в команды
-		if (commands)
-		{
-			execute_commands(commands, &info);
-			free_commands(commands);
-		}
+		execute_commands(commands, &info);
 
 		// Очистка памяти
+		free_commands(commands);
 		free_token_list(tokens);
-		free_ast(ast);
 		free(line);
 	}
 	return (0);

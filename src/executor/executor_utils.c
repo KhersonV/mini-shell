@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:09:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/19 12:59:59 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/22 13:52:59 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,6 +83,15 @@ char *find_command(char *command, char **envp)
     char *temp;
     int i;
 
+    // Если команда содержит "/", проверяем её как путь
+    if (strchr(command, '/'))
+    {
+        if (access(command, X_OK) == 0)
+            return (strdup(command));
+        return (NULL);
+    }
+
+    // Получение переменной PATH из окружения
     path_env = get_env_value_direct(envp, "PATH");
     if (!path_env)
         return (NULL);
@@ -92,13 +101,14 @@ char *find_command(char *command, char **envp)
     if (!paths)
         return (NULL);
 
+    // Проверка в каждом пути из PATH
     i = 0;
     while (paths[i])
     {
         temp = ft_strjoin(paths[i], "/");
         full_path = ft_strjoin(temp, command);
         free(temp);
-        if (access(full_path, X_OK) == 0)
+        if (access(full_path, X_OK) == 0) // Если файл существует и исполняем
         {
             ft_free_array(paths);
             return (full_path);
@@ -107,5 +117,5 @@ char *find_command(char *command, char **envp)
         i++;
     }
     ft_free_array(paths);
-    return (NULL);
+    return (NULL); // Команда не найдена
 }
