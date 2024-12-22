@@ -1,11 +1,21 @@
-NAME = minishell
+# Имя исполняемого файла будет определяться после BUILD_DIR
+DEBUG = 1
+ifeq ($(DEBUG), 1)
+    CFLAGS = -g -Wall -Wextra -Werror
+    BUILD_DIR = build/Debug
+else
+    CFLAGS = -Wall -Wextra -Werror
+    BUILD_DIR = build/Release
+endif
 
+NAME = $(BUILD_DIR)/minishell
+
+# Компилятор
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror
 
 # Папки
 SRC_DIR = src
-OBJ_DIR = obj
+OBJ_DIR = $(BUILD_DIR)/obj
 LIBFT_DIR = libft
 
 # Источники
@@ -19,9 +29,10 @@ SRC = $(SRC_DIR)/main.c \
       $(SRC_DIR)/parser/ast.c $(SRC_DIR)/parser/parser.c $(SRC_DIR)/parser/parser_utils.c \
       $(SRC_DIR)/signals/signals.c $(SRC_DIR)/utils/errors.c $(SRC_DIR)/utils/free_utils.c 
 
-# Преобразование исходников в объектные файлы
-OBJ = $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+# Преобразование исходников в объектные файлы с использованием patsubst
+OBJ = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
 
+# Библиотеки
 LIBFT = $(LIBFT_DIR)/libft.a
 
 # Основная цель
@@ -29,7 +40,8 @@ all: $(NAME)
 
 # Сборка исполняемого файла
 $(NAME): $(OBJ) $(LIBFT)
-	$(CC) $(CFLAGS) $(OBJ) $(LIBFT) $(LDFLAGS) -lreadline -o $(NAME)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(OBJ) $(LIBFT) $(LDFLAGS) -lreadline -o $@
 
 # Компиляция объектных файлов
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
@@ -40,15 +52,18 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 $(LIBFT):
 	$(MAKE) -C $(LIBFT_DIR)
 
-# Очистка объектных файлов
+# Очистка объектных файлов и директории сборки
 clean:
-	rm -rf $(OBJ_DIR)
+	rm -rf $(BUILD_DIR)
 	$(MAKE) clean -C $(LIBFT_DIR)
 
-# Полная очистка (включая минишелл)
+# Полная очистка (включая исполняемый файл)
 fclean: clean
 	rm -f $(NAME)
 	$(MAKE) fclean -C $(LIBFT_DIR)
 
 # Пересборка
 re: fclean all
+
+# Объявление phony целей
+.PHONY: all clean fclean re
