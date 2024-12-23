@@ -6,47 +6,49 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:09:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/22 13:52:59 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/23 13:56:51 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
-int	handle_redirections(t_redirection *redirects)
+int handle_redirections(t_redirection *redirects)
 {
-	int	fd;
+    int fd;
 
-	while (redirects)
-	{
-		if (redirects->type == TOKEN_REDIRECT_IN)
-			fd = open(redirects->filename, O_RDONLY);
-		else if (redirects->type == TOKEN_REDIRECT_OUT)
-			fd = open(redirects->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-		else if (redirects->type == TOKEN_REDIRECT_APPEND)
-			fd = open(redirects->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
-		else
-		{
-			fprintf(stderr, "Unsupported redirection type\n");
-			return (0);
-		}
-		if (fd == -1)
-		{
-			perror(redirects->filename);
-			return (0);
-		}
-		if (dup2(fd,
-				(redirects->type == TOKEN_REDIRECT_IN) ? STDIN_FILENO : STDOUT_FILENO) ==
-			-1)
-		{
-			perror("dup2");
-			close(fd);
-			return (0);
-		}
-		close(fd);
-		redirects = redirects->next;
-	}
-	return (1);
+    while (redirects)
+    {
+        if (redirects->type == TOKEN_REDIRECT_OUT) // >
+            fd = open(redirects->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        else if (redirects->type == TOKEN_REDIRECT_APPEND) // >>
+            fd = open(redirects->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+        else if (redirects->type == TOKEN_REDIRECT_IN) // <
+            fd = open(redirects->filename, O_RDONLY);
+        else
+        {
+            fprintf(stderr, "Unsupported redirection type\n");
+            return 0;
+        }
+
+        if (fd == -1)
+        {
+            perror(redirects->filename);
+            return 0;
+        }
+
+        if (dup2(fd, (redirects->type == TOKEN_REDIRECT_IN) ? STDIN_FILENO : STDOUT_FILENO) == -1)
+        {
+            perror("dup2");
+            close(fd);
+            return 0;
+        }
+
+        close(fd);
+        redirects = redirects->next;
+    }
+    return 1;
 }
+
 
 void	restore_standard_fds(int fd_in, int fd_out)
 {
@@ -84,10 +86,10 @@ char *find_command(char *command, char **envp)
     int i;
 
     // Если команда содержит "/", проверяем её как путь
-    if (strchr(command, '/'))
+    if (ft_strchr(command, '/'))
     {
         if (access(command, X_OK) == 0)
-            return (strdup(command));
+            return (ft_strdup(command));
         return (NULL);
     }
 

@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/23 13:14:22 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/23 14:09:45 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,54 +22,74 @@ void	execute_commands(t_exec_command *commands, t_info *info)
 		execute_single_command(commands, info);
 }
 
-void	execute_single_command(t_exec_command *command, t_info *info)
+void execute_single_command(t_exec_command *command, t_info *info)
 {
-	pid_t	pid;
-	int		status;
-	char	*path;
+    pid_t pid;
+    int status;
+    char *path;
 
-	// Если команда является встроенной, выполняем её
-	if (is_builtin(command->cmd_name))
-	{
-		execute_builtin(command, info);
-		return ;
-	}
-	// Поиск команды
-	path = find_command(command->cmd_name, info->envp);
-	if (!path)
-	{
-		fprintf(stderr, "minishell: %s: command not found\n",
-			command->cmd_name);
-		info->exit_status = 127;
-		return ;
-	}
-	pid = fork(); // Создаём дочерний процесс
-	if (pid == -1)
-	{
-		perror("fork");
-		free(path);
-		return ;
-	}
-	if (pid == 0) // Дочерний процесс
-	{
-		if (!handle_redirections(command->redirects))
-			exit(EXIT_FAILURE);
-		execve(path, command->args, info->envp); // Выполнение команды
-		perror("execve");
-		// Если execve вернул управление, произошла ошибка
-		free(path);
-		exit(EXIT_FAILURE);
-	}
-	else // Родительский процесс
-	{
-		free(path);
-		waitpid(pid, &status, 0); // Ожидание завершения дочернего процесса
-		if (WIFEXITED(status))
-			info->exit_status = WEXITSTATUS(status);
-		else if (WIFSIGNALED(status))
-			info->exit_status = 128 + WTERMSIG(status);
-	}
+    // Сохраняем стандартные файловые дескрипторы
+    int saved_stdout = dup(STDOUT_FILENO);
+    int saved_stdin = dup(STDIN_FILENO);
+
+    // Если команда является встроенной, выполняем её
+    if (is_builtin(command->cmd_name))
+    {
+        // Обработка перенаправлений
+        if (!handle_redirections(command->redirects))
+        {
+            restore_standard_fds(saved_stdin, saved_stdout);
+            info->exit_status = 1;
+            return;
+        }
+
+        execute_builtin(command, info);
+        restore_standard_fds(saved_stdin, saved_stdout); // Восстанавливаем дескрипторы
+        return;
+    }
+
+    // Поиск команды
+    path = find_command(command->cmd_name, info->envp);
+    if (!path)
+    {
+        fprintf(stderr, "minishell: %s: command not found\n", command->cmd_name);
+        info->exit_status = 127;
+        return;
+    }
+
+    pid = fork(); // Создаём дочерний процесс
+    if (pid == -1)
+    {
+        perror("fork");
+        free(path);
+        return;
+    }
+
+    if (pid == 0) // Дочерний процесс
+    {
+        // Обработка перенаправлений
+        if (!handle_redirections(command->redirects))
+            exit(EXIT_FAILURE);
+
+        execve(path, command->args, info->envp); // Выполнение команды
+        perror("execve");
+        free(path);
+        exit(EXIT_FAILURE);
+    }
+    else // Родительский процесс
+    {
+        free(path);
+        waitpid(pid, &status, 0); // Ожидание завершения дочернего процесса
+        if (WIFEXITED(status))
+            info->exit_status = WEXITSTATUS(status);
+        else if (WIFSIGNALED(status))
+            info->exit_status = 128 + WTERMSIG(status);
+    }
+
+    // Восстанавливаем стандартные файловые дескрипторы
+    restore_standard_fds(saved_stdin, saved_stdout);
 }
+
 
 void execute_pipeline(t_exec_command *commands, t_info *info)
 {
@@ -156,21 +176,33 @@ void execute_pipeline(t_exec_command *commands, t_info *info)
     }
 }
 
-
-void	execute_builtin(t_exec_command *command, t_info *info)
+void execute_builtin(t_exec_command *command, t_info *info)
 {
-	if (!command || !command->cmd_name)
-		return ;
-	if (strcmp(command->cmd_name, "echo") == 0)
-		ft_echo(command->args, info);
-	else if (strcmp(command->cmd_name, "cd") == 0)
-		ft_cd(command->args, info);
-	else if (strcmp(command->cmd_name, "pwd") == 0)
-		ft_pwd(info);
-	else if (strcmp(command->cmd_name, "export") == 0)
-		ft_export(command->args, info);
-	else if (strcmp(command->cmd_name, "env") == 0)
-		ft_env(info->envp, info);
-	else if (strcmp(command->cmd_name, "exit") == 0)
-		ft_exit(command->args, info);
+    // Сохраняем стандартные файловые дескрипторы
+    int saved_stdout = dup(STDOUT_FILENO);
+    int saved_stdin = dup(STDIN_FILENO);
+
+    // Обработка перенаправлений
+    if (!handle_redirections(command->redirects))
+    {
+        restore_standard_fds(saved_stdin, saved_stdout);
+        info->exit_status = 1;
+        return;
+    }
+
+    if (strcmp(command->cmd_name, "echo") == 0)
+        ft_echo(command->args, info);
+    else if (strcmp(command->cmd_name, "cd") == 0)
+        ft_cd(command->args, info);
+    else if (strcmp(command->cmd_name, "pwd") == 0)
+        ft_pwd(info);
+    else if (strcmp(command->cmd_name, "export") == 0)
+        ft_export(command->args, info);
+    else if (strcmp(command->cmd_name, "env") == 0)
+        ft_env(info->envp, info);
+    else if (strcmp(command->cmd_name, "exit") == 0)
+        ft_exit(command->args, info);
+
+    // Восстанавливаем стандартные файловые дескрипторы
+    restore_standard_fds(saved_stdin, saved_stdout);
 }
