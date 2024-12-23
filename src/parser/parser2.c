@@ -1,6 +1,11 @@
 
 #include "../../include/minishell.h"
 
+void remove_space_tokens(t_token **tree);
+void adjusting_token_tree(t_token **tree);
+t_token *tokenize(char *s);
+void	temp_print_tokens(t_token *node);
+
 char **add_argument(char **args, const char *arg) {
 	int count = 0;
 	while (args && args[count])
@@ -193,86 +198,66 @@ t_exec_command *parse_tokens_to_commands(t_token *tokens)
 void print_command_list(t_exec_command *cmd_list)
 {
 	t_exec_command *cmd = cmd_list;
+	int cmd_num = 1;
+
 	while (cmd)
 	{
-		printf("Command: %s\n", cmd->cmd_name ? cmd->cmd_name : "(null)");
+		printf("Command #%d:\n", cmd_num++);
+		printf("  Command Name: %s\n", cmd->cmd_name ? cmd->cmd_name : "(null)");
+		
+		// Print arguments
 		if (cmd->args)
 		{
-			printf("Arguments:\n");
+			printf("  Arguments:\n");
 			for (int i = 0; cmd->args[i]; i++)
-				printf("  %s\n", cmd->args[i]);
+				printf("    [%d] %s\n", i, cmd->args[i]);
 		}
+		else
+		{
+			printf("  Arguments: None\n");
+		}
+
+		// Print redirections
 		if (cmd->redirects)
 		{
-			printf("Redirections:\n");
+			printf("  Redirections:\n");
 			t_redirection *redir = cmd->redirects;
 			while (redir)
 			{
-				printf("  Type: %d, File: %s, Append: %d, Heredoc: %d\n",
-					   redir->type, redir->filename,
-					   redir->is_append, redir->is_heredoc);
+				printf("    Type: %s, File: %s%s\n",
+					   (redir->type == TOKEN_REDIRECT_IN) ? "INPUT" :
+					   (redir->type == TOKEN_REDIRECT_OUT) ? "OUTPUT" :
+					   (redir->type == TOKEN_REDIRECT_APPEND) ? "APPEND" :
+					   (redir->type == TOKEN_HEREDOC) ? "HEREDOC" : "UNKNOWN",
+					   redir->filename,
+					   redir->is_heredoc ? " (Heredoc)" : "");
 				redir = redir->next;
 			}
 		}
-		// Simple check: if pipe_fds[1] != -1 => it pipes out
-		// if pipe_fds[0] != -1 => it pipes in
+		else
+		{
+			printf("  Redirections: None\n");
+		}
 
-		printf("Exit Status: %d\n\n", cmd->exit_status);
+		// Exit status
+		printf("  Exit Status: %d\n\n", cmd->exit_status);
+
 		cmd = cmd->next_cmd;
-	}
-}
-void adjusting_token_tree(t_token **tree)
-{
-	t_token *curr;
-	int command_found;
-
-	curr = *tree;
-	command_found = 0;
-	while (curr != NULL)
-	{
-		if (curr->type == TOKEN_PIPE)
-		{
-			command_found = 0;
-		}
-		if (!command_found && curr->type == TOKEN_WORD)
-		{
-			curr->type = TOKEN_COMMAND;
-			command_found = 1;
-		}
-		else if (command_found && (curr->type == TOKEN_WORD || curr->type == TOKEN_FIELD ||
-								   curr->type == TOKEN_EXP_FIELD || curr->type == TOKEN_VAR))
-		{
-			curr->type = TOKEN_ARGUMENT;
-		}
-		if (curr->type == TOKEN_REDIRECT_IN || curr->type == TOKEN_REDIRECT_OUT ||
-			curr->type == TOKEN_REDIRECT_APPEND)
-		{
-			if (curr->next != NULL)
-				curr->next->type = TOKEN_FILE;
-		}
-		else if (curr->type == TOKEN_HEREDOC)
-		{
-			if (curr->next != NULL)
-				curr->next->type = TOKEN_HEREDOC_MARKER;
-		}
-		curr = curr->next;
 	}
 }
 
 // int main()
 // {
-// 	char *inputs = "echo 'Hello World' | grep Hello >> output.txt | wc -l < input.txt";
-
+// 		// char *inputs = "echo 'Hello World' | grep Hello >> output.txt | wc -l < input.txt";
+// 		// char *inputs = "echo 'Hello World' | grep Hello >> output.txt | wc -l < input.txt";
+// 		char *inputs = "echo \"hello\" | grep h >> output.txt | sort < input.txt";
 // 		t_token *tokens = NULL;
-
 // 		tokens = tokenize(inputs);
-
-// 		remove_spaces(&tokens);
+// 		remove_space_tokens(&tokens);
 // 		adjusting_token_tree(&tokens);
-
+// 		printf("\nTokens after adjustment:\n");
+//     	temp_print_tokens(tokens);
 // 		t_exec_command *commands = parse_tokens_to_commands(tokens);
-
 // 		print_command_list(commands);
-
 // 	return 0;
 // }
