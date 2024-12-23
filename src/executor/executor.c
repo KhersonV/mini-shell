@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/22 15:44:56 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/23 13:14:22 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,6 @@ void execute_pipeline(t_exec_command *commands, t_info *info)
     int fd[2];
     int prev_fd = -1; // Файлдескриптор для предыдущей команды
     pid_t pid;
-    int status;
 
     while (commands)
     {
@@ -110,7 +109,10 @@ void execute_pipeline(t_exec_command *commands, t_info *info)
             close(fd[0]); // Закрываем чтение текущего пайпа в дочернем процессе
 
             if (!handle_redirections(commands->redirects))
+            {
+                perror("handle_redirections");
                 exit(EXIT_FAILURE);
+            }
 
             char *path = find_command(commands->cmd_name, info->envp);
             if (!path)
@@ -128,24 +130,30 @@ void execute_pipeline(t_exec_command *commands, t_info *info)
             if (prev_fd != -1) // Закрываем предыдущий пайп
                 close(prev_fd);
 
-            if (commands->next_cmd) // Закрываем конец для записи
+            if (commands->next_cmd) // Закрываем конец для записи текущего пайпа
                 close(fd[1]);
 
-            prev_fd = fd[0]; // Сохраняем конец для чтения
+            prev_fd = fd[0]; // Сохраняем конец для чтения текущего пайпа
             commands = commands->next_cmd;
         }
     }
 
-    // Закрываем последний пайп в родительском процессе
-    if (prev_fd != -1)
-        close(prev_fd);
-
     // Ожидание завершения всех дочерних процессов
-    while (wait(&status) > 0)
+    while (wait(NULL) > 0)
         ;
 
-    if (WIFEXITED(status))
-        info->exit_status = WEXITSTATUS(status);
+    // Чтение из последнего пайпа (ожидание ввода для cat)
+    if (prev_fd != -1)
+    {
+        char buffer[1024];
+        ssize_t bytes_read;
+        while ((bytes_read = read(prev_fd, buffer, sizeof(buffer) - 1)) > 0)
+        {
+            buffer[bytes_read] = '\0';
+            printf("%s", buffer);
+        }
+        close(prev_fd);
+    }
 }
 
 
