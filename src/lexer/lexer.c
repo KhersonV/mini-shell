@@ -84,8 +84,8 @@ t_token	*create_token_node(char *name, int type)
 	new_node = (t_token *)malloc(sizeof(t_token));
 	if (!new_node)
 		return (NULL);
-	new_node->str = ft_strdup(name); 
-	new_node->type = type;          
+	new_node->str = ft_strdup(name);
+	new_node->type = type;
 	new_node->next = NULL;
 	new_node->prev = NULL;
 	return (new_node);
@@ -286,6 +286,8 @@ void	temp_print_tokens(t_token *node)
 	}
 }
 
+
+
 // char	*print_token(int current_token)
 // {
 // 	switch (current_token)
@@ -389,29 +391,82 @@ void adjusting_token_tree(t_token **tree)
     }
 }
 
+char	*expand()
+{
+	char variable[] = "var_value";
 
-// int main()
-// {
-// 	t_token *test;
-//     // char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
-// 	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
-// 	// char input[] = "echo Hello | grep 'pattern' > out.txt";
-// 	char input[] = "cat << EOF | wc -l > count.txt";
+	char *ptr = &variable;
+	return ptr;
+}
 
-//     printf("Input command: %s\n", input);
-//     test = tokenize(input);
+int	is_var_inside(char *s)
+{
+	while(*s)
+	{
+		if(*s == '$')
+			return 1;
+		s++;
+	}
+	return 0;
+}
 
-//     printf("\nTokens:\n");
-//     temp_print_tokens(test);
+void expand_in_field()
+{
+	char *variable;
 
-// 	remove_space_tokens(&test);
+	variable = expand();
+}
 
-// 	adjusting_token_tree(&test);
+void expansion(t_token **tokens)
+{
+	t_token *curr;
 
-// 	printf("\nTokens after adjustment:\n");
-//     temp_print_tokens(test);
+	curr = *tokens;
+
+	while(curr != NULL)
+	{
+		if(curr->type == TOKEN_EXP_FIELD)
+		{
+			if(is_var_inside(curr->str))
+			{
+				expand_in_field();
+			}
+		} else if (curr->type == TOKEN_VAR)
+		{
+			expand();
+		}
+
+		curr = curr->next;
+	}
+}
 
 
-//     return 0;
+int main()
+{
+	t_token *test;
+    // char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
+	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
+	// char input[] = "echo Hello | grep 'pattern' > out.txt";
+	char input[] = "cat << EOF | echo \"$HOME\"";
 
-// }
+    printf("Input command: %s\n", input);
+    test = tokenize(input);
+
+    printf("\nTokens:\n");
+    temp_print_tokens(test);
+
+	remove_space_tokens(&test);
+
+	expansion(&test);
+
+	printf("\nTokens:\n");
+    temp_print_tokens(test);
+
+	adjusting_token_tree(&test);
+
+	printf("\nTokens after adjustment:\n");
+    temp_print_tokens(test);
+
+
+    return 0;
+}
