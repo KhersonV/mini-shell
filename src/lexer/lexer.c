@@ -323,81 +323,81 @@ void	temp_print_tokens(t_token *node)
 
 void remove_space_tokens(t_token **tree)
 {
-    t_token *curr = *tree;
-    t_token *temp;
+	t_token *curr = *tree;
+	t_token *temp;
 
-    while (curr != NULL)
-    {
-        if (curr->type == TOKEN_SPACE)
-        {
-            // Remove the space token
-            if (curr->prev)
-                curr->prev->next = curr->next;
-            if (curr->next)
-                curr->next->prev = curr->prev;
+	while (curr != NULL)
+	{
+		if (curr->type == TOKEN_SPACE)
+		{
+			// Remove the space token
+			if (curr->prev)
+				curr->prev->next = curr->next;
+			if (curr->next)
+				curr->next->prev = curr->prev;
 
-            // Update head if needed
-            if (curr == *tree)
-                *tree = curr->next;
+			// Update head if needed
+			if (curr == *tree)
+				*tree = curr->next;
 
-            // Free the current node
-            temp = curr;
-            curr = curr->next;
-            free(temp->str);
-            free(temp);
-        }
-        else
-        {
-            curr = curr->next;
-        }
-    }
+			// Free the current node
+			temp = curr;
+			curr = curr->next;
+			free(temp->str);
+			free(temp);
+		}
+		else
+		{
+			curr = curr->next;
+		}
+	}
 }
 
 void adjusting_token_tree(t_token **tree)
 {
-    t_token *curr;
-    int command_found;
+	t_token *curr;
+	int command_found;
 
-    curr = *tree;
-    command_found = 0;
-    while (curr != NULL)
-    {
-        if (curr->type == TOKEN_PIPE)
-        {
-            command_found = 0;
-        }
-        if (!command_found && curr->type == TOKEN_WORD)
-        {
-            curr->type = TOKEN_COMMAND;
-            command_found = 1;
-        }
-        else if (command_found && (curr->type == TOKEN_WORD || curr->type == TOKEN_FIELD ||
-                                   curr->type == TOKEN_EXP_FIELD || curr->type == TOKEN_VAR))
-        {
-            curr->type = TOKEN_ARGUMENT;
-        }
-        if (curr->type == TOKEN_REDIRECT_IN || curr->type == TOKEN_REDIRECT_OUT ||
-            curr->type == TOKEN_REDIRECT_APPEND)
-        {
-            if (curr->next != NULL)
-                curr->next->type = TOKEN_FILE;
-        }
-        else if (curr->type == TOKEN_HEREDOC)
-        {
-            if (curr->next != NULL)
-                curr->next->type = TOKEN_HEREDOC_MARKER;
-        }
-        curr = curr->next;
-    }
+	curr = *tree;
+	command_found = 0;
+	while (curr != NULL)
+	{
+		if (curr->type == TOKEN_PIPE)
+		{
+			command_found = 0;
+		}
+		if (!command_found && curr->type == TOKEN_WORD)
+		{
+			curr->type = TOKEN_COMMAND;
+			command_found = 1;
+		}
+		else if (command_found && (curr->type == TOKEN_WORD || curr->type == TOKEN_FIELD ||
+								   curr->type == TOKEN_EXP_FIELD || curr->type == TOKEN_VAR))
+		{
+			curr->type = TOKEN_ARGUMENT;
+		}
+		if (curr->type == TOKEN_REDIRECT_IN || curr->type == TOKEN_REDIRECT_OUT ||
+			curr->type == TOKEN_REDIRECT_APPEND)
+		{
+			if (curr->next != NULL)
+				curr->next->type = TOKEN_FILE;
+		}
+		else if (curr->type == TOKEN_HEREDOC)
+		{
+			if (curr->next != NULL)
+				curr->next->type = TOKEN_HEREDOC_MARKER;
+		}
+		curr = curr->next;
+	}
 }
 
-char	*expand()
-{
-	char variable[] = "var_value";
+// char	*expand()
+// {
+// 	char variable[] = "var_value";
 
-	char *ptr = &variable;
-	return ptr;
-}
+// 	char *ptr = &variable;
+// 	return ptr;
+// }
 
 int	is_var_inside(char *s)
 {
@@ -410,11 +410,67 @@ int	is_var_inside(char *s)
 	return 0;
 }
 
-void expand_in_field()
+char *expand_variable(const char *var_name)
 {
-	char *variable;
+	char *value = getenv(var_name);
+	if (!value)
+		return "";
+	return value;
+}
 
-	variable = expand();
+
+char *expand_field(const char *str)
+{
+	char buffer[1024];
+	int buf_index = 0;
+	const char *ptr = str;
+
+	while (*ptr)
+	{
+		if (*ptr == '$')
+		{
+			ptr++;
+			char var_name[256];
+			int var_index = 0;
+
+			while ((*ptr >= 'a' && *ptr <= 'z') || (*ptr >= 'A' && *ptr <= 'Z') || (*ptr == '_') || (*ptr >= '0' && *ptr <= '9'))
+			{
+				var_name[var_index++] = *ptr++;
+			}
+			var_name[var_index] = '\0';
+
+			char *var_value = expand_variable(var_name);
+			int len = strlen(var_value);
+			if (buf_index + len >= 1024)
+			{
+				printf("Error: expansion buffer overflow\n");
+				exit(1);
+			}
+
+			strcpy(&buffer[buf_index], var_value);
+			buf_index += len;
+		}
+		else
+		{
+			buffer[buf_index++] = *ptr++;
+		}
+
+		if (buf_index >= 1024)
+		{
+			printf("Error: expansion buffer overflow\n");
+			exit(1);
+		}
+	}
+
+	buffer[buf_index] = '\0';
+	return strdup(buffer);
+}
+
+void expand_in_field(t_token *token)
+{
+	char *expanded = expand_field(token->str);
+	free(token->str);
+	token->str = expanded;
 }
 
 void expansion(t_token **tokens)
@@ -425,15 +481,15 @@ void expansion(t_token **tokens)
 
 	while(curr != NULL)
 	{
-		if(curr->type == TOKEN_EXP_FIELD)
+		if(curr->type == TOKEN_EXP_FIELD || curr->type == TOKEN_WORD)
 		{
 			if(is_var_inside(curr->str))
 			{
-				expand_in_field();
+				expand_in_field(curr);
 			}
 		} else if (curr->type == TOKEN_VAR)
 		{
-			expand();
+			// expand();
 		}
 
 		curr = curr->next;
@@ -444,29 +500,29 @@ void expansion(t_token **tokens)
 int main()
 {
 	t_token *test;
-    // char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
+	// char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
 	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
 	// char input[] = "echo Hello | grep 'pattern' > out.txt";
 	char input[] = "cat << EOF | echo \"$HOME\"";
 
-    printf("Input command: %s\n", input);
-    test = tokenize(input);
+	printf("Input command: %s\n", input);
+	test = tokenize(input);
 
-    printf("\nTokens:\n");
-    temp_print_tokens(test);
+	printf("\nTokens:\n");
+	temp_print_tokens(test);
 
 	remove_space_tokens(&test);
 
 	expansion(&test);
 
 	printf("\nTokens:\n");
-    temp_print_tokens(test);
+	temp_print_tokens(test);
 
 	adjusting_token_tree(&test);
 
 	printf("\nTokens after adjustment:\n");
-    temp_print_tokens(test);
+	temp_print_tokens(test);
 
 
-    return 0;
+	return 0;
 }
