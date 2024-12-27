@@ -281,45 +281,10 @@ void	temp_print_tokens(t_token *node)
 	curr = node;
 	while (curr)
 	{
-		printf("Token: %s, Type: %s\n", curr->str, print_token(curr->type)); // Use print_token to convert type to string
+		printf("Token: %s, Type: %s\n", curr->str, print_token(curr->type));
 		curr = curr->next;
 	}
 }
-
-
-
-// char	*print_token(int current_token)
-// {
-// 	switch (current_token)
-// 	{
-// 		case TOKEN_SPACE:
-// 			return ("TOKEN_SPACE");
-// 		case TOKEN_HEREDOC:
-// 			return ("TOKEN_HEREDOC");
-// 		case TOKEN_REDIRECT_APPEND:
-// 			return ("TOKEN_REDIRECT_APPEND");
-// 		case TOKEN_PIPE:
-// 			return ("TOKEN_PIPE");
-// 		case TOKEN_REDIRECT_OUT:
-// 			return ("TOKEN_REDIRECT_OUT");
-// 		case TOKEN_REDIRECT_IN:
-// 			return ("TOKEN_REDIRECT_IN");
-// 		case TOKEN_WORD:
-// 			return ("TOKEN_WORD");
-// 		case TOKEN_VAR:
-// 			return ("TOKEN_VAR");
-// 		case TOKEN_EXP_FIELD:
-// 			return ("TOKEN_EXP_FIELD");
-// 		case TOKEN_FIELD:
-// 			return ("TOKEN_FIELD");
-// 		case TOKEN_HEREDOC_MARKER:
-// 			return ("TOKEN_HEREDOC_MARKER");
-// 		case END:
-// 			return ("END");
-// 		default:
-// 			return ("UNKNOWN_TYPE");
-// 	}
-// }
 
 void remove_space_tokens(t_token **tree)
 {
@@ -330,17 +295,16 @@ void remove_space_tokens(t_token **tree)
 	{
 		if (curr->type == TOKEN_SPACE)
 		{
-			// Remove the space token
 			if (curr->prev)
 				curr->prev->next = curr->next;
 			if (curr->next)
 				curr->next->prev = curr->prev;
 
-			// Update head if needed
+
 			if (curr == *tree)
 				*tree = curr->next;
 
-			// Free the current node
+
 			temp = curr;
 			curr = curr->next;
 			free(temp->str);
@@ -391,14 +355,6 @@ void adjusting_token_tree(t_token **tree)
 	}
 }
 
-// char	*expand()
-// {
-// 	char variable[] = "var_value";
-
-// 	char *ptr = &variable;
-// 	return ptr;
-// }
-
 int	is_var_inside(char *s)
 {
 	while(*s)
@@ -412,7 +368,10 @@ int	is_var_inside(char *s)
 
 char *expand_variable(const char *var_name)
 {
-	char *value = getenv(var_name);
+	char *value;
+
+	value = getenv(var_name);
+
 	if (!value)
 		return "";
 	return value;
@@ -422,26 +381,36 @@ char *expand_variable(const char *var_name)
 char *expand_field(const char *str)
 {
 	char buffer[1024];
-	int buf_index = 0;
-	const char *ptr = str;
+	char var_name[256];
+	char *var_value;
+	const char *ptr;
+	int buf_index;
+	int var_index;
+	int len;
+
+	ptr = str;
+	buf_index = 0;
 
 	while (*ptr)
 	{
 		if (*ptr == '$')
 		{
 			ptr++;
-			char var_name[256];
-			int var_index = 0;
+			var_index = 0;
 
-			while ((*ptr >= 'a' && *ptr <= 'z') || (*ptr >= 'A' && *ptr <= 'Z') || (*ptr == '_') || (*ptr >= '0' && *ptr <= '9'))
+			while ((*ptr >= 'a' && *ptr <= 'z') || (*ptr >= 'A' && *ptr <= 'Z') ||
+				   (*ptr == '_') || (*ptr >= '0' && *ptr <= '9'))
 			{
-				var_name[var_index++] = *ptr++;
+				var_name[var_index] = *ptr;
+				var_index++;
+				ptr++;
 			}
 			var_name[var_index] = '\0';
 
-			char *var_value = expand_variable(var_name);
-			int len = strlen(var_value);
-			if (buf_index + len >= 1024)
+			var_value = expand_variable(var_name);
+			len = strlen(var_value);
+
+			if (buf_index + len >= sizeof(buffer))
 			{
 				printf("Error: expansion buffer overflow\n");
 				exit(1);
@@ -452,10 +421,12 @@ char *expand_field(const char *str)
 		}
 		else
 		{
-			buffer[buf_index++] = *ptr++;
+			buffer[buf_index] = *ptr;
+			buf_index++;
+			ptr++;
 		}
 
-		if (buf_index >= 1024)
+		if (buf_index >= sizeof(buffer))
 		{
 			printf("Error: expansion buffer overflow\n");
 			exit(1);
@@ -468,7 +439,9 @@ char *expand_field(const char *str)
 
 void expand_in_field(t_token *token)
 {
-	char *expanded = expand_field(token->str);
+	char *expanded;
+
+	expanded = expand_field(token->str);
 	free(token->str);
 	token->str = expanded;
 }
@@ -476,20 +449,24 @@ void expand_in_field(t_token *token)
 void expansion(t_token **tokens)
 {
 	t_token *curr;
+	char *expanded;
 
 	curr = *tokens;
 
-	while(curr != NULL)
+	while (curr != NULL)
 	{
-		if(curr->type == TOKEN_EXP_FIELD || curr->type == TOKEN_WORD)
+		if (curr->type == TOKEN_EXP_FIELD || curr->type == TOKEN_WORD)
 		{
-			if(is_var_inside(curr->str))
+			if (is_var_inside(curr->str))
 			{
 				expand_in_field(curr);
 			}
-		} else if (curr->type == TOKEN_VAR)
+		}
+		else if (curr->type == TOKEN_VAR)
 		{
-			// expand();
+			expanded = expand_variable(curr->str);
+			free(curr->str);
+			curr->str = strdup(expanded);
 		}
 
 		curr = curr->next;
@@ -503,7 +480,7 @@ int main()
 	// char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
 	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
 	// char input[] = "echo Hello | grep 'pattern' > out.txt";
-	char input[] = "cat << EOF | echo \"$HOME\"";
+	char input[] = "cat $HOME.txt | echo \"$HOMEsomeworkds\" ";
 
 	printf("Input command: %s\n", input);
 	test = tokenize(input);
