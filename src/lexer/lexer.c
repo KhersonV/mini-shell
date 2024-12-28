@@ -1,6 +1,34 @@
 
 #include "../../include/minishell.h"
 
+static int is_space_char(char c)
+{
+	return (c == ' ' || (c >= 9 && c <= 13));
+}
+
+static int is_operator_char(char c)
+{
+	return (c == '|' || c == '<' || c == '>');
+}
+
+int	isalnum(int c)
+{
+	if ((c >= '0' && c <= '9')
+		|| ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
+		return (1);
+	return (0);
+}
+
+
+static int is_special_char(char c)
+{
+	if (is_space_char(c))        return 1;
+	if (is_operator_char(c))     return 1;
+	if (c == '$')                return 1;
+	if (c == '\'' || c == '"')   return 1;
+	return 0;
+}
+
 int	is_not_word(char *str, int i)
 {
 	if ((str[i] > 8 && str[i] < 14) || (str[i] == 32))
@@ -196,6 +224,62 @@ t_token *add_operator_token(t_token *curr, char current_char, char next_char, in
 		curr = add_token(curr, "[]", TOKEN_SPACE);
 	return curr;
 }
+
+void handle_variable(t_token **p_head, const char *s, int *i)
+{
+	(*i)++;
+	if (!s[*i]) {
+		*p_head = add_token(*p_head, "$", TOKEN_WORD);
+		return;
+	}
+	if (s[*i] == '?') {
+		(*i)++;
+		*p_head = add_token(*p_head, "$?", TOKEN_EXIT_STATUS);
+		return;
+	}
+	if (isalnum(s[*i]) || s[*i] == '_') {
+		char var_buf[256];
+		int vindex = 0;
+
+		while (s[*i] && (isalnum(s[*i]) || s[*i] == '_')) {
+			var_buf[vindex++] = s[*i];
+			(*i)++;
+			if (vindex >= 255) break;
+		}
+		var_buf[vindex] = '\0';
+
+		*p_head = add_token(*p_head, var_buf, TOKEN_VAR);
+	}
+	else {
+		*p_head = add_token(*p_head, "$", TOKEN_WORD);
+	}
+}
+
+void handle_special_char(t_token **p_head, const char *s, int *i)
+{
+	if (is_space_char(s[*i])) {
+		(*i)++;
+		return;
+	}
+	if (is_operator_char(s[*i])) {
+		*p_head = add_operator_token(*p_head, s[*i], s[*i + 1], i);
+		(*i)++;
+		return;
+	}
+	if (s[*i] == '\'' || s[*i] == '"') {
+		if (!is_quotes_closed(&s[*i])) {
+			printf("Quotes not closed\n");
+			exit(1);
+		}
+		handle_quotes(p_head, s, i);
+		return;
+	}
+	if (s[*i] == '$') {
+		handle_variable(p_head, s, i);
+		return;
+	}
+}
+
 
 t_token *tokenize(char *s)
 {

@@ -6,7 +6,7 @@
 /*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/27 09:29:33 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/12/28 20:43:23 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,8 @@ typedef enum e_token_type
 	TOKEN_EXP_FIELD,
 	TOKEN_VAR,
 	TOKEN_FILE,
-	TOKEN_HEREDOC_MARKER
+	TOKEN_HEREDOC_MARKER,
+	TOKEN_EXIT_STATUS
 }							t_token_type;
 
 /* Прототипы функций */
