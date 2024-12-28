@@ -29,24 +29,6 @@ static int is_special_char(char c)
 	return 0;
 }
 
-int	is_not_word(char *str, int i)
-{
-	if ((str[i] > 8 && str[i] < 14) || (str[i] == 32))
-		return (TOKEN_SPACE);
-	else if (str[i] == '<' && str[i + 1] == '<')
-		return (TOKEN_HEREDOC);
-	else if (str[i] == '>' && str[i + 1] == '>')
-		return (TOKEN_REDIRECT_APPEND);
-	else if (str[i] == '|')
-		return (TOKEN_PIPE);
-	else if (str[i] == '>')
-		return (TOKEN_REDIRECT_OUT);
-	else if (str[i] == '<')
-		return (TOKEN_REDIRECT_IN);
-	else
-		return (0);
-}
-
 char	*print_token(int current_token)
 {
 	switch (current_token)
@@ -84,27 +66,6 @@ char	*print_token(int current_token)
 	}
 }
 
-
-// char	*print_token(int current_token)
-// {
-// 	if (current_token == TOKEN_SPACE)
-// 		return ("separator");
-// 	else if (current_token == TOKEN_HEREDOC)
-// 		return ("heredoc");
-// 	else if (current_token == TOKEN_REDIRECT_APPEND)
-// 		return ("append");
-// 	else if (current_token == TOKEN_PIPE)
-// 		return ("pipe");
-// 	else if (current_token == TOKEN_REDIRECT_OUT)
-// 		return ("output");
-// 	else if (current_token == TOKEN_REDIRECT_IN)
-// 		return ("input");
-// 	else if (current_token == END)
-// 		return ("end of line");
-// 	else
-// 		return ("probabily the start of a word");
-// }
-
 t_token	*create_token_node(char *name, int type)
 {
 	t_token	*new_node;
@@ -140,62 +101,29 @@ t_token	*add_token(t_token *node, char *name, int type)
 	return (node);
 }
 
-int	is_quotes_closed(char *s)
+void	flush_buf_if_needed(t_token **curr, char *buf, int *buf_index)
 {
-	char	left_quote;
-	int		i;
-
-	i = 1;
-	left_quote = *s;
-	s++;
-	while (s[i])
+	if(*buf_index > 0)
 	{
-		if (left_quote == s[i])
-			return (i);
+		buf[*buf_index] = '\0';
+		*curr = add_token(*curr, buf, TOKEN_WORD);
+		*buf_index = 0;
+	}
+}
+
+int is_quotes_closed(const char *start)
+{
+	char quote = *start;
+	int i = 1;
+	while (start[i]) {
+		if (start[i] == quote)
+			return 1;
 		i++;
 	}
-	return (0);
+	return 0;
 }
 
-char	*dup_field(char *s, int len)
-{
-	char	*out;
-	int		i;
 
-	i = 0;
-	out = malloc((sizeof(char) * len) + 1);
-	while (i < len)
-	{
-		out[i] = s[i];
-		i++;
-	}
-	out[i] = '\0';
-	return (out);
-}
-
-int	extract_field(char *s, t_token *element)
-{
-	int		len;
-	char	quote;
-	char	*field;
-
-	len = 0;
-	quote = *s;
-	s++;
-	while (s[len] != quote && s[len] != '\0')
-		len++;
-	if (s[len] == '\0')
-	{
-		printf("Syntax error, unmatched quote\n");
-		exit(1);
-	}
-	field = dup_field(s, len);
-	if (quote == '"')
-		add_token(element, field, TOKEN_EXP_FIELD);
-	else if (quote == '\'')
-		add_token(element, field, TOKEN_FIELD);
-	return (len + 2);
-}
 t_token *add_operator_token(t_token *curr, char current_char, char next_char, int *i)
 {
 	if (current_char == '|')
@@ -255,6 +183,39 @@ void handle_variable(t_token **p_head, const char *s, int *i)
 	}
 }
 
+int handle_quotes(t_token **p_head, const char *s, int *i)
+{
+	char quote = s[*i];
+	int start = *i + 1;
+	int len = 0;
+
+	int j = start;
+	while (s[j] && s[j] != quote) {
+		j++;
+	}
+	if (!s[j]) {
+		printf("Syntax error: quotes not closed\n");
+		exit(1);
+	}
+
+	len = j - start;
+	char *field = malloc(len + 1);
+	if (!field) { /* ... */ }
+	strncpy(field, &s[start], len);
+	field[len] = '\0';
+
+	if (quote == '"')
+		*p_head = add_token(*p_head, field, TOKEN_EXP_FIELD);
+	else
+		*p_head = add_token(*p_head, field, TOKEN_FIELD);
+
+	free(field);
+
+	*i = j + 1;
+
+	return 1;
+}
+
 void handle_special_char(t_token **p_head, const char *s, int *i)
 {
 	if (is_space_char(s[*i])) {
@@ -283,79 +244,31 @@ void handle_special_char(t_token **p_head, const char *s, int *i)
 
 t_token *tokenize(char *s)
 {
-	t_token *curr = NULL;
-	int i = 0;
+	t_token *head = NULL;
 	char buf[256];
-	char variable_buffer[256];
 	int buf_index = 0;
-	int var_index = 0;
+	int i = 0;
 
 	while (s[i] != '\0')
 	{
-		if (s[i] == '|' || s[i] == '<' || s[i] == '>' || s[i] == ' ' || (s[i] >= 9 && s[i] <= 13))
+		if (is_special_char(s[i]))
 		{
-			if (buf_index > 0)
-			{
-				buf[buf_index] = '\0';
-				curr = add_token(curr, buf, TOKEN_WORD);
-				buf_index = 0;
-			}
-			curr = add_operator_token(curr, s[i], s[i + 1], &i);
-			i++;
-		}
-		else if (s[i] == '\'' || s[i] == '"')
-		{
-			if (buf_index > 0)
-			{
-				buf[buf_index] = '\0';
-				curr = add_token(curr, buf, TOKEN_WORD);
-				buf_index = 0;
-			}
-			if (is_quotes_closed(&s[i]))
-			{
-				int len = extract_field(&s[i], curr);
-				i += (len);
-			}
-			else
-			{
-				printf("quotes are not closed, syntax error\n");
-				exit(1);
-			}
-		}
-		else if(s[i] == '$')
-		{
-			if (buf_index > 0)
-			{
-				buf[buf_index] = '\0';
-				curr = add_token(curr, buf, TOKEN_WORD);
-				buf_index = 0;
-			}
-			var_index = 0;
-			i++;
-			if ((s[i] >= 'a' && s[i] <= 'z') || (s[i] >= 'A' && s[i] <= 'Z') || s[i] == '_')
-			{
-				while ((s[i] >= 'a' && s[i] <= 'z') || (s[i] >= 'A' && s[i] <= 'Z') ||
-					   s[i] == '_' || (s[i] >= '0' && s[i] <= '9'))
-				{
-					variable_buffer[var_index++] = s[i++];
-				}
-				variable_buffer[var_index] = '\0';
-				curr = add_token(curr, variable_buffer, TOKEN_VAR);
-			}
+			flush_buf_if_needed(&head, buf, &buf_index);
+			handle_special_char(&head, s, &i);
 		}
 		else
 		{
 			buf[buf_index++] = s[i++];
+			if (buf_index >= 255)
+			{
+				buf[buf_index] = '\0';
+				head = add_token(head, buf, TOKEN_WORD);
+				buf_index = 0;
+			}
 		}
 	}
-	if (buf_index > 0)
-	{
-		buf[buf_index] = '\0';
-		curr = add_token(curr, buf, TOKEN_WORD);
-		buf_index = 0;
-	}
-	return curr;
-
+	flush_buf_if_needed(&head, buf, &buf_index);
+	return head;
 }
 
 void	temp_print_tokens(t_token *node)
@@ -370,36 +283,6 @@ void	temp_print_tokens(t_token *node)
 	}
 }
 
-void remove_space_tokens(t_token **tree)
-{
-	t_token *curr = *tree;
-	t_token *temp;
-
-	while (curr != NULL)
-	{
-		if (curr->type == TOKEN_SPACE)
-		{
-			if (curr->prev)
-				curr->prev->next = curr->next;
-			if (curr->next)
-				curr->next->prev = curr->prev;
-
-
-			if (curr == *tree)
-				*tree = curr->next;
-
-
-			temp = curr;
-			curr = curr->next;
-			free(temp->str);
-			free(temp);
-		}
-		else
-		{
-			curr = curr->next;
-		}
-	}
-}
 
 void adjusting_token_tree(t_token **tree)
 {
@@ -558,32 +441,31 @@ void expansion(t_token **tokens)
 }
 
 
-// int main()
-// {
-// 	t_token *test;
-// 	// char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
-// 	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
-// 	// char input[] = "echo Hello | grep 'pattern' > out.txt";
-// 	char input[] = "cat $HOME.txt | echo \"$HOMEsomeworkds\" ";
+int main()
+{
+	t_token *test;
+	char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
+	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
+	// char input[] = "echo Hello | grep 'pattern' > out.txt";
+	// char input[] = "cat $HOME.txt | echo \"$HOMEsomeworkds\" ";
 
-// 	printf("Input command: %s\n", input);
-// 	test = tokenize(input);
+	printf("Input command: %s\n", input);
+	test = tokenize(input);
 
-// 	printf("\nTokens:\n");
-// 	temp_print_tokens(test);
+	printf("\nTokens:\n");
+	temp_print_tokens(test);
 
-// 	remove_space_tokens(&test);
+	// remove_space_tokens(&test);
 
-// 	expansion(&test);
+	// expansion(&test);
 
-// 	printf("\nTokens:\n");
-// 	temp_print_tokens(test);
+	// printf("\nTokens:\n");
+	// temp_print_tokens(test);
 
-// 	adjusting_token_tree(&test);
+	adjusting_token_tree(&test);
 
-// 	printf("\nTokens after adjustment:\n");
-// 	temp_print_tokens(test);
+	printf("\nTokens after adjustment:\n");
+	temp_print_tokens(test);
 
-
-// 	return 0;
-// }
+	return 0;
+}

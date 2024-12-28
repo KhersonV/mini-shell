@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/22 15:16:55 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/28 21:57:10 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,13 +178,6 @@
 /****************************************************** FOR TEST ******************************************************************/
 
 
-
-
-
-
-
-
-
 int	main(int ac, char **av, char **envp)
 {
 	char			*line;
@@ -226,7 +219,7 @@ int	main(int ac, char **av, char **envp)
 
 		// Построение списка команд
 		commands = parse_tokens_to_commands(tokens);
-		
+
 		if (!commands)
 		{
 			free_token_list(tokens);
