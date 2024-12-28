@@ -1,6 +1,8 @@
 
 #include "../../include/minishell.h"
 
+void expansion(t_token **tokens);
+
 static int is_space_char(char c)
 {
 	return (c == ' ' || (c >= 9 && c <= 13));
@@ -11,7 +13,7 @@ static int is_operator_char(char c)
 	return (c == '|' || c == '<' || c == '>');
 }
 
-int	isalnum(int c)
+int	ft_isalnum(int c)
 {
 	if ((c >= '0' && c <= '9')
 		|| ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
@@ -61,6 +63,8 @@ char	*print_token(int current_token)
 			return ("TOKEN_FIELD");
 		case TOKEN_HEREDOC_MARKER:
 			return ("TOKEN_HEREDOC_MARKER");
+		case TOKEN_EXIT_STATUS:
+			return ("TOKEN_EXIT_STATUS");
 		default:
 			return ("UNKNOWN_TYPE");
 	}
@@ -165,11 +169,13 @@ void handle_variable(t_token **p_head, const char *s, int *i)
 		*p_head = add_token(*p_head, "$?", TOKEN_EXIT_STATUS);
 		return;
 	}
-	if (isalnum(s[*i]) || s[*i] == '_') {
+	if (ft_isalnum(s[*i]) || s[*i] == '_') {
 		char var_buf[256];
 		int vindex = 0;
 
-		while (s[*i] && (isalnum(s[*i]) || s[*i] == '_')) {
+		var_buf[vindex++] = '$';
+
+		while (s[*i] != '\0' && !is_space_char(s[*i])) {
 			var_buf[vindex++] = s[*i];
 			(*i)++;
 			if (vindex >= 255) break;
@@ -322,145 +328,147 @@ void adjusting_token_tree(t_token **tree)
 	}
 }
 
-int	is_var_inside(char *s)
-{
-	while(*s)
-	{
-		if(*s == '$')
-			return 1;
-		s++;
-	}
-	return 0;
-}
+// int	is_var_inside(char *s)
+// {
+// 	while(*s)
+// 	{
+// 		if(*s == '$')
+// 			return 1;
+// 		s++;
+// 	}
+// 	return 0;
+// }
 
-char *expand_variable(const char *var_name)
-{
-	char *value;
+// char *expand_variable(const char *var_name)
+// {
+// 	char *value;
 
-	value = getenv(var_name);
+// 	value = getenv(var_name);
 
-	if (!value)
-		return "";
-	return value;
-}
+// 	if (!value)
+// 		return "";
+// 	return value;
+// }
 
 
-char *expand_field(const char *str)
-{
-	char buffer[1024];
-	char var_name[256];
-	char *var_value;
-	const char *ptr;
-	unsigned long buf_index;
-	int var_index;
-	int len;
+// char *expand_field(const char *str)
+// {
+// 	char buffer[1024];
+// 	char var_name[256];
+// 	char *var_value;
+// 	const char *ptr;
+// 	unsigned long buf_index;
+// 	int var_index;
+// 	int len;
 
-	ptr = str;
-	buf_index = 0;
+// 	ptr = str;
+// 	buf_index = 0;
 
-	while (*ptr)
-	{
-		if (*ptr == '$')
-		{
-			ptr++;
-			var_index = 0;
+// 	while (*ptr)
+// 	{
+// 		if (*ptr == '$')
+// 		{
+// 			ptr++;
+// 			var_index = 0;
 
-			while ((*ptr >= 'a' && *ptr <= 'z') || (*ptr >= 'A' && *ptr <= 'Z') ||
-				   (*ptr == '_') || (*ptr >= '0' && *ptr <= '9'))
-			{
-				var_name[var_index] = *ptr;
-				var_index++;
-				ptr++;
-			}
-			var_name[var_index] = '\0';
+// 			while ((*ptr >= 'a' && *ptr <= 'z') || (*ptr >= 'A' && *ptr <= 'Z') ||
+// 				   (*ptr == '_') || (*ptr >= '0' && *ptr <= '9'))
+// 			{
+// 				var_name[var_index] = *ptr;
+// 				var_index++;
+// 				ptr++;
+// 			}
+// 			var_name[var_index] = '\0';
 
-			var_value = expand_variable(var_name);
-			len = strlen(var_value);
+// 			var_value = expand_variable(var_name);
+// 			len = strlen(var_value);
 
-			if (buf_index + len >= sizeof(buffer))
-			{
-				printf("Error: expansion buffer overflow\n");
-				exit(1);
-			}
+// 			if (buf_index + len >= sizeof(buffer))
+// 			{
+// 				printf("Error: expansion buffer overflow\n");
+// 				exit(1);
+// 			}
 
-			strcpy(&buffer[buf_index], var_value);
-			buf_index += len;
-		}
-		else
-		{
-			buffer[buf_index] = *ptr;
-			buf_index++;
-			ptr++;
-		}
+// 			strcpy(&buffer[buf_index], var_value);
+// 			buf_index += len;
+// 		}
+// 		else
+// 		{
+// 			buffer[buf_index] = *ptr;
+// 			buf_index++;
+// 			ptr++;
+// 		}
 
-		if (buf_index >= sizeof(buffer))
-		{
-			printf("Error: expansion buffer overflow\n");
-			exit(1);
-		}
-	}
+// 		if (buf_index >= sizeof(buffer))
+// 		{
+// 			printf("Error: expansion buffer overflow\n");
+// 			exit(1);
+// 		}
+// 	}
 
-	buffer[buf_index] = '\0';
-	return strdup(buffer);
-}
+// 	buffer[buf_index] = '\0';
+// 	return strdup(buffer);
+// }
 
-void expand_in_field(t_token *token)
-{
-	char *expanded;
+// void expand_in_field(t_token *token)
+// {
+// 	char *expanded;
 
-	expanded = expand_field(token->str);
-	free(token->str);
-	token->str = expanded;
-}
+// 	expanded = expand_field(token->str);
+// 	free(token->str);
+// 	token->str = expanded;
+// }
 
-void expansion(t_token **tokens)
-{
-	t_token *curr;
-	char *expanded;
+// void expansion(t_token **tokens)
+// {
+// 	t_token *curr;
+// 	char *expanded;
 
-	curr = *tokens;
+// 	curr = *tokens;
 
-	while (curr != NULL)
-	{
-		if (curr->type == TOKEN_EXP_FIELD || curr->type == TOKEN_WORD)
-		{
-			if (is_var_inside(curr->str))
-			{
-				expand_in_field(curr);
-			}
-		}
-		else if (curr->type == TOKEN_VAR)
-		{
-			expanded = expand_variable(curr->str);
-			free(curr->str);
-			curr->str = strdup(expanded);
-		}
+// 	while (curr != NULL)
+// 	{
+// 		if (curr->type == TOKEN_EXP_FIELD || curr->type == TOKEN_WORD)
+// 		{
+// 			if (is_var_inside(curr->str))
+// 			{
+// 				expand_in_field(curr);
+// 			}
+// 		}
+// 		else if (curr->type == TOKEN_VAR)
+// 		{
+// 			expanded = expand_variable(curr->str);
+// 			free(curr->str);
+// 			curr->str = strdup(expanded);
+// 		}
 
-		curr = curr->next;
-	}
-}
+// 		curr = curr->next;
+// 	}
+// }
 
 
 int main()
 {
 	t_token *test;
-	char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
+	// char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
 	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
 	// char input[] = "echo Hello | grep 'pattern' > out.txt";
 	// char input[] = "cat $HOME.txt | echo \"$HOMEsomeworkds\" ";
 
+	char input[] = "cat $HOME.txt $ $HOME$USER $?  | echo \"$HOMEsomeworkds\" ";
+
 	printf("Input command: %s\n", input);
 	test = tokenize(input);
 
-	printf("\nTokens:\n");
-	temp_print_tokens(test);
+	// printf("\nTokens:\n");
+	// temp_print_tokens(test);
 
 	// remove_space_tokens(&test);
 
-	// expansion(&test);
+	expansion(&test);
 
-	// printf("\nTokens:\n");
-	// temp_print_tokens(test);
+	printf("\nTokens after expansion:\n");
+	temp_print_tokens(test);
 
 	adjusting_token_tree(&test);
 
