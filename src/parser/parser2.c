@@ -66,11 +66,7 @@ t_exec_command *parse_tokens_to_commands(t_token *tokens)
 				fprintf(stderr, "Syntax error: unexpected pipe\n");
 				return NULL;
 			}
-
-
 			t_exec_command *new_cmd = create_command_node();
-
-
 			// Link them
 			current_cmd->next_cmd = new_cmd;
 			new_cmd->prev_cmd = current_cmd;
@@ -151,8 +147,6 @@ t_exec_command *parse_tokens_to_commands(t_token *tokens)
 			redir->next = current_cmd->redirects;
 			current_cmd->redirects = redir;
 		}
-
-		// Move to next token
 		tokens = tokens->next;
 	}
 
@@ -215,8 +209,10 @@ void print_command_list(t_exec_command *cmd_list)
 
 // int main()
 // {
+// 		t_info *info;
 // 		// char *inputs = "echo 'Hello World' | grep Hello >> output.txt | wc -l < input.txt";
 // 		// char *inputs = "echo \"hello\" | grep h >> output.txt | sort < input.txt";
+// 		char *inputs = "echo hello > file1 >> file2 >> file3 ";
 // 		t_token *tokens = NULL;
 // 		tokens = tokenize(inputs);
 // 		expansion(&tokens, info);

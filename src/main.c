@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/29 15:50:55 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/29 22:47:11 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,11 +105,37 @@
 /****************************************************** FOR TEST ******************************************************************/
 
 
+void main_initialize(t_info *info, char **envp)
+{
+	info->std_in_reserve = dup(STDIN_FILENO);
+	info->std_out_reserve = dup(STDOUT_FILENO);
+	info->old_dir = NULL;
+	info->curr_dir = getcwd(NULL, 0);
+	info->envp = copy_envp(envp);
+	info->old_dir = get_env_value(envp, "OLDPWD");
+	info->exit_status = 0;
+}
 
+void process_user_input(char *user_input, t_exec_command **command, t_info *info)
+{
+	t_token *tokens;
+	t_exec_command *command_ptr;
 
+	command_ptr = *command;
 
+	tokens = tokenize(user_input);
+	if (!tokens)
+		free(user_input);
+	expansion(&tokens, &info);
+	adjusting_token_tree(&tokens);
+	command_ptr = parse_tokens_to_commands(tokens);
 
-
+	if (!command_ptr)
+	{
+		free_token_list(tokens);
+		free(user_input);
+	}
+}
 
 
 int	main(int ac, char **av, char **envp)
@@ -152,7 +178,7 @@ int	main(int ac, char **av, char **envp)
 
 		// Построение списка команд
 		commands = parse_tokens_to_commands(tokens);
-		
+
 		if (!commands)
 		{
 			free_token_list(tokens);
