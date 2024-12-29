@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/29 13:53:56 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/29 15:02:31 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -168,19 +168,19 @@ void	execute_builtin(t_exec_command *command, t_info *info)
 		info->exit_status = 1;
 		return ;
 	}
-	if (strcmp(command->cmd_name, "echo") == 0)
+	if (ft_strcmp(command->cmd_name, "echo") == 0)
 		ft_echo(command->args, info);
-	else if (strcmp(command->cmd_name, "cd") == 0)
+	else if (ft_strcmp(command->cmd_name, "cd") == 0)
 		ft_cd(command->args, info);
-	else if (strcmp(command->cmd_name, "pwd") == 0)
+	else if (ft_strcmp(command->cmd_name, "pwd") == 0)
 		ft_pwd(info);
-	else if (strcmp(command->cmd_name, "export") == 0)
+	else if (ft_strcmp(command->cmd_name, "export") == 0)
 		ft_export(command->args, info);
-	else if (strcmp(command->cmd_name, "env") == 0)
+	else if (ft_strcmp(command->cmd_name, "env") == 0)
 		ft_env(command, info);
-	else if (strcmp(command->cmd_name, "unset") == 0)
+	else if (ft_strcmp(command->cmd_name, "unset") == 0)
 		unset_env(command->args, info);
-	else if (strcmp(command->cmd_name, "exit") == 0)
+	else if (ft_strcmp(command->cmd_name, "exit") == 0)
 		ft_exit(command->args, info);
 	restore_standard_fds(saved_stdin, saved_stdout);
 }
