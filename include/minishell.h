@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/29 11:43:27 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/29 11:46:54 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -152,7 +152,6 @@ void						execute_commands(t_exec_command *commands, t_info *info);
 
 /* Lexer */
 t_token						*tokenize(char *input);
-void						remove_spaces(t_token **tree);
 void						adjusting_token_tree(t_token **tree);
 void						free_token_list(t_token *tokens);
 void						expansion(t_token **tokens);

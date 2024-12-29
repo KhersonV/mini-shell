@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/28 14:35:03 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/29 11:46:21 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,10 +146,6 @@ int	main(int ac, char **av, char **envp)
 			free(line);
 			continue;
 		}
-
-		// Удаление пробелов и настройка дерева токенов
-		remove_spaces(&tokens);
-
 		expansion(&tokens);
 
 		adjusting_token_tree(&tokens);
