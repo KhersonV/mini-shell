@@ -3,14 +3,10 @@
 #include "../../include/minishell.h"
 
 
-
 char *expand_variable(char *var_name, t_info  *info)
 {
-	
-	
 	if (ft_strcmp(var_name, "?") == 0)
 	{
-		printf("info-exit status %d",info->exit_status);
 		return ft_itoa(info->exit_status);
 	}
 	else
@@ -27,7 +23,7 @@ char *read_var_name(char **str)
 	char var_buf[256];
 	int idx = 0;
 
-	while (**str != '\0' && (isalnum((unsigned char)**str) || **str == '_'))
+	while (**str != '\0' && (ft_isalnum((unsigned char)**str) || **str == '_'))
 	{
 		var_buf[idx++] = **str;
 		(*str)++;
@@ -60,7 +56,7 @@ void parse_dollar(char **str, char *result, int *rindex, int max_len, t_info *in
 		}
 		return;
 	}
-	if (isalnum((unsigned char)**str) || **str == '_')
+	if (ft_isalnum((unsigned char)**str) || **str == '_')
 	{
 		char *var_name = read_var_name(str);
 
@@ -125,15 +121,14 @@ void expansion(t_token **tokens, t_info *info)
 	t_token *curr = *tokens;
 	while (curr)
 	{
-		if (curr->type == TOKEN_WORD 
-		|| curr->type == TOKEN_VAR 
-		|| curr->type == TOKEN_EXP_FIELD 
+		if (curr->type == TOKEN_WORD
+		|| curr->type == TOKEN_VAR
+		|| curr->type == TOKEN_EXP_FIELD
 		|| curr->type == TOKEN_EXIT_STATUS)
 		{
 			char *new_str = expand_string(curr->str, info);
 			free(curr->str);
 			curr->str = new_str;
-			printf("currSTR = %s\n",curr->str);
 		}
 		curr = curr->next;
 	}
