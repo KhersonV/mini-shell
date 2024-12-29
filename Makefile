@@ -22,12 +22,14 @@ LIBFT_DIR = libft
 SRC = $(SRC_DIR)/main.c \
       $(SRC_DIR)/builtins/cd.c $(SRC_DIR)/builtins/echo.c $(SRC_DIR)/builtins/env_builtin.c \
       $(SRC_DIR)/builtins/exit_builtin.c $(SRC_DIR)/builtins/export.c $(SRC_DIR)/builtins/pwd.c \
+      $(SRC_DIR)/builtins/unset.c \
       $(SRC_DIR)/env/env.c $(SRC_DIR)/env/env_utils.c \
       $(SRC_DIR)/executor/executor.c $(SRC_DIR)/executor/executor_utils.c \
       $(SRC_DIR)/executor/herodoc.c $(SRC_DIR)/executor/pipes.c $(SRC_DIR)/executor/redirection.c \
       $(SRC_DIR)/lexer/lexer.c $(SRC_DIR)/lexer/lexer_utils.c $(SRC_DIR)/lexer/expansion.c \
       $(SRC_DIR)/parser/parser2.c \
-      $(SRC_DIR)/signals/signals.c $(SRC_DIR)/utils/errors.c $(SRC_DIR)/utils/free_utils.c \
+      $(SRC_DIR)/signals/signals.c \
+      $(SRC_DIR)/utils/errors.c $(SRC_DIR)/utils/free_utils.c \
       
 
 # Преобразование исходников в объектные файлы с использованием patsubst

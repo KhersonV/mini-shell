@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/29 12:41:35 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/29 14:01:40 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,7 +105,7 @@ void						ft_echo(char **args, t_info *info);
 void						ft_cd(char **args, t_info *info);
 void						ft_pwd(t_info *info);
 void						ft_export(char **args, t_info *info);
-
+void						unset_env(char **args, t_info *info);
 void						ft_env(t_exec_command *commands, t_info *info);
 void						ft_exit(char **args, t_info *info);
 
@@ -113,9 +113,7 @@ void						ft_exit(char **args, t_info *info);
 char						**copy_envp(char **envp);
 void						init_env(t_info *info, char **envp);
 char						*get_env_value(t_info *info, const char *key);
-int							set_env(t_info *info, const char *key,
-								const char *value);
-void						unset_env(t_info *info, char *key);
+int							set_env(t_info *info, const char *key, const char *value);
 char						**env_to_array(t_info *info);
 
 

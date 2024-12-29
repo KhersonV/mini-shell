@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/29 12:40:56 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/29 13:53:56 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,6 +178,8 @@ void	execute_builtin(t_exec_command *command, t_info *info)
 		ft_export(command->args, info);
 	else if (strcmp(command->cmd_name, "env") == 0)
 		ft_env(command, info);
+	else if (strcmp(command->cmd_name, "unset") == 0)
+		unset_env(command->args, info);
 	else if (strcmp(command->cmd_name, "exit") == 0)
 		ft_exit(command->args, info);
 	restore_standard_fds(saved_stdin, saved_stdout);
