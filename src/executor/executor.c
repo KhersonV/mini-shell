@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/29 15:02:31 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/29 16:14:12 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -169,7 +169,7 @@ void	execute_builtin(t_exec_command *command, t_info *info)
 		return ;
 	}
 	if (ft_strcmp(command->cmd_name, "echo") == 0)
-		ft_echo(command->args, info);
+		ft_echo(command, info);
 	else if (ft_strcmp(command->cmd_name, "cd") == 0)
 		ft_cd(command->args, info);
 	else if (ft_strcmp(command->cmd_name, "pwd") == 0)

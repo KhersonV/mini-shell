@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:20 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/22 15:36:17 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/29 16:13:55 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,23 +36,31 @@ static void print_with_escape(const char *str)
     }
 }
 
-void ft_echo(char **args, t_info *info)
+void ft_echo(t_exec_command *command, t_info *info)
 {
     int i = 1; // Начинаем с первого аргумента
     int newline = 1; // По умолчанию добавляем новую строку
 
+	   int k = 0; // Индекс для итерации по строкам массива
+
+    while (command->args[k]) // Пока строка не NULL
+    {
+        printf("%s\n", command->args[k]); // Печать текущей строки
+        k++; // Переход к следующей строке
+    }
+
     // Проверяем флаг -n
-    while (args[i] && strcmp(args[i], "-n") == 0)
+    while (command->args[i] && strcmp(command->args[i], "-n") == 0)
     {
         newline = 0;
         i++;
     }
 
     // Вывод аргументов с обработкой escape-последовательностей
-    while (args[i])
+    while (command->args[i])
     {
-        print_with_escape(args[i]); // Обработка строки
-        if (args[i + 1]) // Добавляем пробел между аргументами
+        print_with_escape(command->args[i]); // Обработка строки
+        if (command->args[i + 1]) // Добавляем пробел между аргументами
             putchar(' ');
         i++;
     }

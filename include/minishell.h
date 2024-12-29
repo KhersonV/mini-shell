@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/29 15:43:10 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/29 16:14:46 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,7 @@ t_exec_command				*build_fake_command_list(void);
 t_exec_command				*parse_tokens_to_commands(t_token *tokens);
 
 /* Builtins */
-void						ft_echo(char **args, t_info *info);
+void						ft_echo(t_exec_command *command, t_info *info);
 void						ft_cd(char **args, t_info *info);
 void						ft_pwd(t_info *info);
 void						ft_export(char **args, t_info *info);

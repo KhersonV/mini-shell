@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:32 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/16 12:14:44 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/29 16:15:16 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ void	ft_pwd(t_info *info)
 	if (getcwd(cwd, sizeof(cwd)) != NULL)
 	{
 		printf("%s\n", cwd);
-		info->exit_status = 0;
+		info->exit_status = 2;
 	}
 	else
 	{

@@ -8,8 +8,11 @@ char *expand_variable(char *var_name, t_info  *info)
 {
 	
 	
-	if (strcmp(var_name, "?") == 0)
+	if (ft_strcmp(var_name, "?") == 0)
+	{
+		printf("info-exit status %d",info->exit_status);
 		return ft_itoa(info->exit_status);
+	}
 	else
 	{
 		char *val = getenv(var_name);
@@ -130,6 +133,7 @@ void expansion(t_token **tokens, t_info *info)
 			char *new_str = expand_string(curr->str, info);
 			free(curr->str);
 			curr->str = new_str;
+			printf("currSTR = %s\n",curr->str);
 		}
 		curr = curr->next;
 	}
