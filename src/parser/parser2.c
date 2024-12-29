@@ -5,6 +5,7 @@ void remove_space_tokens(t_token **tree);
 void adjusting_token_tree(t_token **tree);
 t_token *tokenize(char *s);
 void	temp_print_tokens(t_token *node);
+int validate_syntax_and_adjust(t_token **tree);
 
 char **add_argument(char **args, const char *arg) {
 	int count = 0;
@@ -19,40 +20,6 @@ char **add_argument(char **args, const char *arg) {
 	new_args[count + 1] = NULL;
 	free(args);
 	return new_args;
-}
-
-void remove_spaces(t_token **tree)
-{
-	t_token *curr;
-	t_token *node_to_remove;
-
-	curr = *tree;
-	while (curr != NULL)
-	{
-		if (curr->type == TOKEN_SPACE)
-		{
-			node_to_remove = curr;
-			if (node_to_remove == *tree)
-			{
-				*tree = node_to_remove->next;
-				if (*tree != NULL)
-					(*tree)->prev = NULL;
-			}
-			else
-			{
-				if (node_to_remove->prev != NULL)
-					node_to_remove->prev->next = node_to_remove->next;
-				if (node_to_remove->next != NULL)
-					node_to_remove->next->prev = node_to_remove->prev;
-			}
-			curr = curr->next;
-			free(node_to_remove);
-		}
-		else
-		{
-			curr = curr->next;
-		}
-	}
 }
 
 
@@ -248,13 +215,58 @@ void print_command_list(t_exec_command *cmd_list)
 
 // int main()
 // {
+// 	// < file.txt. with redirect in file should be alway right to < operator
+// 	/*
+// 	cat < file	✅	Redirects the input of cat from file.
+// 	< file cat	✅	Redirects cat's input from file.
+// 	file < echo	❌	file is not a valid command; < is misplaced.
+// 	< file echo	✅	Redirects echo's input from file.
+// 	<			❌	Incomplete redirection; missing file and command.
+
+// 	echo "hello" > file	✅	Redirects the output of echo to file.
+// 	> file echo "hello"	✅	Redirects echo's output to file.
+// 	> file	❌	Missing command to produce output for the redirection.
+// 	file > echo	❌	file is not a valid command; > is misplaced.
+// 	echo >	❌	Missing target file for output redirection.
+
+// 	cat < input_file > output_file	✅	Input comes from input_file, output goes to output_file.
+// 	< input_file cat > output_file	✅	Same as above; different order is still valid.
+// 	< > file	❌	Missing command for redirection.
+// 	> file1 < file2 cat	✅	Redirects cat's input and output.
+
+// 	echo "text" >> file	✅	Appends echo's output to file.
+// 	>> file echo "text"	✅	Same as above; order is valid.
+// 	>> file	❌	Missing command to produce output for appending.
+// 	file >> echo	❌	file is not a valid command; >> is misplaced.
+// 	echo >>	❌	Missing target file for output redirection.
+
+// 	cat << EOF	✅	Starts a here-document, input ends at EOF.
+// 	<< EOF cat	✅	Same as above; valid order.
+// 	<< EOF	❌	Missing command to process the here-document input.
+// 	EOF << cat	❌	EOF is not a valid command; << is misplaced.
+// 	<<	❌	Missing delimiter and command; invalid syntax.
+// 	*/
+// 		/*
+// 		> file	❌	Missing command to produce output for the redirection.
+// 		looks like in bash it create a new file
+// 		< > file	❌	Missing command for redirection. doesn't work like in bash, should be syntax error
+// 		>> file - shouldn't be syntax error
+// 		*/
+// 		char *inputs = "< file1 <file 2 <file 3 echo";
 // 		// char *inputs = "echo 'Hello World' | grep Hello >> output.txt | wc -l < input.txt";
-// 		// char *inputs = "echo 'Hello World' | grep Hello >> output.txt | wc -l < input.txt";
-// 		char *inputs = "echo \"hello\" | grep h >> output.txt | sort < input.txt";
+// 		// char *inputs = "echo \"hello\" | grep h >> output.txt | sort < input.txt";
 // 		t_token *tokens = NULL;
 // 		tokens = tokenize(inputs);
-// 		remove_space_tokens(&tokens);
-// 		adjusting_token_tree(&tokens);
+// 		expansion(&tokens);
+
+// 		if (validate_syntax_and_adjust(&tokens) != 0)
+//     	{
+// 		printf("error has been found \n\n");
+//         return 1;
+//     	}
+// 		// adjusting_token_tree(&tokens);
+
+
 // 		printf("\nTokens after adjustment:\n");
 //     	temp_print_tokens(tokens);
 // 		t_exec_command *commands = parse_tokens_to_commands(tokens);

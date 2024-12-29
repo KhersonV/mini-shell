@@ -2,7 +2,7 @@
 #include "../../include/minishell.h"
 
 // TODO : echo $$HOME,  $$ check.
-void expansion(t_token **tokens);
+void expansion(t_token **tokens, t_info *info);
 
 static int is_space_char(char c)
 {

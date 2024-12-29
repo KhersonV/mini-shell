@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/29 14:01:40 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/29 15:43:10 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -152,7 +152,7 @@ void						execute_commands(t_exec_command *commands, t_info *info);
 t_token						*tokenize(char *input);
 void						adjusting_token_tree(t_token **tree);
 void						free_token_list(t_token *tokens);
-void						expansion(t_token **tokens);
+void						expansion(t_token **tokens, t_info *info);
 
 
 /* Signals */

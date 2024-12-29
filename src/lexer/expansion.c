@@ -2,15 +2,14 @@
 
 #include "../../include/minishell.h"
 
-int g_exit_code = 127;
 
-char *expand_variable(char *var_name)
+
+char *expand_variable(char *var_name, t_info  *info)
 {
-	int g_exit_code = 127;
 	
 	
 	if (strcmp(var_name, "?") == 0)
-		return ft_itoa(g_exit_code);
+		return ft_itoa(info->exit_status);
 	else
 	{
 		char *val = getenv(var_name);
@@ -36,7 +35,7 @@ char *read_var_name(char **str)
 	return strdup(var_buf);
 }
 
-void parse_dollar(char **str, char *result, int *rindex, int max_len)
+void parse_dollar(char **str, char *result, int *rindex, int max_len, t_info *info)
 {
 	if (**str == '\0')
 	{
@@ -49,7 +48,7 @@ void parse_dollar(char **str, char *result, int *rindex, int max_len)
 	if (**str == '?')
 	{
 		(*str)++;
-		char *val = expand_variable("?");
+		char *val = expand_variable("?", info);
 		int len = strlen(val);
 		if (*rindex + len < max_len)
 		{
@@ -62,7 +61,7 @@ void parse_dollar(char **str, char *result, int *rindex, int max_len)
 	{
 		char *var_name = read_var_name(str);
 
-		char *val = expand_variable(var_name);
+		char *val = expand_variable(var_name, info);
 		free(var_name);
 
 		int len = strlen(val);
@@ -92,7 +91,7 @@ void append_char(char *result, int *rindex, char c, int max_len)
 
 }
 
-char *expand_string(char *input)
+char *expand_string(char *input, t_info *info)
 {
 	char result[1024];
 	int rindex = 0;
@@ -103,7 +102,7 @@ char *expand_string(char *input)
 		if (*ptr == '$')
 		{
 			ptr++;
-			parse_dollar(&ptr, result, &rindex, sizeof(result));
+			parse_dollar(&ptr, result, &rindex, sizeof(result), info);
 		}
 		else
 		{
@@ -118,7 +117,7 @@ char *expand_string(char *input)
 	return strdup(result);
 }
 
-void expansion(t_token **tokens)
+void expansion(t_token **tokens, t_info *info)
 {
 	t_token *curr = *tokens;
 	while (curr)
@@ -128,7 +127,7 @@ void expansion(t_token **tokens)
 		|| curr->type == TOKEN_EXP_FIELD 
 		|| curr->type == TOKEN_EXIT_STATUS)
 		{
-			char *new_str = expand_string(curr->str);
+			char *new_str = expand_string(curr->str, info);
 			free(curr->str);
 			curr->str = new_str;
 		}
