@@ -7,16 +7,67 @@
 #include <string.h>
 #include <ctype.h>
 
+static int	ft_num_count(int n)
+{
+	int	count;
+
+	count = 0;
+	if (n == 0)
+		return (1);
+	if (n == -2147483648)
+		return (11);
+	if (n < 0)
+	{
+		count++;
+		n *= -1;
+	}
+	while (n > 0)
+	{
+		count++;
+		n /= 10;
+	}
+	return (count);
+}
+
+char	*itoa(int n)
+{
+	char	*res;
+	int		size;
+	long	num;
+
+	num = n;
+	size = (ft_num_count(n));
+	res = (char *)malloc(sizeof(char) * (size + 1));
+	if (!size || !res)
+		return (NULL);
+	res[size--] = '\0';
+	if (num == 0)
+		res[0] = '0';
+	if (num < 0)
+	{
+		res[0] = '-';
+		num *= -1;
+	}
+	while (num > 0)
+	{
+		res[size--] = num % 10 + '0';
+		num /= 10;
+	}
+	return (res);
+}
+
 
 int g_exit_code = 127;
 
 char *expand_variable(char *var_name)
 {
+	int g_exit_code = 127;
 	static char exit_str[32];
+	
 	if (strcmp(var_name, "?") == 0)
 	{
-		sprintf(exit_str, "%d", g_exit_code);
-		return "127";
+		printf("teeeeeeeeeeest\n");
+		return itoa(g_exit_code);
 	}
 	else
 	{
@@ -54,7 +105,6 @@ void parse_dollar(char **str, char *result, int *rindex, int max_len)
 		}
 		return;
 	}
-
 	if (**str == '?')
 	{
 		(*str)++;
@@ -68,7 +118,6 @@ void parse_dollar(char **str, char *result, int *rindex, int max_len)
 		}
 		return;
 	}
-
 	if (isalnum((unsigned char)**str) || **str == '_')
 	{
 		char *var_name = read_var_name(str);
@@ -134,7 +183,10 @@ void expansion(t_token **tokens)
 	t_token *curr = *tokens;
 	while (curr)
 	{
-		if (curr->type == TOKEN_WORD || curr->type == TOKEN_VAR)
+		if (curr->type == TOKEN_WORD 
+		|| curr->type == TOKEN_VAR 
+		|| curr->type == TOKEN_EXP_FIELD 
+		|| curr->type == TOKEN_EXIT_STATUS)
 		{
 			char *new_str = expand_string(curr->str);
 			free(curr->str);

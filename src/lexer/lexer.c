@@ -447,33 +447,34 @@ void adjusting_token_tree(t_token **tree)
 // }
 
 
-// int main()
-// {
-// 	t_token *test;
-// 	// char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
-// 	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
-// 	// char input[] = "echo Hello | grep 'pattern' > out.txt";
-// 	// char input[] = "cat $HOME.txt | echo \"$HOMEsomeworkds\" ";
+int main()
+{
+	t_token *test;
+	// char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
+	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
+	// char input[] = "echo Hello | grep 'pattern' > out.txt";
+	// char input[] = "cat $HOME.txt | echo \"$HOMEsomeworkds\" ";
+	char input[] = "cat $HOME.txt $ $HOME$USER $? $USER  | echo \"$HOME.txt\" ";
 
-// 	char input[] = "cat $HOME.txt $ $HOME$USER $?  | echo \"$HOMEsomeworkds\" ";
+	// char input[] = "env VAR=HELLO";
 
-// 	printf("Input command: %s\n", input);
-// 	test = tokenize(input);
+	printf("Input command: %s\n", input);
+	test = tokenize(input);
 
-// 	// printf("\nTokens:\n");
-// 	// temp_print_tokens(test);
+	// printf("\nTokens:\n");
+	// temp_print_tokens(test);
 
-// 	// remove_space_tokens(&test);
+	// remove_space_tokens(&test);
 
-// 	expansion(&test);
+	expansion(&test);
 
-// 	printf("\nTokens after expansion:\n");
-// 	temp_print_tokens(test);
+	printf("\nTokens after expansion:\n");
+	temp_print_tokens(test);
 
-// 	adjusting_token_tree(&test);
+	adjusting_token_tree(&test);
 
-// 	printf("\nTokens after adjustment:\n");
-// 	temp_print_tokens(test);
+	printf("\nTokens after adjustment:\n");
+	temp_print_tokens(test);
 
-// 	return 0;
-// }
+	return 0;
+}
