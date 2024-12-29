@@ -25,8 +25,8 @@ SRC = $(SRC_DIR)/main.c \
       $(SRC_DIR)/env/env.c $(SRC_DIR)/env/env_utils.c \
       $(SRC_DIR)/executor/executor.c $(SRC_DIR)/executor/executor_utils.c \
       $(SRC_DIR)/executor/herodoc.c $(SRC_DIR)/executor/pipes.c $(SRC_DIR)/executor/redirection.c \
-      $(SRC_DIR)/lexer/lexer.c $(SRC_DIR)/lexer/lexer_utils.c $(SRC_DIR)/lexer/tokenizer.c \
-      $(SRC_DIR)/parser/ast.c $(SRC_DIR)/parser/parser2.c $(SRC_DIR)/parser/parser_utils.c \
+      $(SRC_DIR)/lexer/lexer.c $(SRC_DIR)/lexer/lexer_utils.c $(SRC_DIR)/lexer/expansion.c \
+      $(SRC_DIR)/parser/parser2.c \
       $(SRC_DIR)/signals/signals.c $(SRC_DIR)/utils/errors.c $(SRC_DIR)/utils/free_utils.c \
       
 
