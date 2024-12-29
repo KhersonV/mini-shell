@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/29 11:46:54 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/29 12:41:35 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,7 +106,7 @@ void						ft_cd(char **args, t_info *info);
 void						ft_pwd(t_info *info);
 void						ft_export(char **args, t_info *info);
 
-void						ft_env(char **envp, t_info *info);
+void						ft_env(t_exec_command *commands, t_info *info);
 void						ft_exit(char **args, t_info *info);
 
 /* Env */
