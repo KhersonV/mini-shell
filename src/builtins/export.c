@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:29 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/29 13:44:41 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/29 14:55:57 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,54 +35,78 @@ void	sort_env(char **env)
 		i++;
 	}
 }
-
-void	ft_export(char **args, t_info *info)
+void ft_export(char **args, t_info *info)
 {
-	char	**sorted_env;
-	int		i;
-	char	*key;
-	char	*value;
+    char **sorted_env;
+    int i;
+    char *key;
+    char *value;
 
-	if (!args[1])
-	{
-		sorted_env = copy_envp(info->envp);
-		if (!sorted_env)
-		{
-			perror("minishell: export: failed to copy environment");
-			info->exit_status = 1;
-			return ;
-		}
-		sort_env(sorted_env);
-		i = 0;
-		while (sorted_env[i])
-		{
-			printf("declare -x %s\n", sorted_env[i]);
-			i++;
-		}
-		free_env(&(t_info){.envp = sorted_env});
-		info->exit_status = 0;
-		return ;
-	}
-	i = 1;
-	while (args[i])
-	{
-		key = ft_strndup(args[i], ft_strchr(args[i], '=') - args[i]);
-		value = ft_strchr(args[i], '=') ? ft_strdup(ft_strchr(args[i], '=')
-				+ 1) : NULL;
-		if (is_valid_env_key(key))
-		{
-			set_env(info, key, value ? value : "");
-			info->exit_status = 0;
-		}
-		else
-		{
-			ft_putstr_fd("minishell: export: `", 2);
-			ft_putstr_fd(args[i], 2);
-			ft_putstr_fd("': not a valid identifier\n", 2);
-			info->exit_status = 1;
-		}
-		free(key);
-		free(value);
-		i++;
-	}
+    // Если нет аргументов, вывести все переменные с "declare -x"
+    if (!args[1])
+    {
+        sorted_env = copy_envp(info->envp);
+        if (!sorted_env)
+        {
+            perror("minishell: export: failed to copy environment");
+            info->exit_status = 1;
+            return;
+        }
+        sort_env(sorted_env);
+        i = 0;
+        while (sorted_env[i])
+        {
+            char *equal_sign = ft_strchr(sorted_env[i], '=');
+            if (equal_sign)
+            {
+                printf("declare -x %.*s=\"%s\"\n",
+                       (int)(equal_sign - sorted_env[i]),
+                       sorted_env[i],
+                       equal_sign + 1);
+            }
+            else
+            {
+                printf("declare -x %s\n", sorted_env[i]);
+            }
+            i++;
+        }
+        free_env(&(t_info){.envp = sorted_env});
+        info->exit_status = 0;
+        return;
+    }
+
+    // Обработка аргументов
+    i = 1;
+    while (args[i])
+    {
+        char *equal_sign = ft_strchr(args[i], '=');
+        if (equal_sign) // Формат key=value
+        {
+            key = ft_strndup(args[i], equal_sign - args[i]);
+            value = ft_strdup(equal_sign + 1);
+        }
+        else // Формат только key
+        {
+            key = ft_strdup(args[i]);
+            value = NULL;
+        }
+
+        if (is_valid_env_key(key)) // Проверка ключа
+        {
+            if (value)
+                set_env(info, key, value); // Обновить или добавить key=value
+            info->exit_status = 0;
+        }
+        else
+        {
+            ft_putstr_fd("minishell: export: `", 2);
+            ft_putstr_fd(args[i], 2);
+            ft_putstr_fd("': not a valid identifier\n", 2);
+            info->exit_status = 1;
+        }
+
+        free(key);
+        free(value);
+        i++;
+    }
 }
