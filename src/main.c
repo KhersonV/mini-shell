@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/30 11:53:11 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/30 12:30:53 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,7 +145,6 @@ int	main(int ac, char **av, char **envp)
 	t_exec_command	*commands;
 	t_info			info;
 
-
 	// Проверка аргументов
 	if (ac != 1)
 	{
@@ -154,15 +153,28 @@ int	main(int ac, char **av, char **envp)
 	}
 
 	// Инициализация окружения и сигналов
-	init_env(&info, envp);
+	main_initialize(&info, envp);
 	init_signals();
 
 	// Основной цикл Shell
 	while (1)
 	{
-		line = readline("minishell> ");
+		if (isatty(STDIN_FILENO)) // Если программа запущена интерактивно
+			line = readline("minishell> ");
+		else // Если программа запущена неинтерактивно
+		{
+			line = get_next_line(STDIN_FILENO);
+			if (line)
+			{
+				char *temp = line;
+				line = ft_strtrim(line, "\n");
+				free(temp);
+			}
+		}
+
 		if (line == NULL) // Обработка Ctrl-D
 			exit_shell(&info);
+
 		if (*line != '\0') // Добавление команды в историю
 			add_history(line);
 

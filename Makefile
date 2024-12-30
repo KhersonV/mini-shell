@@ -17,6 +17,7 @@ CC = gcc
 SRC_DIR = src
 OBJ_DIR = $(BUILD_DIR)/obj
 LIBFT_DIR = libft
+GNL_DIR = get_next_line
 
 # Источники
 SRC = $(SRC_DIR)/main.c \
@@ -30,6 +31,7 @@ SRC = $(SRC_DIR)/main.c \
       $(SRC_DIR)/parser/parser2.c \
       $(SRC_DIR)/signals/signals.c \
       $(SRC_DIR)/utils/errors.c $(SRC_DIR)/utils/free_utils.c \
+      $(GNL_DIR)/get_next_line_utils.c $(GNL_DIR)/get_next_line.c\
       
 
 # Преобразование исходников в объектные файлы с использованием patsubst
