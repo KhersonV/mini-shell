@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:20 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/30 11:55:41 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/30 13:32:59 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ void ft_echo(t_exec_command *command, t_info *info)
     while (command->args[i])
     {
         print_with_escape(command->args[i]); // Обработка строки
-        if (command->args[i + 1]) // Добавляем пробел между аргументами
+        if (command->args[i + 1] && command->args[i][0] != '\0') // Добавляем пробел между аргументами
             putchar(' ');
         i++;
     }
