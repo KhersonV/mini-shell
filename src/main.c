@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/30 12:30:53 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/30 14:20:45 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,75 +137,127 @@ void process_user_input(char *user_input, t_exec_command **command, t_info *info
 	}
 }
 
-
-int	main(int ac, char **av, char **envp)
+void print_command_list(t_exec_command *cmd_list)
 {
-	char			*line;
-	t_token			*tokens;
-	t_exec_command	*commands;
-	t_info			info;
+    t_exec_command *cmd = cmd_list;
+    int cmd_num = 1;
 
-	// Проверка аргументов
-	if (ac != 1)
-	{
-		printf("minishell: %s: No such file or directory\n", av[1]);
-		return (1);
-	}
+    while (cmd)
+    {
+        printf("Command #%d:\n", cmd_num++);
+        printf("  Command Name: %s\n", cmd->cmd_name ? cmd->cmd_name : "(null)");
 
-	// Инициализация окружения и сигналов
-	main_initialize(&info, envp);
-	init_signals();
+        // Печать аргументов
+        if (cmd->args)
+        {
+            printf("  Arguments:\n");
+            for (int i = 0; cmd->args[i]; i++)
+                printf("    [%d] %s\n", i, cmd->args[i]);
+        }
+        else
+        {
+            printf("  Arguments: None\n");
+        }
 
-	// Основной цикл Shell
-	while (1)
-	{
-		if (isatty(STDIN_FILENO)) // Если программа запущена интерактивно
-			line = readline("minishell> ");
-		else // Если программа запущена неинтерактивно
-		{
-			line = get_next_line(STDIN_FILENO);
-			if (line)
-			{
-				char *temp = line;
-				line = ft_strtrim(line, "\n");
-				free(temp);
-			}
-		}
+        // Печать перенаправлений
+        if (cmd->redirects)
+        {
+            printf("  Redirections:\n");
+            t_redirection *redir = cmd->redirects;
+            while (redir)
+            {
+                printf("    Type: %s, File: %s%s\n",
+                       (redir->type == TOKEN_REDIRECT_IN) ? "INPUT" :
+                       (redir->type == TOKEN_REDIRECT_OUT) ? "OUTPUT" :
+                       (redir->type == TOKEN_REDIRECT_APPEND) ? "APPEND" :
+                       (redir->type == TOKEN_HEREDOC) ? "HEREDOC" : "UNKNOWN",
+                       redir->filename,
+                       redir->is_heredoc ? " (Heredoc)" : "");
+                redir = redir->next;
+            }
+        }
+        else
+        {
+            printf("  Redirections: None\n");
+        }
 
-		if (line == NULL) // Обработка Ctrl-D
-			exit_shell(&info);
+        // Печать статуса выхода
+        printf("  Exit Status: %d\n\n", cmd->exit_status);
 
-		if (*line != '\0') // Добавление команды в историю
-			add_history(line);
+        cmd = cmd->next_cmd;
+    }
+}
 
-		// Лексический анализ
-		tokens = tokenize(line);
-		if (!tokens)
-		{
-			free(line);
-			continue;
-		}
-		expansion(&tokens, &info);
+int main(int ac, char **av, char **envp)
+{
+    char *line;
+    t_token *tokens;
+    t_exec_command *commands;
+    t_info info;
 
-		adjusting_token_tree(&tokens);
+    // Проверка аргументов
+    if (ac != 1)
+    {
+        printf("minishell: %s: No such file or directory\n", av[1]);
+        return (1);
+    }
 
-		// Построение списка команд
-		commands = parse_tokens_to_commands(tokens);
+    // Инициализация окружения и сигналов
+    main_initialize(&info, envp);
+    init_signals();
 
-		if (!commands)
-		{
-			free_token_list(tokens);
-			free(line);
-			continue;
-		}
+    // Основной цикл Shell
+    while (1)
+    {
+        if (isatty(STDIN_FILENO)) // Если программа запущена интерактивно
+            line = readline("minishell> ");
+        else // Если программа запущена неинтерактивно
+        {
+            line = get_next_line(STDIN_FILENO);
+            if (line)
+            {
+                char *temp = line;
+                line = ft_strtrim(line, "\n");
+                free(temp);
+            }
+        }
 
-		// Выполнение команд
-		execute_commands(commands, &info);
+        if (line == NULL) // Обработка Ctrl-D
+            exit_shell(&info);
 
-		// Очистка памяти
-		free_commands(commands);
-		free_token_list(tokens);
-		free(line);
-	}
-	return (0);
+        if (*line != '\0') // Добавление команды в историю
+            add_history(line);
+
+        // Лексический анализ
+        tokens = tokenize(line);
+        if (!tokens)
+        {
+            free(line);
+            continue;
+        }
+        expansion(&tokens, &info);
+
+        adjusting_token_tree(&tokens);
+
+        // Построение списка команд
+        commands = parse_tokens_to_commands(tokens);
+
+        // print_command_list(commands); // Печать команд
+
+        if (!commands)
+        {
+            free_token_list(tokens);
+            free(line);
+            continue;
+        }
+
+        // Выполнение команд
+        execute_commands(commands, &info);
+
+        // Очистка памяти
+        free_commands(commands);
+        free_token_list(tokens);
+        free(line);
+    }
+    return (0);
 }

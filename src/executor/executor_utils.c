@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:09:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/23 13:56:51 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/30 14:39:07 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,9 +76,9 @@ int	is_builtin(char *command)
 		|| strcmp(command, "exit") == 0);
 }
 
-
 char *find_command(char *command, char **envp)
 {
+    struct stat statbuf; // Для проверки типа файла
     char *path_env;
     char **paths;
     char *full_path;
@@ -88,8 +88,17 @@ char *find_command(char *command, char **envp)
     // Если команда содержит "/", проверяем её как путь
     if (ft_strchr(command, '/'))
     {
-        if (access(command, X_OK) == 0)
-            return (ft_strdup(command));
+        if (stat(command, &statbuf) == 0)
+        {
+            if (S_ISDIR(statbuf.st_mode)) // Проверяем, является ли это директорией
+            {
+                fprintf(stderr, "minishell: %s: is a directory\n", command);
+                return (NULL);
+            }
+            if (access(command, X_OK) == 0) // Проверяем права на выполнение
+                return (ft_strdup(command));
+        }
+        fprintf(stderr, "minishell: %s: command not found\n", command);
         return (NULL);
     }
 
@@ -110,14 +119,24 @@ char *find_command(char *command, char **envp)
         temp = ft_strjoin(paths[i], "/");
         full_path = ft_strjoin(temp, command);
         free(temp);
-        if (access(full_path, X_OK) == 0) // Если файл существует и исполняем
+        if (stat(full_path, &statbuf) == 0)
         {
-            ft_free_array(paths);
-            return (full_path);
+            if (S_ISDIR(statbuf.st_mode)) // Если это директория, игнорируем
+            {
+                free(full_path);
+                i++;
+                continue;
+            }
+            if (access(full_path, X_OK) == 0) // Проверяем права на выполнение
+            {
+                ft_free_array(paths);
+                return (full_path);
+            }
         }
         free(full_path);
         i++;
     }
     ft_free_array(paths);
+    fprintf(stderr, "minishell: %s: command not found\n", command);
     return (NULL); // Команда не найдена
 }

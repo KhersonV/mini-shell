@@ -78,6 +78,6 @@ void free_redirections(t_redirection *redirects)
 void exit_shell(t_info *info)
 {
     free_env(info);
-    printf("Exiting minishell...\n");
+    // printf("Exiting minishell...\n");
     exit(info->exit_status);
 }

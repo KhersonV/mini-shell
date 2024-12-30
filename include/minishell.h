@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/30 12:37:40 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/30 14:10:49 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,6 +101,8 @@ typedef enum e_token_type
 t_exec_command				*build_fake_command_list(void);
 t_exec_command				*parse_tokens_to_commands(t_token *tokens);
 
+
+void						print_command_list(t_exec_command *cmd_list);
 /* Builtins */
 void						ft_echo(t_exec_command *command, t_info *info);
 void						ft_cd(char **args, t_info *info);

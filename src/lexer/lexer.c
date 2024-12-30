@@ -304,7 +304,7 @@ void adjusting_token_tree(t_token **tree)
 		{
 			command_found = 0;
 		}
-		if (!command_found && curr->type == TOKEN_WORD)
+		if (!command_found && (curr->type == TOKEN_WORD || curr->type == TOKEN_EXP_FIELD || curr->type == TOKEN_FIELD || curr->type == TOKEN_VAR))
 		{
 			curr->type = TOKEN_COMMAND;
 			command_found = 1;

@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/29 16:14:12 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/30 14:39:27 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,63 +22,62 @@ void	execute_commands(t_exec_command *commands, t_info *info)
 		execute_single_command(commands, info);
 }
 
-void	execute_single_command(t_exec_command *command, t_info *info)
+void execute_single_command(t_exec_command *command, t_info *info)
 {
-	pid_t	pid;
-	int		status;
-	char	*path;
-	int		saved_stdout;
-	int		saved_stdin;
+    pid_t pid;
+    int status;
+    char *path;
+    int saved_stdout;
+    int saved_stdin;
 
-	saved_stdout = dup(STDOUT_FILENO);
-	saved_stdin = dup(STDIN_FILENO);
-	if (is_builtin(command->cmd_name))
-	{
-		if (!handle_redirections(command->redirects))
-		{
-			restore_standard_fds(saved_stdin, saved_stdout);
-			info->exit_status = 1;
-			return ;
-		}
-		execute_builtin(command, info);
-		restore_standard_fds(saved_stdin, saved_stdout);
-		return ;
-	}
-	path = find_command(command->cmd_name, info->envp);
-	if (!path)
-	{
-		fprintf(stderr, "minishell: %s: command not found\n",
-			command->cmd_name);
-		info->exit_status = 127;
-		return ;
-	}
-	pid = fork();
-	if (pid == -1)
-	{
-		perror("fork");
-		free(path);
-		return ;
-	}
-	if (pid == 0)
-	{
-		if (!handle_redirections(command->redirects))
-			exit(EXIT_FAILURE);
-		execve(path, command->args, info->envp);
-		perror("execve");
-		free(path);
-		exit(EXIT_FAILURE);
-	}
-	else
-	{
-		free(path);
-		waitpid(pid, &status, 0);
-		if (WIFEXITED(status))
-			info->exit_status = WEXITSTATUS(status);
-		else if (WIFSIGNALED(status))
-			info->exit_status = 128 + WTERMSIG(status);
-	}
-	restore_standard_fds(saved_stdin, saved_stdout);
+    saved_stdout = dup(STDOUT_FILENO);
+    saved_stdin = dup(STDIN_FILENO);
+    if (is_builtin(command->cmd_name))
+    {
+        if (!handle_redirections(command->redirects))
+        {
+            restore_standard_fds(saved_stdin, saved_stdout);
+            info->exit_status = 1;
+            return;
+        }
+        execute_builtin(command, info);
+        restore_standard_fds(saved_stdin, saved_stdout);
+        return;
+    }
+    path = find_command(command->cmd_name, info->envp);
+    if (!path)
+    {
+        info->exit_status = 127;
+        return; // Ошибка уже обработана в find_command
+    }
+    pid = fork();
+    if (pid == -1)
+    {
+        perror("fork");
+        free(path);
+        return;
+    }
+    if (pid == 0)
+    {
+        if (!handle_redirections(command->redirects))
+            exit(EXIT_FAILURE);
+        execve(path, command->args, info->envp);
+        perror("execve");
+        free(path);
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        free(path);
+        waitpid(pid, &status, 0);
+        if (WIFEXITED(status))
+            info->exit_status = WEXITSTATUS(status);
+        else if (WIFSIGNALED(status))
+            info->exit_status = 128 + WTERMSIG(status);
+    }
+    restore_standard_fds(saved_stdin, saved_stdout);
 }
+
 
 void	execute_pipeline(t_exec_command *commands, t_info *info)
 {
