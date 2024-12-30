@@ -2,65 +2,6 @@
 
 #include "../../include/minishell.h"
 
-static int	ft_num_count(int n)
-{
-	int	count;
-
-	count = 0;
-	if (n == 0)
-		return (1);
-	if (n == -2147483648)
-		return (11);
-	if (n < 0)
-	{
-		count++;
-		n *= -1;
-	}
-	while (n > 0)
-	{
-		count++;
-		n /= 10;
-	}
-	return (count);
-}
-
-char	*ft_itoa(int n)
-{
-	char	*res;
-	int		size;
-	long	num;
-
-	num = n;
-	size = (ft_num_count(n));
-	res = (char *)malloc(sizeof(char) * (size + 1));
-	if (!size || !res)
-		return (NULL);
-	res[size--] = '\0';
-	if (num == 0)
-		res[0] = '0';
-	if (num < 0)
-	{
-		res[0] = '-';
-		num *= -1;
-	}
-	while (num > 0)
-	{
-		res[size--] = num % 10 + '0';
-		num /= 10;
-	}
-	return (res);
-}
-
-
-int	ft_strcmp(const char *s1, const char *s2)
-{
-	while (*s1 && (*s1 == *s2))
-	{
-		s1++;
-		s2++;
-	}
-	return ((unsigned char)*s1 - (unsigned char)*s2);
-}
 
 
 char *expand_variable(char *var_name, t_info  *info)

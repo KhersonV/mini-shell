@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
+/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/29 22:47:11 by lynchsama        ###   ########.fr       */
+/*   Updated: 2024/12/30 11:53:11 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,7 +112,7 @@ void main_initialize(t_info *info, char **envp)
 	info->old_dir = NULL;
 	info->curr_dir = getcwd(NULL, 0);
 	info->envp = copy_envp(envp);
-	info->old_dir = get_env_value(envp, "OLDPWD");
+	info->old_dir = get_env_value(info, "OLDPWD");
 	info->exit_status = 0;
 }
 
@@ -126,7 +126,7 @@ void process_user_input(char *user_input, t_exec_command **command, t_info *info
 	tokens = tokenize(user_input);
 	if (!tokens)
 		free(user_input);
-	expansion(&tokens, &info);
+	expansion(&tokens, info);
 	adjusting_token_tree(&tokens);
 	command_ptr = parse_tokens_to_commands(tokens);
 
@@ -144,6 +144,7 @@ int	main(int ac, char **av, char **envp)
 	t_token			*tokens;
 	t_exec_command	*commands;
 	t_info			info;
+
 
 	// Проверка аргументов
 	if (ac != 1)
