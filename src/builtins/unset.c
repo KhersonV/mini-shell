@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:35 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/29 14:08:43 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/31 15:20:47 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,8 @@ void	unset_env(char **args, t_info *info)
 	if (!info || !args)
 		return;
 
-	i = 1; // Начинаем с args[1], так как args[0] — это имя команды "unset"
+	info->exit_status = 0;
+	i = 1;
 	while (args[i])
 	{
 		if (!is_valid_env_key(args[i]))
@@ -45,5 +46,5 @@ void	unset_env(char **args, t_info *info)
 		}
 		i++;
 	}
-	info->exit_status = 0; // Если всё выполнено успешно
 }
+

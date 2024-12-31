@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/30 14:20:45 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/31 14:06:07 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,56 +137,56 @@ void process_user_input(char *user_input, t_exec_command **command, t_info *info
 	}
 }
 
-void print_command_list(t_exec_command *cmd_list)
-{
-    t_exec_command *cmd = cmd_list;
-    int cmd_num = 1;
+// void print_command_list(t_exec_command *cmd_list)
+// {
+//     t_exec_command *cmd = cmd_list;
+//     int cmd_num = 1;
 
-    while (cmd)
-    {
-        printf("Command #%d:\n", cmd_num++);
-        printf("  Command Name: %s\n", cmd->cmd_name ? cmd->cmd_name : "(null)");
+//     while (cmd)
+//     {
+//         printf("Command #%d:\n", cmd_num++);
+//         printf("  Command Name: %s\n", cmd->cmd_name ? cmd->cmd_name : "(null)");
 
-        // Печать аргументов
-        if (cmd->args)
-        {
-            printf("  Arguments:\n");
-            for (int i = 0; cmd->args[i]; i++)
-                printf("    [%d] %s\n", i, cmd->args[i]);
-        }
-        else
-        {
-            printf("  Arguments: None\n");
-        }
+//         // Печать аргументов
+//         if (cmd->args)
+//         {
+//             printf("  Arguments:\n");
+//             for (int i = 0; cmd->args[i]; i++)
+//                 printf("    [%d] %s\n", i, cmd->args[i]);
+//         }
+//         else
+//         {
+//             printf("  Arguments: None\n");
+//         }
 
-        // Печать перенаправлений
-        if (cmd->redirects)
-        {
-            printf("  Redirections:\n");
-            t_redirection *redir = cmd->redirects;
-            while (redir)
-            {
-                printf("    Type: %s, File: %s%s\n",
-                       (redir->type == TOKEN_REDIRECT_IN) ? "INPUT" :
-                       (redir->type == TOKEN_REDIRECT_OUT) ? "OUTPUT" :
-                       (redir->type == TOKEN_REDIRECT_APPEND) ? "APPEND" :
-                       (redir->type == TOKEN_HEREDOC) ? "HEREDOC" : "UNKNOWN",
-                       redir->filename,
-                       redir->is_heredoc ? " (Heredoc)" : "");
-                redir = redir->next;
-            }
-        }
-        else
-        {
-            printf("  Redirections: None\n");
-        }
+//         // Печать перенаправлений
+//         if (cmd->redirects)
+//         {
+//             printf("  Redirections:\n");
+//             t_redirection *redir = cmd->redirects;
+//             while (redir)
+//             {
+//                 printf("    Type: %s, File: %s%s\n",
+//                        (redir->type == TOKEN_REDIRECT_IN) ? "INPUT" :
+//                        (redir->type == TOKEN_REDIRECT_OUT) ? "OUTPUT" :
+//                        (redir->type == TOKEN_REDIRECT_APPEND) ? "APPEND" :
+//                        (redir->type == TOKEN_HEREDOC) ? "HEREDOC" : "UNKNOWN",
+//                        redir->filename,
+//                        redir->is_heredoc ? " (Heredoc)" : "");
+//                 redir = redir->next;
+//             }
+//         }
+//         else
+//         {
+//             printf("  Redirections: None\n");
+//         }
 
-        // Печать статуса выхода
-        printf("  Exit Status: %d\n\n", cmd->exit_status);
+//         // Печать статуса выхода
+//         printf("  Exit Status: %d\n\n", cmd->exit_status);
 
-        cmd = cmd->next_cmd;
-    }
-}
+//         cmd = cmd->next_cmd;
+//     }
+// }
 
 int main(int ac, char **av, char **envp)
 {

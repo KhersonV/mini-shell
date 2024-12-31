@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:20 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/30 13:32:59 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/31 14:05:22 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ static void print_with_escape(const char *str)
             else if (*str == 'r')
                 putchar('\r');
             else
-                putchar(*str); // Если это не известная последовательность
+                putchar(*str);
         }
         else
         {
@@ -38,16 +38,8 @@ static void print_with_escape(const char *str)
 
 void ft_echo(t_exec_command *command, t_info *info)
 {
-    int i = 1; // Начинаем с первого аргумента
-    int newline = 1; // По умолчанию добавляем новую строку
-
-	//    int k = 0; // Индекс для итерации по строкам массива
-
-    // while (command->args[k]) // Пока строка не NULL
-    // {
-    //     printf("%s\n", command->args[k]); // Печать текущей строки
-    //     k++; // Переход к следующей строке
-    // }
+    int i = 1;
+    int newline = 1;
 
     // Проверяем флаг -n
     while (command->args[i] && strcmp(command->args[i], "-n") == 0)
@@ -59,14 +51,14 @@ void ft_echo(t_exec_command *command, t_info *info)
     // Вывод аргументов с обработкой escape-последовательностей
     while (command->args[i])
     {
-        print_with_escape(command->args[i]); // Обработка строки
-        if (command->args[i + 1] && command->args[i][0] != '\0') // Добавляем пробел между аргументами
+        print_with_escape(command->args[i]);
+        if (command->args[i + 1] && command->args[i][0] != '\0')
             putchar(' ');
         i++;
     }
 
-    if (newline) // Добавляем новую строку, если флаг -n не установлен
+    if (newline)
         putchar('\n');
 
-    info->exit_status = 0; // Устанавливаем статус выполнения
+    info->exit_status = 0;
 }
