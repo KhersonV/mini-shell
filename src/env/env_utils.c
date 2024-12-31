@@ -6,17 +6,17 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 12:52:06 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/29 14:34:35 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/31 16:07:37 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
-int is_valid_env_key(const char *key)
+int	is_valid_env_key(const char *key)
 {
     int i = 0;
 
-    if (!key || !key[0])
+    if (!key || !key[0] || ft_isdigit(key[0]))
         return (0);
     while (key[i])
     {
@@ -26,6 +26,7 @@ int is_valid_env_key(const char *key)
     }
     return (1);
 }
+
 
 int	env_key_compare(const char *env_entry, const char *key)
 {
