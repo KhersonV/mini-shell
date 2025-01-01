@@ -6,13 +6,25 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:20 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/01 14:04:59 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/01 16:03:50 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
-static void	print_with_escape(const char *str)
+int	is_n_flag(const char *arg)
+{
+	if (arg[0] != '-')
+		return (0);
+	for (int i = 1; arg[i]; i++)
+	{
+		if (arg[i] != 'n')
+			return (0);
+	}
+	return (1);
+}
+
+void	print_with_escape(const char *str)
 {
 	while (*str)
 	{
@@ -43,7 +55,7 @@ void	ft_echo(t_exec_command *command, t_info *info)
 
 	i = 1;
 	newline = 1;
-	while (command->args[i] && ft_strcmp(command->args[i], "-n") == 0)
+	while (command->args[i] && is_n_flag(command->args[i]))
 	{
 		newline = 0;
 		i++;
