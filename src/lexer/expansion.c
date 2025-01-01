@@ -2,7 +2,8 @@
 
 #include "../../include/minishell.h"
 
-
+/* 
+old version
 
 char *expand_variable(char *var_name, t_info  *info)
 {
@@ -29,6 +30,30 @@ char *expand_variable(char *var_name, t_info  *info)
 		return val;
 	}
 }
+
+*/
+
+char *expand_variable(char *var_name, t_info *info)
+{
+    if (ft_strcmp(var_name, "?") == 0)
+    {
+        char *exit_str = ft_itoa(info->exit_status);
+        return exit_str;
+    }
+    else if (ft_strcmp(var_name, "$") == 0)
+    {
+        char *pid_str = ft_itoa(getpid());
+        return pid_str;
+    }
+    else
+    {
+        char *val = get_env_value(info, var_name);
+        if (val == NULL)
+            return ft_strdup("");
+        return ft_strdup(val);
+    }
+}
+
 
 char *read_var_name(char **str)
 {
@@ -102,6 +127,12 @@ void append_char(char *result, int *rindex, char c, int max_len)
 
 }
 
+
+/*
+staraja versija
+
+
+
 char *expand_string(char *input, t_info *info)
 {
 	char result[1024];
@@ -126,6 +157,58 @@ char *expand_string(char *input, t_info *info)
 	else
 		result[sizeof(result) - 1] = '\0';
 	return strdup(result);
+}
+*/
+
+
+char *expand_string(char *input, t_info *info)
+{
+    char result[1024];
+    int rindex = 0;
+    char *ptr = input;
+
+    while (*ptr != '\0')
+    {
+        // Проверяем, находится ли '~' в начале слова
+        if (*ptr == '~' && (rindex == 0 || result[rindex - 1] == ' ') && (ptr[1] == '/' || ptr[1] == '\0'))
+        {
+            char *home = get_env_value(info, "HOME");
+            if (home)
+            {
+                int len = strlen(home);
+                if (rindex + len < (int)sizeof(result))
+                {
+                    strcpy(&result[rindex], home);
+                    rindex += len;
+                }
+                free(home);
+                ptr++; // Пропустить '~'
+                if (*ptr == '/')
+                {
+                    if (rindex < (int)sizeof(result) - 1)
+                    {
+                        result[rindex++] = '/';
+                        ptr++;
+                    }
+                }
+            }
+        }
+        else if (*ptr == '$')
+        {
+            ptr++;
+            parse_dollar(&ptr, result, &rindex, sizeof(result), info);
+        }
+        else
+        {
+            append_char(result, &rindex, *ptr, sizeof(result));
+            ptr++;
+        }
+    }
+    if (rindex < (int)sizeof(result))
+        result[rindex] = '\0';
+    else
+        result[sizeof(result) - 1] = '\0';
+    return ft_strdup(result);
 }
 
 void expansion(t_token **tokens, t_info *info)
