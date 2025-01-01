@@ -2,7 +2,7 @@
 
 #include "../../include/minishell.h"
 
-/* 
+/*
 old version
 
 char *expand_variable(char *var_name, t_info  *info)

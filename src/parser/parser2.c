@@ -3,7 +3,7 @@
 
 void remove_space_tokens(t_token **tree);
 void adjusting_token_tree(t_token **tree);
-t_token *tokenize(char *s);
+
 void	temp_print_tokens(t_token *node);
 int validate_syntax_and_adjust(t_token **tree);
 
@@ -156,56 +156,56 @@ t_exec_command *parse_tokens_to_commands(t_token *tokens)
 	return cmd_list;
 }
 
-// void print_command_list(t_exec_command *cmd_list)
-// {
-// 	t_exec_command *cmd = cmd_list;
-// 	int cmd_num = 1;
+void print_command_list(t_exec_command *cmd_list)
+{
+	t_exec_command *cmd = cmd_list;
+	int cmd_num = 1;
 
-// 	while (cmd)
-// 	{
-// 		printf("Command #%d:\n", cmd_num++);
-// 		printf("  Command Name: %s\n", cmd->cmd_name ? cmd->cmd_name : "(null)");
+	while (cmd)
+	{
+		printf("Command #%d:\n", cmd_num++);
+		printf("  Command Name: %s\n", cmd->cmd_name ? cmd->cmd_name : "(null)");
 
-// 		// Print arguments
-// 		if (cmd->args)
-// 		{
-// 			printf("  Arguments:\n");
-// 			for (int i = 0; cmd->args[i]; i++)
-// 				printf("    [%d] %s\n", i, cmd->args[i]);
-// 		}
-// 		else
-// 		{
-// 			printf("  Arguments: None\n");
-// 		}
+		// Print arguments
+		if (cmd->args)
+		{
+			printf("  Arguments:\n");
+			for (int i = 0; cmd->args[i]; i++)
+				printf("    [%d] %s\n", i, cmd->args[i]);
+		}
+		else
+		{
+			printf("  Arguments: None\n");
+		}
 
-// 		// Print redirections
-// 		if (cmd->redirects)
-// 		{
-// 			printf("  Redirections:\n");
-// 			t_redirection *redir = cmd->redirects;
-// 			while (redir)
-// 			{
-// 				printf("    Type: %s, File: %s%s\n",
-// 					   (redir->type == TOKEN_REDIRECT_IN) ? "INPUT" :
-// 					   (redir->type == TOKEN_REDIRECT_OUT) ? "OUTPUT" :
-// 					   (redir->type == TOKEN_REDIRECT_APPEND) ? "APPEND" :
-// 					   (redir->type == TOKEN_HEREDOC) ? "HEREDOC" : "UNKNOWN",
-// 					   redir->filename,
-// 					   redir->is_heredoc ? " (Heredoc)" : "");
-// 				redir = redir->next;
-// 			}
-// 		}
-// 		else
-// 		{
-// 			printf("  Redirections: None\n");
-// 		}
+		// Print redirections
+		if (cmd->redirects)
+		{
+			printf("  Redirections:\n");
+			t_redirection *redir = cmd->redirects;
+			while (redir)
+			{
+				printf("    Type: %s, File: %s%s\n",
+					   (redir->type == TOKEN_REDIRECT_IN) ? "INPUT" :
+					   (redir->type == TOKEN_REDIRECT_OUT) ? "OUTPUT" :
+					   (redir->type == TOKEN_REDIRECT_APPEND) ? "APPEND" :
+					   (redir->type == TOKEN_HEREDOC) ? "HEREDOC" : "UNKNOWN",
+					   redir->filename,
+					   redir->is_heredoc ? " (Heredoc)" : "");
+				redir = redir->next;
+			}
+		}
+		else
+		{
+			printf("  Redirections: None\n");
+		}
 
-// 		// Exit status
-// 		printf("  Exit Status: %d\n\n", cmd->exit_status);
+		// Exit status
+		printf("  Exit Status: %d\n\n", cmd->exit_status);
 
-// 		cmd = cmd->next_cmd;
-// 	}
-// }
+		cmd = cmd->next_cmd;
+	}
+}
 
 // int main()
 // {

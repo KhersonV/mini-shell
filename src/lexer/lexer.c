@@ -1,6 +1,9 @@
 
 #include "../../include/minishell.h"
 
+char *expand_variable(char *var_name, t_info *info);
+
+
 // TODO : echo $$HOME,  $$ check.
 void expansion(t_token **tokens, t_info *info);
 
@@ -85,6 +88,80 @@ t_token	*create_token_node(char *name, int type)
 	return (new_node);
 }
 
+// static void expand_variable_inline(const char **s_ptr, char *buf, int *buf_index, int max_len, t_info *info)
+// {
+// 	const char *s = *s_ptr;
+
+// 	// Проверяем, вдруг это $?
+// 	if (*s == '?')
+// 	{
+// 		s++;
+// 		char *val = expand_variable("?", info);
+// 		int len = ft_strlen(val);
+// 		for (int k = 0; k < len && (*buf_index) < max_len - 1; k++)
+// 			buf[(*buf_index)++] = val[k];
+// 		free(val);
+// 	}
+// 	else
+// 	{
+// 		// Считываем имя переменной
+// 		char var_buf[256];
+// 		int  vindex = 0;
+
+// 		while (*s && (ft_isalnum((unsigned char)*s) || *s == '_'))
+// 		{
+// 			var_buf[vindex++] = *s;
+// 			s++;
+// 			if (vindex >= 255)
+// 				break;
+// 		}
+// 		var_buf[vindex] = '\0';
+
+// 		if (vindex == 0)
+// 		{
+// 			// Случай, когда после '$' нет алфанумов => просто '$'
+// 			if ((*buf_index) < max_len - 1)
+// 				buf[(*buf_index)++] = '$';
+// 		}
+// 		else
+// 		{
+// 			// expand_variable() вернёт ft_strdup(...)
+// 			char *val = expand_variable(var_buf, info);
+// 			int len = ft_strlen(val);
+// 			for (int k = 0; k < len && (*buf_index) < max_len - 1; k++)
+// 				buf[(*buf_index)++] = val[k];
+// 			free(val);
+// 		}
+// 	}
+// 	*s_ptr = s; // двигаем указатель
+// }
+
+// static void handle_quotes_inplace(const char *s, int *i,
+//                                   char *buf, int *buf_index, int max_len, t_info *info)
+// {
+// 	char quote = s[*i];
+// 	(*i)++; // пропускаем саму кавычку
+
+// 	while (s[*i] && s[*i] != quote)
+// 	{
+// 		if (quote == '"' && s[*i] == '$')
+// 		{
+// 			(*i)++;
+// 			expand_variable_inline(&s, buf, buf_index, max_len, info);
+// 			// Обратите внимание, что expand_variable_inline сам двигает s,
+// 			// но мы потом всё равно сделаем (*i) = (s - начало_строки).
+// 			continue;
+// 		}
+// 		// Обычный символ (или '$' внутри одинарных кавычек)
+// 		if (*buf_index < max_len - 1)
+// 			buf[(*buf_index)++] = s[*i];
+// 		(*i)++;
+// 	}
+// 	if (s[*i] == quote)
+// 		(*i)++; // пропустить закрывающую кавычку
+// 	// Мы ничего не сбрасываем в token прямо тут, накапливаем в buf.
+// 	// flush_buf_if_needed() вызывается в общем цикле, когда встретим другой разделитель.
+// }
 
 t_token	*add_token(t_token *node, char *name, int type)
 {
@@ -153,8 +230,8 @@ t_token *add_operator_token(t_token *curr, char current_char, char next_char, in
 		else
 			curr = add_token(curr, ">", TOKEN_REDIRECT_OUT);
 	}
-	else if (current_char == ' ' || (current_char >= 9 && current_char <= 13))
-		curr = add_token(curr, "[]", TOKEN_SPACE);
+	// else if (current_char == ' ' || (current_char >= 9 && current_char <= 13))
+	// 	curr = add_token(curr, "[]", TOKEN_SPACE);
 	return curr;
 }
 
@@ -211,10 +288,13 @@ int handle_quotes(t_token **p_head, const char *s, int *i)
 	strncpy(field, &s[start], len);
 	field[len] = '\0';
 
+	if(strcmp(field, ""))
+	{
 	if (quote == '"')
 		*p_head = add_token(*p_head, field, TOKEN_EXP_FIELD);
 	else
 		*p_head = add_token(*p_head, field, TOKEN_FIELD);
+	}
 
 	free(field);
 
@@ -226,6 +306,7 @@ int handle_quotes(t_token **p_head, const char *s, int *i)
 void handle_special_char(t_token **p_head, const char *s, int *i)
 {
 	if (is_space_char(s[*i])) {
+		// *p_head = add_operator_token(*p_head, s[*i], s[*i + 1], i);
 		(*i)++;
 		return;
 	}
@@ -277,6 +358,69 @@ t_token *tokenize(char *s)
 	flush_buf_if_needed(&head, buf, &buf_index);
 	return head;
 }
+
+// t_token *tokenize(char *input, t_info *info)
+// {
+// 	t_token *head = NULL;
+// 	char buf[1024]; // можно побольше, если нужно
+// 	int buf_index = 0;
+// 	int i = 0;
+
+// 	while (input[i] != '\0')
+// 	{
+// 		// Если пробел, оператор или кавычка — сначала сбросить buf, потом обработать
+// 		if (is_special_char(input[i]))
+// 		{
+// 			flush_buf_if_needed(&head, buf, &buf_index);
+
+// 			if (input[i] == '\'' || input[i] == '"')
+// 			{
+// 				// Обработка кавычек на месте (с возможной подстановкой переменных в двойных кавычках)
+// 				handle_quotes_inplace( input, &i, buf, &buf_index, sizeof(buf), info);
+// 			}
+// 			else if (is_space_char(input[i]) || is_operator_char(input[i]))
+// 			{
+// 				// оператор или пробел
+// 				head = add_operator_token(head, input[i], input[i+1], &i);
+// 			}
+// 			// после handle_quotes_inplace или add_operator_token
+// 			// i уже сдвинут. Продолжаем
+// 			continue;
+// 		}
+// 		// Если это знак $
+// 		else if (input[i] == '$')
+// 		{
+// 			i++;
+// 			expand_variable_inline((const char**)&input[i], buf, &buf_index, sizeof(buf), info);
+// 			// В expand_variable_inline мы сдвигаем указатель *s_ptr,
+// 			// нужно подвинуть i соответственно:
+// 			// Допустим, expand_variable_inline будет читать переменные из input + i,
+// 			// а потом вернёт "конечный" s_ptr.
+// 			// Поэтому можно так:
+// 			//    const char *old_ptr = input + i;
+// 			//    expand_variable_inline(&old_ptr, buf, &buf_index, ..., info);
+// 			//    i = old_ptr - input;
+// 			const char *curr_ptr = input + i;
+// 			// после возвращения функции мы должны взять "текущее" значение s_ptr:
+// 			// но мы передали expand_variable_inline((const char**)&input[i]...
+// 			// для ясности сделаем:
+// 			const char *s_ptr = curr_ptr;  // s_ptr = old_ptr
+// 			while (input[i] != *s_ptr) // или просто вычислим разницу
+// 				i++;
+// 			continue;
+// 		}
+// 		else
+// 		{
+// 			// Обычный символ, не спецсимвол, не пробел, не кавычка, не $
+// 			if (buf_index < (int)sizeof(buf) - 1)
+// 				buf[buf_index++] = input[i];
+// 			i++;
+// 		}
+// 	}
+// 	// В конце сбрасываем накопленное
+// 	flush_buf_if_needed(&head, buf, &buf_index);
+// 	return head;
+// }
 
 void	temp_print_tokens(t_token *node)
 {
@@ -452,11 +596,12 @@ void adjusting_token_tree(t_token **tree)
 // int main()
 // {
 // 	t_token *test;
+// 	t_info *info;
 // 	// char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
 // 	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
 // 	// char input[] = "echo Hello | grep 'pattern' > out.txt";
 // 	// char input[] = "cat $HOME.txt | echo \"$HOMEsomeworkds\" ";
-// 	char input[] = "cat $HOME.txt $ $HOME$USER $? $USER  | echo \"$HOME.txt\" ";
+// 	char input[] = "echo ""$?""";
 
 // 	// char input[] = "env VAR=HELLO";
 
@@ -468,15 +613,18 @@ void adjusting_token_tree(t_token **tree)
 
 // 	// remove_space_tokens(&test);
 
-// 	expansion(&test);
+// 	// expansion(&test,info);
 
-// 	printf("\nTokens after expansion:\n");
-// 	temp_print_tokens(test);
+// 	// printf("\nTokens after expansion:\n");
+// 	// temp_print_tokens(test);
 
 // 	adjusting_token_tree(&test);
 
-// 	printf("\nTokens after adjustment:\n");
+// 	// printf("\nTokens after adjustment:\n");
 // 	temp_print_tokens(test);
 
 // 	return 0;
 // }
+
+
+// echo $?"42"

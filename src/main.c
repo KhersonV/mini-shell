@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/01 13:25:21 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/01 23:13:42 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,6 +155,8 @@
 
 /****************************************************** FOR TEST ******************************************************************/
 
+void print_command_list(t_exec_command *cmd_list);
+void    temp_print_tokens(t_token *tokens);
 
 void main_initialize(t_info *info, char **envp)
 {
@@ -181,6 +183,7 @@ void process_user_input(char *user_input, t_exec_command **command, t_info *info
 	adjusting_token_tree(&tokens);
 	command_ptr = parse_tokens_to_commands(tokens);
 
+
 	if (!command_ptr)
 	{
 		free_token_list(tokens);
@@ -190,74 +193,74 @@ void process_user_input(char *user_input, t_exec_command **command, t_info *info
 
 int main(int ac, char **av, char **envp)
 {
-    char *line;
-    t_token *tokens;
-    t_exec_command *commands;
-    t_info info;
+	char *line;
+	t_token *tokens;
+	t_exec_command *commands;
+	t_info info;
 
-    // Проверка аргументов
-    if (ac != 1)
-    {
-        printf("minishell: %s: No such file or directory\n", av[1]);
-        return (1);
-    }
+	// Проверка аргументов
+	if (ac != 1)
+	{
+		printf("minishell: %s: No such file or directory\n", av[1]);
+		return (1);
+	}
 
-    // Инициализация окружения и сигналов
-    main_initialize(&info, envp);
-    init_signals();
+	// Инициализация окружения и сигналов
+	main_initialize(&info, envp);
+	init_signals();
 
-    // Основной цикл Shell
-    while (1)
-    {
-        if (isatty(STDIN_FILENO)) // Если программа запущена интерактивно
-            line = readline("minishell> ");
-        else // Если программа запущена неинтерактивно
-        {
-            line = get_next_line(STDIN_FILENO);
-            if (line)
-            {
-                char *temp = line;
-                line = ft_strtrim(line, "\n");
-                free(temp);
-            }
-        }
+	// Основной цикл Shell
+	while (1)
+	{
+		if (isatty(STDIN_FILENO)) // Если программа запущена интерактивно
+			line = readline("minishell> ");
+		else // Если программа запущена неинтерактивно
+		{
+			line = get_next_line(STDIN_FILENO);
+			if (line)
+			{
+				char *temp = line;
+				line = ft_strtrim(line, "\n");
+				free(temp);
+			}
+		}
 
-        if (line == NULL) // Обработка Ctrl-D
-            exit_shell(&info);
+		if (line == NULL) // Обработка Ctrl-D
+			exit_shell(&info);
 
-        if (*line != '\0') // Добавление команды в историю
-            add_history(line);
+		if (*line != '\0') // Добавление команды в историю
+			add_history(line);
 
-        // Лексический анализ
-        tokens = tokenize(line);
-        if (!tokens)
-        {
-            free(line);
-            continue;
-        }
-        expansion(&tokens, &info);
+		// Лексический анализ
+		tokens = tokenize(line);
+		if (!tokens)
+		{
+			free(line);
+			continue;
+		}
+		expansion(&tokens, &info);
 
-        adjusting_token_tree(&tokens);
+		adjusting_token_tree(&tokens);
 
-        // Построение списка команд
-        commands = parse_tokens_to_commands(tokens);
+		// Построение списка команд
+		commands = parse_tokens_to_commands(tokens);
 
-        // print_command_list(commands); // Печать команд
+		// print_command_list(commands); // Печать команд
 
-        if (!commands)
-        {
-            free_token_list(tokens);
-            free(line);
-            continue;
-        }
+		if (!commands)
+		{
+			free_token_list(tokens);
+			free(line);
+			continue;
+		}
 
-        // Выполнение команд
-        execute_commands(commands, &info);
+		// Выполнение команд
+		execute_commands(commands, &info);
 
-        // Очистка памяти
-        free_commands(commands);
-        free_token_list(tokens);
-        free(line);
-    }
-    return (0);
+		// Очистка памяти
+		free_commands(commands);
+		free_token_list(tokens);
+		free(line);
+	}
+	return (0);
 }
