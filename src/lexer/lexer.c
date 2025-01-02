@@ -74,6 +74,33 @@ char	*print_token(int current_token)
 	}
 }
 
+static int append_char_to_buf(char *buf, int *idx, int buf_size, char c)
+{
+    if (*idx >= buf_size - 1) {
+        // Нет места (нужно оставить 1 байт под '\0')
+        return -1; 
+    }
+    buf[(*idx)++] = c;
+    return 0;
+}
+
+static int read_single_quoted(const char *input, char *buf, int *buf_index, int buf_size)
+{
+    int i = 1; 
+    while (input[i] && input[i] != '\'') {
+        if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0) {
+            fprintf(stderr, "Buffer overflow in single quotes\n");
+            return i;
+        }
+        i++;
+    }
+    if (input[i] == '\'') {
+        i++;
+    }
+    return i; 
+}
+
+
 t_token	*create_token_node(char *name, int type)
 {
 	t_token	*new_node;
@@ -329,6 +356,45 @@ void handle_special_char(t_token **p_head, const char *s, int *i)
 	}
 }
 
+
+t_token *tokenizer(char *user_input)
+{
+	t_token *head = NULL;
+
+	char buf[1024];
+	int buf_index = 0;
+
+	int i = 0;
+
+	while(user_input[i] != '\0')
+	{
+		if(is_space_char(user_input[i]))
+		{
+			flush_buf_if_needed(&head, buf, &buf_index);
+			i++;
+			continue;
+		}
+		if(is_operator_char(user_input[i]))
+		{
+			flush_buf_if_needed(&head, buf, &buf_index);
+			head = add_operator_token(head, user_input[i], user_input[i+1], &i);
+			i++;
+			continue;
+		}
+		if(user_input[i] == '\'')
+		{
+			int consumed = read_single_quoted(&user_input[i], buf, &buf_index, 1024);
+			i += consumed;
+			printf("buffer : %s\n", buf);
+			continue;
+		}
+		i++;
+	}
+
+
+	return head;
+
+}
 
 t_token *tokenize(char *s)
 {
@@ -593,38 +659,39 @@ void adjusting_token_tree(t_token **tree)
 // }
 
 
-// int main()
-// {
-// 	t_token *test;
-// 	t_info *info;
-// 	// char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
-// 	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
-// 	// char input[] = "echo Hello | grep 'pattern' > out.txt";
-// 	// char input[] = "cat $HOME.txt | echo \"$HOMEsomeworkds\" ";
-// 	char input[] = "echo ""$?""";
+int main()
+{
+	t_token *test;
+	t_info *info;
+	// char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
+	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
+	// char input[] = "echo Hello | grep 'pattern' > out.txt";
+	// char input[] = "cat $HOME.txt | echo \"$HOMEsomeworkds\" ";
+	char input[] = "echo '22''11'";
 
-// 	// char input[] = "env VAR=HELLO";
+	// char input[] = "env VAR=HELLO";
 
-// 	printf("Input command: %s\n", input);
-// 	test = tokenize(input);
+	printf("Input command: %s\n", input);
+	test = tokenize(input);
 
-// 	// printf("\nTokens:\n");
-// 	// temp_print_tokens(test);
-
-// 	// remove_space_tokens(&test);
-
-// 	// expansion(&test,info);
-
-// 	// printf("\nTokens after expansion:\n");
-// 	// temp_print_tokens(test);
-
-// 	adjusting_token_tree(&test);
-
-// 	// printf("\nTokens after adjustment:\n");
-// 	temp_print_tokens(test);
-
-// 	return 0;
-// }
+	tokenizer(input);
 
 
-// echo $?"42"
+
+	// printf("\nTokens:\n");
+	// temp_print_tokens(test);
+
+	// remove_space_tokens(&test);
+
+	// expansion(&test,info);
+
+	// printf("\nTokens after expansion:\n");
+	// temp_print_tokens(test);
+
+	adjusting_token_tree(&test);
+
+	printf("\nTokens after adjustment:\n");
+	temp_print_tokens(test);
+
+	return 0;
+}
