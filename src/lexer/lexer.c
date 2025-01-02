@@ -3,6 +3,29 @@
 
 char *expand_variable(char *var_name, t_info *info);
 
+char *ft_expand_variable(char *var_name)
+{
+    // if (ft_strcmp(var_name, "?") == 0)
+    // {
+    //     char *exit_str = ft_itoa(info->exit_status);
+    //     return exit_str;
+    // }
+    // else if (ft_strcmp(var_name, "$") == 0)
+    // {
+    //     char *pid_str = ft_itoa(getpid());
+    //     return pid_str;
+    // }
+    // else
+    // {
+        char *val = getenv(var_name);
+        if (val == NULL)
+            return ft_strdup("");
+        return ft_strdup(val);
+    // }
+}
+
+
+
 
 // TODO : echo $$HOME,  $$ check.
 void expansion(t_token **tokens, t_info *info);
@@ -168,6 +191,10 @@ static char* expand_dollar(const char *input, int *consumed)
         char *exit_str = "12345";
         return exit_str;
     }
+
+	char *expanded = ft_expand_variable(var_name);
+    // free(var_name);
+    return expanded; // уже malloc'нута
 
 	return var_name;
 }
@@ -341,7 +368,6 @@ void handle_special_char(t_token **p_head, const char *s, int *i)
 static int read_double_quoted(const char *input, char *buf, int *buf_index, int buf_size)
 {
 	int i = 1;
-	printf("read double quoted\n");
 	while(input[i] && input[i] != '"')
 	{
 		if (input[i] == '\\')
@@ -374,7 +400,7 @@ static int read_double_quoted(const char *input, char *buf, int *buf_index, int 
 		{
 			int consumed = 0;
 			char *expanded = expand_dollar(&input[i], &consumed);
-			printf("var name : %s\n", expanded);
+
 
 			for(int k = 0; expanded[k] != '\0'; k++)
 			{
@@ -383,7 +409,7 @@ static int read_double_quoted(const char *input, char *buf, int *buf_index, int 
                     // free(expanded);
                     return i + consumed;
                 }
-				printf("buffer - %s\n", buf);
+				// printf("buffer - %s\n", buf);
 			}
 			// free(expanded);
 			i += consumed;
@@ -435,12 +461,14 @@ t_token *tokenizer(char *user_input)
 		{
 			int consumed = read_single_quoted(&user_input[i], buf, &buf_index, 1024);
 			i += consumed;
+			
 			continue;
 		}
 		if(user_input[i] == '\"')
 		{
 			int consumed = read_double_quoted(&user_input[i], buf, &buf_index, 1024);
 			i += consumed;
+			printf("buf - %s\n", buf);
 			continue;
 		}
 		i++;
