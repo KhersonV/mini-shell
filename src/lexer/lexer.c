@@ -182,12 +182,12 @@ static char* expand_dollar(const char *input, int *consumed)
 
 	if (strcmp(var_name, "$") == 0) 
 	{
-        free(var_name);
+        // free(var_name);
         return strdup("$");
     }
 
 	if (strcmp(var_name, "?") == 0) {
-        free(var_name);
+        // free(var_name);
         char *exit_str = "12345";
         return exit_str;
     }
@@ -332,7 +332,7 @@ int handle_quotes(t_token **p_head, const char *s, int *i)
 		*p_head = add_token(*p_head, field, TOKEN_FIELD);
 	}
 
-	free(field);
+	// free(field);
 
 	*i = j + 1;
 
@@ -430,6 +430,65 @@ static int read_double_quoted(const char *input, char *buf, int *buf_index, int 
     return i;
 }
 
+static int read_unquoted(const char *input, char *buf, int *buf_index, int buf_size)
+{
+    int i = 0;
+    while (input[i] != '\0') {
+        if (is_space_char(input[i]) || is_operator_char(input[i])) {
+            break;
+        }
+        if (input[i] == '\'' || input[i] == '"') {
+            break;
+        }
+        if (input[i] == '$') {
+            int consumed = 0;
+            char *expanded = expand_dollar(&input[i], &consumed);
+            for (int k = 0; expanded[k] != '\0'; k++) {
+                if (append_char_to_buf(buf, buf_index, buf_size, expanded[k]) < 0) {
+                    fprintf(stderr, "Buffer overflow in unquoted\n");
+                    // free(expanded);
+                    return i + consumed;
+                }
+            }
+            // free(expanded);
+            i += consumed;
+            continue;
+        }
+        if (input[i] == '\\') {
+            i++;
+            if (!input[i]) break;
+
+            if (strchr("$\\\"\'", input[i])) {
+                if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0) {
+                    fprintf(stderr, "Buffer overflow in unquoted (backslash)\n");
+                    return i;
+                }
+                i++;
+            } else {
+                // Иначе пишем сам бэкслэш + символ
+                if (append_char_to_buf(buf, buf_index, buf_size, '\\') < 0) {
+                    fprintf(stderr, "Buffer overflow in unquoted (backslash)\n");
+                    return i;
+                }
+                // второй символ
+                if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0) {
+                    fprintf(stderr, "Buffer overflow in unquoted (backslash)\n");
+                    return i;
+                }
+                i++;
+            }
+            continue;
+        }
+
+        if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0) {
+            fprintf(stderr, "Buffer overflow in unquoted\n");
+            return i;
+        }
+        i++;
+    }
+    return i;
+}
+
 
 
 t_token *tokenizer(char *user_input)
@@ -443,7 +502,7 @@ t_token *tokenizer(char *user_input)
 
 	while(user_input[i] != '\0')
 	{
-		printf("[%c]\n", user_input[i]);
+		printf("next char - [%c]\n", user_input[i]);
 		if(is_space_char(user_input[i]))
 		{
 			flush_buf_if_needed(&head, buf, &buf_index);
@@ -468,13 +527,17 @@ t_token *tokenizer(char *user_input)
 		{
 			int consumed = read_double_quoted(&user_input[i], buf, &buf_index, 1024);
 			i += consumed;
-			printf("buf - %s\n", buf);
 			continue;
 		}
-		i++;
+		
+		int consumed = read_unquoted(&user_input[i], buf, &buf_index, 1024);
+		
+        i += consumed;
 	}
 
 	flush_buf_if_needed(&head, buf, &buf_index);
+
+	printf("final buf = %s", buf);
 	return head;
 }
 
@@ -681,20 +744,24 @@ void adjusting_token_tree(t_token **tree)
 int main()
 {
 	t_token *test;
+	t_token *test2;
 	t_info *info;
 	// char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
 	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
 	// char input[] = "echo Hello | grep 'pattern' > out.txt";
 	// char input[] = "cat $HOME.txt | echo \"$HOMEsomeworkds\" ";
-	char input[] = "echo \"$HOME  $?   $   $USER$HOME\" ";
+	char input[] = "echo $HOME$? >> out.txt | echo $?\"42\"";
 
 	// char input[] = "env VAR=HELLO";
 
 	printf("Input command: %s\n", input);
 	test = tokenize(input);
 
-	tokenizer(input);
+	test2 = tokenizer(input);
 
+	printf("\nNew tokenizer:\n");
+	temp_print_tokens(test2);
+	printf("---------\n");
 
 
 	// printf("\nTokens:\n");
