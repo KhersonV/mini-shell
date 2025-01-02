@@ -35,6 +35,37 @@ static int is_special_char(char c)
 	return 0;
 }
 
+static char* read_var_name(const char *input, int *consumed)
+{
+    int i = 0;
+    if (input[i] == '$') {
+        i++;
+        if (input[i] == '?') {
+            i++;
+            *consumed = i;
+            return strdup("?");
+        }
+
+        char var_buf[256];
+        int var_idx = 0;
+        while (input[i] && (isalnum((unsigned char)input[i]) || input[i] == '_')) {
+            if (var_idx < 255) {
+                var_buf[var_idx++] = input[i];
+            }
+            i++;
+        }
+        var_buf[var_idx] = '\0';
+        *consumed = i; 
+        if (var_idx == 0) { 
+            return strdup("$"); 
+        }
+        return strdup(var_buf);
+    }
+    *consumed = 0;
+    return NULL;
+}
+
+
 char	*print_token(int current_token)
 {
 	switch (current_token)
@@ -114,80 +145,32 @@ t_token	*create_token_node(char *name, int type)
 	return (new_node);
 }
 
-// static void expand_variable_inline(const char **s_ptr, char *buf, int *buf_index, int max_len, t_info *info)
-// {
-// 	const char *s = *s_ptr;
 
-// 	// Проверяем, вдруг это $?
-// 	if (*s == '?')
-// 	{
-// 		s++;
-// 		char *val = expand_variable("?", info);
-// 		int len = ft_strlen(val);
-// 		for (int k = 0; k < len && (*buf_index) < max_len - 1; k++)
-// 			buf[(*buf_index)++] = val[k];
-// 		free(val);
-// 	}
-// 	else
-// 	{
-// 		// Считываем имя переменной
-// 		char var_buf[256];
-// 		int  vindex = 0;
+static char* expand_dollar(const char *input, int *consumed)
+{
+    int var_consumed = 0;
+    char *var_name = read_var_name(input, &var_consumed);
+    if (!var_name) {
+        *consumed = 0;
+        return strdup("");
+    }
 
-// 		while (*s && (ft_isalnum((unsigned char)*s) || *s == '_'))
-// 		{
-// 			var_buf[vindex++] = *s;
-// 			s++;
-// 			if (vindex >= 255)
-// 				break;
-// 		}
-// 		var_buf[vindex] = '\0';
+	*consumed = var_consumed;
 
-// 		if (vindex == 0)
-// 		{
-// 			// Случай, когда после '$' нет алфанумов => просто '$'
-// 			if ((*buf_index) < max_len - 1)
-// 				buf[(*buf_index)++] = '$';
-// 		}
-// 		else
-// 		{
-// 			// expand_variable() вернёт ft_strdup(...)
-// 			char *val = expand_variable(var_buf, info);
-// 			int len = ft_strlen(val);
-// 			for (int k = 0; k < len && (*buf_index) < max_len - 1; k++)
-// 				buf[(*buf_index)++] = val[k];
-// 			free(val);
-// 		}
-// 	}
-// 	*s_ptr = s; // двигаем указатель
-// }
+	if (strcmp(var_name, "$") == 0) 
+	{
+        free(var_name);
+        return strdup("$");
+    }
 
-// static void handle_quotes_inplace(const char *s, int *i,
-//                                   char *buf, int *buf_index, int max_len, t_info *info)
-// {
-// 	char quote = s[*i];
-// 	(*i)++; // пропускаем саму кавычку
+	if (strcmp(var_name, "?") == 0) {
+        free(var_name);
+        char *exit_str = "12345";
+        return exit_str;
+    }
 
-// 	while (s[*i] && s[*i] != quote)
-// 	{
-// 		if (quote == '"' && s[*i] == '$')
-// 		{
-// 			(*i)++;
-// 			expand_variable_inline(&s, buf, buf_index, max_len, info);
-// 			// Обратите внимание, что expand_variable_inline сам двигает s,
-// 			// но мы потом всё равно сделаем (*i) = (s - начало_строки).
-// 			continue;
-// 		}
-// 		// Обычный символ (или '$' внутри одинарных кавычек)
-// 		if (*buf_index < max_len - 1)
-// 			buf[(*buf_index)++] = s[*i];
-// 		(*i)++;
-// 	}
-// 	if (s[*i] == quote)
-// 		(*i)++; // пропустить закрывающую кавычку
-// 	// Мы ничего не сбрасываем в token прямо тут, накапливаем в buf.
-// 	// flush_buf_if_needed() вызывается в общем цикле, когда встретим другой разделитель.
-// }
+	return var_name;
+}
 
 t_token	*add_token(t_token *node, char *name, int type)
 {
@@ -358,6 +341,7 @@ void handle_special_char(t_token **p_head, const char *s, int *i)
 static int read_double_quoted(const char *input, char *buf, int *buf_index, int buf_size)
 {
 	int i = 1;
+	printf("read double quoted\n");
 	while(input[i] && input[i] != '"')
 	{
 		if (input[i] == '\\')
@@ -386,7 +370,24 @@ static int read_double_quoted(const char *input, char *buf, int *buf_index, int 
                 }
                 i++;
 			}
-		} else {
+		} else if (input[i] == '$') 
+		{
+			int consumed = 0;
+			char *expanded = expand_dollar(&input[i], &consumed);
+
+			for(int k = 0; expanded[k] != '\0'; k++)
+			{
+				if (append_char_to_buf(buf, buf_index, buf_size, expanded[k]) < 0) {
+                    fprintf(stderr, "Buffer overflow in double quotes\n");
+                    // free(expanded);
+                    return i + consumed;
+                }
+			}
+			// free(expanded);
+			return i + consumed;
+		} 
+		else
+		{
             if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0) {
                 fprintf(stderr, "Buffer overflow in double quotes\n");
                 return i;
@@ -413,6 +414,7 @@ t_token *tokenizer(char *user_input)
 
 	while(user_input[i] != '\0')
 	{
+		printf("[%c]\n", user_input[i]);
 		if(is_space_char(user_input[i]))
 		{
 			flush_buf_if_needed(&head, buf, &buf_index);
@@ -430,7 +432,6 @@ t_token *tokenizer(char *user_input)
 		{
 			int consumed = read_single_quoted(&user_input[i], buf, &buf_index, 1024);
 			i += consumed;
-			printf("buffer : %s\n", buf);
 			continue;
 		}
 		if(user_input[i] == '\"')
@@ -474,69 +475,6 @@ t_token *tokenize(char *s)
 	flush_buf_if_needed(&head, buf, &buf_index);
 	return head;
 }
-
-// t_token *tokenize(char *input, t_info *info)
-// {
-// 	t_token *head = NULL;
-// 	char buf[1024]; // можно побольше, если нужно
-// 	int buf_index = 0;
-// 	int i = 0;
-
-// 	while (input[i] != '\0')
-// 	{
-// 		// Если пробел, оператор или кавычка — сначала сбросить buf, потом обработать
-// 		if (is_special_char(input[i]))
-// 		{
-// 			flush_buf_if_needed(&head, buf, &buf_index);
-
-// 			if (input[i] == '\'' || input[i] == '"')
-// 			{
-// 				// Обработка кавычек на месте (с возможной подстановкой переменных в двойных кавычках)
-// 				handle_quotes_inplace( input, &i, buf, &buf_index, sizeof(buf), info);
-// 			}
-// 			else if (is_space_char(input[i]) || is_operator_char(input[i]))
-// 			{
-// 				// оператор или пробел
-// 				head = add_operator_token(head, input[i], input[i+1], &i);
-// 			}
-// 			// после handle_quotes_inplace или add_operator_token
-// 			// i уже сдвинут. Продолжаем
-// 			continue;
-// 		}
-// 		// Если это знак $
-// 		else if (input[i] == '$')
-// 		{
-// 			i++;
-// 			expand_variable_inline((const char**)&input[i], buf, &buf_index, sizeof(buf), info);
-// 			// В expand_variable_inline мы сдвигаем указатель *s_ptr,
-// 			// нужно подвинуть i соответственно:
-// 			// Допустим, expand_variable_inline будет читать переменные из input + i,
-// 			// а потом вернёт "конечный" s_ptr.
-// 			// Поэтому можно так:
-// 			//    const char *old_ptr = input + i;
-// 			//    expand_variable_inline(&old_ptr, buf, &buf_index, ..., info);
-// 			//    i = old_ptr - input;
-// 			const char *curr_ptr = input + i;
-// 			// после возвращения функции мы должны взять "текущее" значение s_ptr:
-// 			// но мы передали expand_variable_inline((const char**)&input[i]...
-// 			// для ясности сделаем:
-// 			const char *s_ptr = curr_ptr;  // s_ptr = old_ptr
-// 			while (input[i] != *s_ptr) // или просто вычислим разницу
-// 				i++;
-// 			continue;
-// 		}
-// 		else
-// 		{
-// 			// Обычный символ, не спецсимвол, не пробел, не кавычка, не $
-// 			if (buf_index < (int)sizeof(buf) - 1)
-// 				buf[buf_index++] = input[i];
-// 			i++;
-// 		}
-// 	}
-// 	// В конце сбрасываем накопленное
-// 	flush_buf_if_needed(&head, buf, &buf_index);
-// 	return head;
-// }
 
 void	temp_print_tokens(t_token *node)
 {
@@ -709,39 +647,39 @@ void adjusting_token_tree(t_token **tree)
 // }
 
 
-int main()
-{
-	t_token *test;
-	t_info *info;
-	// char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
-	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
-	// char input[] = "echo Hello | grep 'pattern' > out.txt";
-	// char input[] = "cat $HOME.txt | echo \"$HOMEsomeworkds\" ";
-	char input[] = "echo \"Hello \'  \'  \"";
+// int main()
+// {
+// 	t_token *test;
+// 	t_info *info;
+// 	// char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
+// 	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
+// 	// char input[] = "echo Hello | grep 'pattern' > out.txt";
+// 	// char input[] = "cat $HOME.txt | echo \"$HOMEsomeworkds\" ";
+// 	char input[] = "echo \"$HOME  $?   $   $USER$HOME\" ";
 
-	// char input[] = "env VAR=HELLO";
+// 	// char input[] = "env VAR=HELLO";
 
-	printf("Input command: %s\n", input);
-	test = tokenize(input);
+// 	printf("Input command: %s\n", input);
+// 	test = tokenize(input);
 
-	tokenizer(input);
+// 	tokenizer(input);
 
 
 
-	// printf("\nTokens:\n");
-	// temp_print_tokens(test);
+// 	// printf("\nTokens:\n");
+// 	// temp_print_tokens(test);
 
-	// remove_space_tokens(&test);
+// 	// remove_space_tokens(&test);
 
-	// expansion(&test,info);
+// 	// expansion(&test,info);
 
-	// printf("\nTokens after expansion:\n");
-	// temp_print_tokens(test);
+// 	// printf("\nTokens after expansion:\n");
+// 	// temp_print_tokens(test);
 
-	adjusting_token_tree(&test);
+// 	adjusting_token_tree(&test);
 
-	printf("\nTokens after adjustment:\n");
-	temp_print_tokens(test);
+// 	printf("\nTokens after adjustment:\n");
+// 	temp_print_tokens(test);
 
-	return 0;
-}
+// 	return 0;
+// }
