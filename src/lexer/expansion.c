@@ -173,6 +173,11 @@ char *expand_string(char *input, t_info *info)
         if (*ptr == '~' && (rindex == 0 || result[rindex - 1] == ' ') && (ptr[1] == '/' || ptr[1] == '\0'))
         {
             char *home = get_env_value(info, "HOME");
+            if (!home)
+            {
+                home = info->home; // Используем резервное значение
+            }
+
             if (home)
             {
                 int len = strlen(home);
@@ -181,7 +186,9 @@ char *expand_string(char *input, t_info *info)
                     strcpy(&result[rindex], home);
                     rindex += len;
                 }
-                free(home);
+                // Не освобождайте home, если оно ссылается на info->home
+                if (get_env_value(info, "HOME"))
+                    free(home);
                 ptr++; // Пропустить '~'
                 if (*ptr == '/')
                 {
@@ -191,12 +198,14 @@ char *expand_string(char *input, t_info *info)
                         ptr++;
                     }
                 }
+                continue;
             }
         }
         else if (*ptr == '$')
         {
             ptr++;
             parse_dollar(&ptr, result, &rindex, sizeof(result), info);
+            continue;
         }
         else
         {
