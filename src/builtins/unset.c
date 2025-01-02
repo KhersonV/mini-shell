@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:35 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/31 15:20:47 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/02 12:25:15 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,3 +48,31 @@ void	unset_env(char **args, t_info *info)
 	}
 }
 
+
+
+int ft_unset(char **args, t_info *info)
+{
+    int i;
+    int index;
+
+    if (!args[1])
+        return (0);
+    i = 1;
+    while (args[i])
+    {
+        index = -1;
+        for (int j = 0; info->envp[j]; j++)
+        {
+            if (env_key_compare(info->envp[j], args[i]))
+            {
+                index = j;
+                break;
+            }
+        }
+        if (index != -1)
+            info->envp = remove_env_entry(info->envp, index);
+        i++;
+    }
+    info->exit_status = 0;
+    return (0);
+}
