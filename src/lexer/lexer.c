@@ -3,7 +3,7 @@
 
 char *expand_variable(char *var_name, t_info *info);
 
-char *ft_expand_variable(char *var_name)
+char *ft_expand_variable(char *var_name, t_info *info)
 {
     // if (ft_strcmp(var_name, "?") == 0)
     // {
@@ -17,10 +17,10 @@ char *ft_expand_variable(char *var_name)
     // }
     // else
     // {
-        char *val = getenv(var_name);
-        if (val == NULL)
-            return ft_strdup("");
-        return ft_strdup(val);
+    char *val = get_env_value(info, var_name);
+    if (val == NULL)
+        return ft_strdup("");
+    return ft_strdup(val);
     // }
 }
 
@@ -49,14 +49,14 @@ int	ft_isalnum(int c)
 }
 
 
-static int is_special_char(char c)
-{
-	if (is_space_char(c))        return 1;
-	if (is_operator_char(c))     return 1;
-	if (c == '$')                return 1;
-	if (c == '\'' || c == '"')   return 1;
-	return 0;
-}
+// static int is_special_char(char c)
+// {
+// 	if (is_space_char(c))        return 1;
+// 	if (is_operator_char(c))     return 1;
+// 	if (c == '$')                return 1;
+// 	if (c == '\'' || c == '"')   return 1;
+// 	return 0;
+// }
 
 static char* read_var_name(const char *input, int *consumed)
 {
@@ -169,7 +169,7 @@ t_token	*create_token_node(char *name, int type)
 }
 
 
-static char* expand_dollar(const char *input, int *consumed)
+static char* expand_dollar(const char *input, int *consumed, t_info *info)
 {
     int var_consumed = 0;
     char *var_name = read_var_name(input, &var_consumed);
@@ -188,11 +188,11 @@ static char* expand_dollar(const char *input, int *consumed)
 
 	if (strcmp(var_name, "?") == 0) {
         // free(var_name);
-        char *exit_str = "12345";
+        char *exit_str = ft_itoa(info->exit_status);
         return exit_str;
     }
 
-	char *expanded = ft_expand_variable(var_name);
+	char *expanded = ft_expand_variable(var_name, info);
     // free(var_name);
     return expanded; // уже malloc'нута
 
@@ -271,101 +271,101 @@ t_token *add_operator_token(t_token *curr, char current_char, char next_char, in
 	return curr;
 }
 
-void handle_variable(t_token **p_head, const char *s, int *i)
-{
-	(*i)++;
-	if (!s[*i]) {
-		*p_head = add_token(*p_head, "$", TOKEN_WORD);
-		return;
-	}
-	if (s[*i] == '?') {
-		(*i)++;
-		*p_head = add_token(*p_head, "$?", TOKEN_EXIT_STATUS);
-		return;
-	}
-	if (ft_isalnum(s[*i]) || s[*i] == '_') {
-		char var_buf[256];
-		int vindex = 0;
+// void handle_variable(t_token **p_head, const char *s, int *i)
+// {
+// 	(*i)++;
+// 	if (!s[*i]) {
+// 		*p_head = add_token(*p_head, "$", TOKEN_WORD);
+// 		return;
+// 	}
+// 	if (s[*i] == '?') {
+// 		(*i)++;
+// 		*p_head = add_token(*p_head, "$?", TOKEN_EXIT_STATUS);
+// 		return;
+// 	}
+// 	if (ft_isalnum(s[*i]) || s[*i] == '_') {
+// 		char var_buf[256];
+// 		int vindex = 0;
 
-		var_buf[vindex++] = '$';
+// 		var_buf[vindex++] = '$';
 
-		while (s[*i] != '\0' && !is_space_char(s[*i])) {
-			var_buf[vindex++] = s[*i];
-			(*i)++;
-			if (vindex >= 255) break;
-		}
-		var_buf[vindex] = '\0';
+// 		while (s[*i] != '\0' && !is_space_char(s[*i])) {
+// 			var_buf[vindex++] = s[*i];
+// 			(*i)++;
+// 			if (vindex >= 255) break;
+// 		}
+// 		var_buf[vindex] = '\0';
 
-		*p_head = add_token(*p_head, var_buf, TOKEN_VAR);
-	}
-	else {
-		*p_head = add_token(*p_head, "$", TOKEN_WORD);
-	}
-}
+// 		*p_head = add_token(*p_head, var_buf, TOKEN_VAR);
+// 	}
+// 	else {
+// 		*p_head = add_token(*p_head, "$", TOKEN_WORD);
+// 	}
+// }
 
-int handle_quotes(t_token **p_head, const char *s, int *i)
-{
-	char quote = s[*i];
-	int start = *i + 1;
-	int len = 0;
+// int handle_quotes(t_token **p_head, const char *s, int *i)
+// {
+// 	char quote = s[*i];
+// 	int start = *i + 1;
+// 	int len = 0;
 
-	int j = start;
-	while (s[j] && s[j] != quote) {
-		j++;
-	}
-	if (!s[j]) {
-		printf("Syntax error: quotes not closed\n");
-		exit(1);
-	}
+// 	int j = start;
+// 	while (s[j] && s[j] != quote) {
+// 		j++;
+// 	}
+// 	if (!s[j]) {
+// 		printf("Syntax error: quotes not closed\n");
+// 		exit(1);
+// 	}
 
-	len = j - start;
-	char *field = malloc(len + 1);
-	if (!field) { /* ... */ }
-	strncpy(field, &s[start], len);
-	field[len] = '\0';
+// 	len = j - start;
+// 	char *field = malloc(len + 1);
+// 	if (!field) { /* ... */ }
+// 	strncpy(field, &s[start], len);
+// 	field[len] = '\0';
 
-	if(strcmp(field, ""))
-	{
-	if (quote == '"')
-		*p_head = add_token(*p_head, field, TOKEN_EXP_FIELD);
-	else
-		*p_head = add_token(*p_head, field, TOKEN_FIELD);
-	}
+// 	if(strcmp(field, ""))
+// 	{
+// 	if (quote == '"')
+// 		*p_head = add_token(*p_head, field, TOKEN_EXP_FIELD);
+// 	else
+// 		*p_head = add_token(*p_head, field, TOKEN_FIELD);
+// 	}
 
-	// free(field);
+// 	// free(field);
 
-	*i = j + 1;
+// 	*i = j + 1;
 
-	return 1;
-}
+// 	return 1;
+// }
 
-void handle_special_char(t_token **p_head, const char *s, int *i)
-{
-	if (is_space_char(s[*i])) {
-		// *p_head = add_operator_token(*p_head, s[*i], s[*i + 1], i);
-		(*i)++;
-		return;
-	}
-	if (is_operator_char(s[*i])) {
-		*p_head = add_operator_token(*p_head, s[*i], s[*i + 1], i);
-		(*i)++;
-		return;
-	}
-	if (s[*i] == '\'' || s[*i] == '"') {
-		if (!is_quotes_closed(&s[*i])) {
-			printf("Quotes not closed\n");
-			exit(1);
-		}
-		handle_quotes(p_head, s, i);
-		return;
-	}
-	if (s[*i] == '$') {
-		handle_variable(p_head, s, i);
-		return;
-	}
-}
+// void handle_special_char(t_token **p_head, const char *s, int *i)
+// {
+// 	if (is_space_char(s[*i])) {
+// 		// *p_head = add_operator_token(*p_head, s[*i], s[*i + 1], i);
+// 		(*i)++;
+// 		return;
+// 	}
+// 	if (is_operator_char(s[*i])) {
+// 		*p_head = add_operator_token(*p_head, s[*i], s[*i + 1], i);
+// 		(*i)++;
+// 		return;
+// 	}
+// 	if (s[*i] == '\'' || s[*i] == '"') {
+// 		if (!is_quotes_closed(&s[*i])) {
+// 			printf("Quotes not closed\n");
+// 			exit(1);
+// 		}
+// 		handle_quotes(p_head, s, i);
+// 		return;
+// 	}
+// 	if (s[*i] == '$') {
+// 		handle_variable(p_head, s, i);
+// 		return;
+// 	}
+// }
 
-static int read_double_quoted(const char *input, char *buf, int *buf_index, int buf_size)
+static int read_double_quoted(const char *input, char *buf, int *buf_index, int buf_size, t_info *info)
 {
 	int i = 1;
 	while(input[i] && input[i] != '"')
@@ -399,7 +399,7 @@ static int read_double_quoted(const char *input, char *buf, int *buf_index, int 
 		} else if (input[i] == '$') 
 		{
 			int consumed = 0;
-			char *expanded = expand_dollar(&input[i], &consumed);
+			char *expanded = expand_dollar(&input[i], &consumed, info);
 
 
 			for(int k = 0; expanded[k] != '\0'; k++)
@@ -430,7 +430,7 @@ static int read_double_quoted(const char *input, char *buf, int *buf_index, int 
     return i;
 }
 
-static int read_unquoted(const char *input, char *buf, int *buf_index, int buf_size)
+static int read_unquoted(const char *input, char *buf, int *buf_index, int buf_size, t_info *info)
 {
     int i = 0;
     while (input[i] != '\0') {
@@ -442,7 +442,7 @@ static int read_unquoted(const char *input, char *buf, int *buf_index, int buf_s
         }
         if (input[i] == '$') {
             int consumed = 0;
-            char *expanded = expand_dollar(&input[i], &consumed);
+            char *expanded = expand_dollar(&input[i], &consumed, info);
             for (int k = 0; expanded[k] != '\0'; k++) {
                 if (append_char_to_buf(buf, buf_index, buf_size, expanded[k]) < 0) {
                     fprintf(stderr, "Buffer overflow in unquoted\n");
@@ -491,7 +491,7 @@ static int read_unquoted(const char *input, char *buf, int *buf_index, int buf_s
 
 
 
-t_token *tokenizer(char *user_input)
+t_token *tokenizer(char *user_input, t_info *info)
 {
 	t_token *head = NULL;
 
@@ -502,7 +502,7 @@ t_token *tokenizer(char *user_input)
 
 	while(user_input[i] != '\0')
 	{
-		printf("next char - [%c]\n", user_input[i]);
+		// printf("next char - [%c]\n", user_input[i]);
 		if(is_space_char(user_input[i]))
 		{
 			flush_buf_if_needed(&head, buf, &buf_index);
@@ -525,62 +525,62 @@ t_token *tokenizer(char *user_input)
 		}
 		if(user_input[i] == '\"')
 		{
-			int consumed = read_double_quoted(&user_input[i], buf, &buf_index, 1024);
+			int consumed = read_double_quoted(&user_input[i], buf, &buf_index, 1024, info);
 			i += consumed;
 			continue;
 		}
 		
-		int consumed = read_unquoted(&user_input[i], buf, &buf_index, 1024);
+		int consumed = read_unquoted(&user_input[i], buf, &buf_index, 1024, info);
 		
         i += consumed;
 	}
 
 	flush_buf_if_needed(&head, buf, &buf_index);
 
-	printf("final buf = %s", buf);
+	// printf("final buf = %s", buf);
 	return head;
 }
 
-t_token *tokenize(char *s)
-{
-	t_token *head = NULL;
-	char buf[256];
-	int buf_index = 0;
-	int i = 0;
+// t_token *tokenize(char *s)
+// {
+// 	t_token *head = NULL;
+// 	char buf[256];
+// 	int buf_index = 0;
+// 	int i = 0;
 
-	while (s[i] != '\0')
-	{
-		if (is_special_char(s[i]))
-		{
-			flush_buf_if_needed(&head, buf, &buf_index);
-			handle_special_char(&head, s, &i);
-		}
-		else
-		{
-			buf[buf_index++] = s[i++];
-			if (buf_index >= 255)
-			{
-				buf[buf_index] = '\0';
-				head = add_token(head, buf, TOKEN_WORD);
-				buf_index = 0;
-			}
-		}
-	}
-	flush_buf_if_needed(&head, buf, &buf_index);
-	return head;
-}
+// 	while (s[i] != '\0')
+// 	{
+// 		if (is_special_char(s[i]))
+// 		{
+// 			flush_buf_if_needed(&head, buf, &buf_index);
+// 			handle_special_char(&head, s, &i);
+// 		}
+// 		else
+// 		{
+// 			buf[buf_index++] = s[i++];
+// 			if (buf_index >= 255)
+// 			{
+// 				buf[buf_index] = '\0';
+// 				head = add_token(head, buf, TOKEN_WORD);
+// 				buf_index = 0;
+// 			}
+// 		}
+// 	}
+// 	flush_buf_if_needed(&head, buf, &buf_index);
+// 	return head;
+// }
 
-void	temp_print_tokens(t_token *node)
-{
-	t_token	*curr;
+// void	temp_print_tokens(t_token *node)
+// {
+// 	t_token	*curr;
 
-	curr = node;
-	while (curr)
-	{
-		printf("Token: %s, Type: %s\n", curr->str, print_token(curr->type));
-		curr = curr->next;
-	}
-}
+// 	curr = node;
+// 	while (curr)
+// 	{
+// 		printf("Token: %s, Type: %s\n", curr->str, print_token(curr->type));
+// 		curr = curr->next;
+// 	}
+// }
 
 
 void adjusting_token_tree(t_token **tree)
@@ -741,43 +741,43 @@ void adjusting_token_tree(t_token **tree)
 // }
 
 
-int main()
-{
-	t_token *test;
-	t_token *test2;
-	t_info *info;
-	// char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
-	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
-	// char input[] = "echo Hello | grep 'pattern' > out.txt";
-	// char input[] = "cat $HOME.txt | echo \"$HOMEsomeworkds\" ";
-	char input[] = "echo $HOME$? >> out.txt | echo $?\"42\"";
+// int main()
+// {
+// 	t_token *test;
+// 	t_token *test2;
+// 	t_info *info;
+// 	// char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
+// 	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
+// 	// char input[] = "echo Hello | grep 'pattern' > out.txt";
+// 	// char input[] = "cat $HOME.txt | echo \"$HOMEsomeworkds\" ";
+// 	char input[] = "echo $HOME$? >> out.txt | echo $?\"42\"";
 
-	// char input[] = "env VAR=HELLO";
+// 	// char input[] = "env VAR=HELLO";
 
-	printf("Input command: %s\n", input);
-	test = tokenize(input);
+// 	printf("Input command: %s\n", input);
+// 	test = tokenize(input);
 
-	test2 = tokenizer(input);
+// 	test2 = tokenizer(input, info);
 
-	printf("\nNew tokenizer:\n");
-	temp_print_tokens(test2);
-	printf("---------\n");
+// 	printf("\nNew tokenizer:\n");
+// 	temp_print_tokens(test2);
+// 	printf("---------\n");
 
 
-	// printf("\nTokens:\n");
-	// temp_print_tokens(test);
+// 	// printf("\nTokens:\n");
+// 	// temp_print_tokens(test);
 
-	// remove_space_tokens(&test);
+// 	// remove_space_tokens(&test);
 
-	// expansion(&test,info);
+// 	// expansion(&test,info);
 
-	// printf("\nTokens after expansion:\n");
-	// temp_print_tokens(test);
+// 	// printf("\nTokens after expansion:\n");
+// 	// temp_print_tokens(test);
 
-	adjusting_token_tree(&test);
+// 	adjusting_token_tree(&test);
 
-	printf("\nTokens after adjustment:\n");
-	temp_print_tokens(test);
+// 	printf("\nTokens after adjustment:\n");
+// 	temp_print_tokens(test);
 
-	return 0;
-}
+// 	return 0;
+// }

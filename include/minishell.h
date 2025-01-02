@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/02 17:09:09 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/02 17:44:37 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,7 +154,8 @@ int							is_builtin(char *command);
 void						execute_commands(t_exec_command *commands, t_info *info);
 
 /* Lexer */
-t_token						*tokenize(char *input);
+// t_token						*tokenize(char *input);
+t_token *tokenizer(char *user_input, t_info *info);
 void						adjusting_token_tree(t_token **tree);
 void						free_token_list(t_token *tokens);
 void						expansion(t_token **tokens, t_info *info);

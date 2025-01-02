@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/02 15:24:29 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/02 17:45:13 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,6 +157,8 @@
 
 void print_command_list(t_exec_command *cmd_list);
 void    temp_print_tokens(t_token *tokens);
+t_token *tokenizer(char *user_input, t_info *info);
+
 
 void main_initialize(t_info *info, char **envp)
 {
@@ -178,7 +180,7 @@ void process_user_input(char *user_input, t_exec_command **command, t_info *info
 
 	command_ptr = *command;
 
-	tokens = tokenize(user_input);
+	tokens = tokenizer(user_input, info);
 	if (!tokens)
 		free(user_input);
 	expansion(&tokens, info);
@@ -234,13 +236,14 @@ int main(int ac, char **av, char **envp)
 			add_history(line);
 
 		// Лексический анализ
-		tokens = tokenize(line);
+		// tokens = tokenize(line);
+		tokens = tokenizer(line, &info);
 		if (!tokens)
 		{
 			free(line);
 			continue;
 		}
-		expansion(&tokens, &info);
+		// expansion(&tokens, &info);
 
 		adjusting_token_tree(&tokens);
 
