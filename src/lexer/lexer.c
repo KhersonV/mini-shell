@@ -77,7 +77,6 @@ char	*print_token(int current_token)
 static int append_char_to_buf(char *buf, int *idx, int buf_size, char c)
 {
     if (*idx >= buf_size - 1) {
-        // Нет места (нужно оставить 1 байт под '\0')
         return -1; 
     }
     buf[(*idx)++] = c;
@@ -356,6 +355,52 @@ void handle_special_char(t_token **p_head, const char *s, int *i)
 	}
 }
 
+static int read_double_quoted(const char *input, char *buf, int *buf_index, int buf_size)
+{
+	int i = 1;
+	while(input[i] && input[i] != '"')
+	{
+		if (input[i] == '\\')
+		{
+			i++;
+			if(!input[i])
+			{
+				break;
+			}
+			if(input[i] == '"' || input[i] == '$' || input[i] == '\\')
+			{
+				if(append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0) 
+				{
+					fprintf(stderr, "Buffer overflow in double quotes\n");
+                    return i;
+				}
+				i++;
+			} else {
+                if (append_char_to_buf(buf, buf_index, buf_size, '\\') < 0) {
+                    fprintf(stderr, "Buffer overflow in double quotes\n");
+                    return i;
+                }
+                if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0) {
+                    fprintf(stderr, "Buffer overflow in double quotes\n");
+                    return i;
+                }
+                i++;
+			}
+		} else {
+            if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0) {
+                fprintf(stderr, "Buffer overflow in double quotes\n");
+                return i;
+            }
+            i++;
+        }
+    }
+    if (input[i] == '"') {
+        i++; 
+    }
+    return i;
+}
+
+
 
 t_token *tokenizer(char *user_input)
 {
@@ -388,12 +433,17 @@ t_token *tokenizer(char *user_input)
 			printf("buffer : %s\n", buf);
 			continue;
 		}
+		if(user_input[i] == '\"')
+		{
+			int consumed = read_double_quoted(&user_input[i], buf, &buf_index, 1024);
+			i += consumed;
+			continue;
+		}
 		i++;
 	}
 
-
+	flush_buf_if_needed(&head, buf, &buf_index);
 	return head;
-
 }
 
 t_token *tokenize(char *s)
@@ -667,7 +717,7 @@ int main()
 	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
 	// char input[] = "echo Hello | grep 'pattern' > out.txt";
 	// char input[] = "cat $HOME.txt | echo \"$HOMEsomeworkds\" ";
-	char input[] = "echo '22''11'";
+	char input[] = "echo \"Hello \'  \'  \"";
 
 	// char input[] = "env VAR=HELLO";
 
