@@ -374,6 +374,7 @@ static int read_double_quoted(const char *input, char *buf, int *buf_index, int 
 		{
 			int consumed = 0;
 			char *expanded = expand_dollar(&input[i], &consumed);
+			printf("var name : %s\n", expanded);
 
 			for(int k = 0; expanded[k] != '\0'; k++)
 			{
@@ -382,9 +383,10 @@ static int read_double_quoted(const char *input, char *buf, int *buf_index, int 
                     // free(expanded);
                     return i + consumed;
                 }
+				printf("buffer - %s\n", buf);
 			}
 			// free(expanded);
-			return i + consumed;
+			i += consumed;
 		} 
 		else
 		{
@@ -395,6 +397,7 @@ static int read_double_quoted(const char *input, char *buf, int *buf_index, int 
             i++;
         }
     }
+	// printf("last char in field - [%c]\n", input[i]); - []
     if (input[i] == '"') {
         i++; 
     }
@@ -647,39 +650,39 @@ void adjusting_token_tree(t_token **tree)
 // }
 
 
-// int main()
-// {
-// 	t_token *test;
-// 	t_info *info;
-// 	// char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
-// 	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
-// 	// char input[] = "echo Hello | grep 'pattern' > out.txt";
-// 	// char input[] = "cat $HOME.txt | echo \"$HOMEsomeworkds\" ";
-// 	char input[] = "echo \"$HOME  $?   $   $USER$HOME\" ";
+int main()
+{
+	t_token *test;
+	t_info *info;
+	// char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
+	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
+	// char input[] = "echo Hello | grep 'pattern' > out.txt";
+	// char input[] = "cat $HOME.txt | echo \"$HOMEsomeworkds\" ";
+	char input[] = "echo \"$HOME  $?   $   $USER$HOME\" ";
 
-// 	// char input[] = "env VAR=HELLO";
+	// char input[] = "env VAR=HELLO";
 
-// 	printf("Input command: %s\n", input);
-// 	test = tokenize(input);
+	printf("Input command: %s\n", input);
+	test = tokenize(input);
 
-// 	tokenizer(input);
+	tokenizer(input);
 
 
 
-// 	// printf("\nTokens:\n");
-// 	// temp_print_tokens(test);
+	// printf("\nTokens:\n");
+	// temp_print_tokens(test);
 
-// 	// remove_space_tokens(&test);
+	// remove_space_tokens(&test);
 
-// 	// expansion(&test,info);
+	// expansion(&test,info);
 
-// 	// printf("\nTokens after expansion:\n");
-// 	// temp_print_tokens(test);
+	// printf("\nTokens after expansion:\n");
+	// temp_print_tokens(test);
 
-// 	adjusting_token_tree(&test);
+	adjusting_token_tree(&test);
 
-// 	printf("\nTokens after adjustment:\n");
-// 	temp_print_tokens(test);
+	printf("\nTokens after adjustment:\n");
+	temp_print_tokens(test);
 
-// 	return 0;
-// }
+	return 0;
+}
