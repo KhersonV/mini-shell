@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
+/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/01 23:13:42 by lynchsama        ###   ########.fr       */
+/*   Updated: 2025/01/02 15:24:29 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,7 +166,9 @@ void main_initialize(t_info *info, char **envp)
 	info->curr_dir = getcwd(NULL, 0);
 	info->envp = copy_envp(envp);
 	info->old_dir = get_env_value(info, "OLDPWD");
+	info->home = get_env_value(info, "HOME");
 	info->exit_status = 0;
+	init_env(info, envp);
 }
 
 void process_user_input(char *user_input, t_exec_command **command, t_info *info)
