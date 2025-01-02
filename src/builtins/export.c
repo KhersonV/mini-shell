@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:29 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/02 13:37:56 by vmamoten         ###   ########.fr       */
+/*   Updated: 2024/12/31 16:25:50 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,15 +52,16 @@ int	is_numerick(const char *str)
 	return (1);
 }
 
-void ft_export(char **args, t_info *info)
+
+void	ft_export(char **args, t_info *info)
 {
-    char    **sorted_env;
-    int     i;
-    char    *key;
-    char    *value;
-    int     exit_status = 0;
-    char    *equal_sign;
-    int     j;
+    char	**sorted_env;
+    int		i;
+    char	*key;
+    char	*value;
+    int		exit_status = 0;
+    char	*equal_sign;
+    int		j;
 
     // Если нет аргументов, вывести все переменные с "declare -x"
     if (!args[1])
