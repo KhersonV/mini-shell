@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:09:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/30 14:39:07 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/03 11:48:25 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ int handle_redirections(t_redirection *redirects)
             fd = open(redirects->filename, O_RDONLY);
         else
         {
-            fprintf(stderr, "Unsupported redirection type\n");
+            fprintf(stderr, "minishell: Unsupported redirection type\n");
             return 0;
         }
 
