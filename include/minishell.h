@@ -6,7 +6,7 @@
 /*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/03 13:11:44 by snazarov         ###   ########.fr       */
+/*   Updated: 2025/01/03 16:02:18 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ typedef struct s_info
 	char					*curr_dir;
 	char					*home;
 	int						nb_cmds;
+	int						syntax_error;
 	int						std_in_reserve;
 	int						std_out_reserve;
 }							t_info;
@@ -156,7 +157,7 @@ void						execute_commands(t_exec_command *commands, t_info *info);
 /* Lexer */
 // t_token						*tokenize(char *input);
 t_token *tokenizer(char *user_input, t_info *info);
-void						adjusting_token_tree(t_token **tree);
+void						adjusting_token_tree(t_token **tree, t_info *info);
 void						free_token_list(t_token *tokens);
 void						expansion(t_token **tokens, t_info *info);
 
