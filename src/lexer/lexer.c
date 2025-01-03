@@ -1,7 +1,17 @@
 
 #include "../../include/minishell.h"
 
+/*
+	/bin/echo $"42$"
+	/bin/echo $USER'$USER'text oui oui     oui  oui $USER oui      $USER ''
+	/bin/echo '' ""
+
+
+*/
+
+
 char *expand_variable(char *var_name, t_info *info);
+static char* expand_dollar(const char *input, int *consumed, t_info *info);
 
 char *ft_expand_variable(char *var_name, t_info *info)
 {
@@ -23,7 +33,6 @@ char *ft_expand_variable(char *var_name, t_info *info)
     return ft_strdup(val);
     // }
 }
-
 
 
 
@@ -168,9 +177,153 @@ t_token	*create_token_node(char *name, int type)
 	return (new_node);
 }
 
+static char* read_dollar_quoted(const char *input, int *consumed, t_info *info)
+{
+    // Ожидаем, что input[0] == '$' и input[1] == ''' или '"'
+    char quote = input[1]; 
+    int i = 2; // Пропускаем символы $ и (') или (")
+    
+    char buf[1024];
+    int buf_index = 0;
+    int stop = 0; // Флаг, если случилось что-то, требующее выхода
+
+    if (quote == '\'')  // $'...'
+    {
+        // Просто копируем до следующей одинарной кавычки
+        while (input[i] && input[i] != '\'' && !stop)
+        {
+            // НЕ раскрываем переменные, не обрабатываем бэкслэши
+            if (append_char_to_buf(buf, &buf_index, 1024, input[i]) < 0)
+            {
+                fprintf(stderr, "Buffer overflow in $'...'\n");
+                stop = 1;
+                break;
+            }
+            i++;
+        }
+        // Если нашли закрывающую кавычку
+        if (!stop && input[i] == '\'')
+            i++;
+    }
+    else if (quote == '"') // $"..."
+    {
+        // Аналогично double quotes, но с раскрытием $ и экранированием
+        while (input[i] && input[i] != '"' && !stop)
+        {
+            if (input[i] == '\\')
+            {
+                i++;
+                // Если вдруг строка кончилась на бэкслэше
+                if (!input[i]) 
+                    break;
+
+                // Экранируем ", $,
+                if (strchr("\"$\\", input[i]))
+                {
+                    if (append_char_to_buf(buf, &buf_index, 1024, input[i]) < 0)
+                    {
+                        fprintf(stderr, "Buffer overflow in $\"...\"\n");
+                        stop = 1;
+                        break;
+                    }
+                    i++;
+                }
+                else
+                {
+                    // Пишем '\' + текущий символ
+                    if (append_char_to_buf(buf, &buf_index, 1024, '\\') < 0)
+                    {
+                        fprintf(stderr, "Buffer overflow in $\"...\"\n");
+                        stop = 1;
+                        break;
+                    }
+                    if (append_char_to_buf(buf, &buf_index, 1024, input[i]) < 0)
+                    {
+                        fprintf(stderr, "Buffer overflow in $\"...\"\n");
+                        stop = 1;
+                        break;
+                    }
+                    i++;
+                }
+            }
+            else if (input[i] == '$')
+            {
+                // Раскрытие переменной внутри $"..."
+                int var_consumed = 0;
+                char *expanded = expand_dollar(&input[i], &var_consumed, info);
+                if (!expanded)
+                {
+                    // На случай, если expand_dollar вернёт NULL —  
+                    // вы сами решаете, как обработать
+                    fprintf(stderr, "expand_dollar returned NULL\n");
+                    stop = 1;
+                    break;
+                }
+
+                // Копируем expanded
+                for (int k = 0; expanded[k] != '\0'; k++)
+                {
+                    if (append_char_to_buf(buf, &buf_index, 1024, expanded[k]) < 0)
+                    {
+                        fprintf(stderr, "Buffer overflow in $\"...\" expand\n");
+                        free(expanded);
+                        stop = 1;
+                        break;
+                    }
+                }
+                free(expanded);
+
+                // Если внутри цикла уже выставили stop = 1, тоже прерываем
+                if (stop)
+                    break;
+
+                i += var_consumed;
+            }
+            else
+            {
+                // Обычный символ
+                if (append_char_to_buf(buf, &buf_index, 1024, input[i]) < 0)
+                {
+                    fprintf(stderr, "Buffer overflow in $\"...\"\n");
+                    stop = 1;
+                    break;
+                }
+                i++;
+            }
+        }
+
+        // Если цикл закончился не из-за stop, 
+        // но из-за input[i] == '"' — "проглатываем" закрывающую кавычку
+        if (!stop && input[i] == '"')
+            i++;
+    }
+
+    // Завершаем строку в буфере
+    buf[buf_index] = '\0';
+
+    // Если это $'...', возможно стоит проглотить закрывающую кавычку (вне цикла)
+    // но мы уже сделали выше для одинарной кавычки:
+    // if (!stop && input[i] == '\'') i++;
+
+    // Запоминаем, сколько всего «съели»
+    *consumed = i;
+
+    // Возвращаем malloc'нутую копию
+    // (даже если stop == 1, вернём то, что удалось записать; 
+    //  или вы можете вернуть пустую строку / NULL)
+    return strdup(buf);
+}
+
 
 static char* expand_dollar(const char *input, int *consumed, t_info *info)
 {
+	if (input[1] == '\'' || input[1] == '"')
+    {
+        // читаем как dollar-quoted
+        char *res = read_dollar_quoted(input, consumed, info);
+        return res; // уже готовая строка
+    }
+
     int var_consumed = 0;
     char *var_name = read_var_name(input, &var_consumed);
     if (!var_name) {
