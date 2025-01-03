@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/02 17:33:11 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/03 14:59:50 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -233,7 +233,6 @@ int execute_builtin_in_child(t_exec_command *command, t_info *info)
     return (info->exit_status);
 }
 
-
 void execute_pipeline(t_exec_command *commands, t_info *info)
 {
     int **pipes;
@@ -257,48 +256,67 @@ void execute_pipeline(t_exec_command *commands, t_info *info)
 
         if (pid == 0) // Дочерний процесс
         {
-            // Настройка входа
+            // Настройка входа/выхода
             if (process_index > 0)
                 dup2(pipes[process_index - 1][0], STDIN_FILENO);
-
-            // Настройка выхода
             if (process_index < num_cmds - 1)
                 dup2(pipes[process_index][1], STDOUT_FILENO);
 
-            // Закрытие всех пайпов
             free_pipes(pipes, num_cmds);
 
-            // Обработка перенаправлений
             if (!handle_redirections(current->redirects))
                 exit(EXIT_FAILURE);
 
-            // Выполнение команды
+            // Выполняем builtin или execve
             if (is_builtin(current->cmd_name))
                 exit(execute_builtin_in_child(current, info));
             else
-                execve(find_command(current->cmd_name, info->envp), current->args, info->envp);
-
-            perror("execve");
-            exit(EXIT_FAILURE);
+            {
+                char *path = find_command(current->cmd_name, info->envp);
+                if (!path)
+                    exit(127);
+                execve(path, current->args, info->envp);
+                perror("execve");
+                exit(EXIT_FAILURE);
+            }
         }
-
-        // Родительский процесс
-        if (process_index > 0)
-            close(pipes[process_index - 1][0]);
-        if (process_index < num_cmds - 1)
-            close(pipes[process_index][1]);
+        else // Родитель
+        {
+            // Закрываем неиспользуемые концы
+            if (process_index > 0)
+                close(pipes[process_index - 1][0]);
+            if (process_index < num_cmds - 1)
+                close(pipes[process_index][1]);
+        }
 
         process_index++;
         current = current->next_cmd;
     }
 
-    // Ожидание завершения всех дочерних процессов
+    // Освобождаем память под пайпы
+    free_pipes(pipes, num_cmds);
+
+    // Старый код: while (wait(NULL) > 0) ;
+    // Но нам нужно отследить exit code последнего запущенного PID
+
+    // Добавляем так:
+    // Вспомним, pid каждого fork() мы записывали в переменную pid
+    // - т.е. в конце цикла в pid лежит PID последнего процесса
+
+    int status;
+    // Ждем именно последний PID
+    waitpid(pid, &status, 0);
+
+    if (WIFEXITED(status))
+        info->exit_status = WEXITSTATUS(status);
+    else if (WIFSIGNALED(status))
+        info->exit_status = 128 + WTERMSIG(status);
+
+    // Остальных детей тоже ждем, но их коды уже не влияют на info->exit_status
     while (wait(NULL) > 0)
         ;
-
-    // Освобождение памяти пайпов
-    free_pipes(pipes, num_cmds);
 }
+
 
 
 void	execute_builtin(t_exec_command *command, t_info *info)
