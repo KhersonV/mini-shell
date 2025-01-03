@@ -684,142 +684,55 @@ static int read_unquoted(const char *input, char *buf, int *buf_index, int buf_s
 
 
 
-// t_token *tokenizer(char *user_input, t_info *info)
-// {
-// 	t_token *head = NULL;
-
-// 	char buf[1024];
-// 	int buf_index = 0;
-
-// 	int i = 0;
-
-// 	while(user_input[i] != '\0')
-// 	{
-// 		// printf("next char - [%c]\n", user_input[i]);
-// 		if(is_space_char(user_input[i]))
-// 		{
-// 			flush_buf_if_needed(&head, buf, &buf_index);
-// 			i++;
-// 			continue;
-// 		}
-// 		if(is_operator_char(user_input[i]))
-// 		{
-// 			flush_buf_if_needed(&head, buf, &buf_index);
-// 			head = add_operator_token(head, user_input[i], user_input[i+1], &i);
-// 			i++;
-// 			continue;
-// 		}
-// 		if(user_input[i] == '\'')
-// 		{
-// 			int consumed = read_single_quoted(&user_input[i], buf, &buf_index, 1024);
-// 			i += consumed;
-			
-// 			continue;
-// 		}
-// 		if(user_input[i] == '\"')
-// 		{
-// 			int consumed = read_double_quoted(&user_input[i], buf, &buf_index, 1024, info);
-// 			i += consumed;
-// 			continue;
-// 		}
-		
-// 		int consumed = read_unquoted(&user_input[i], buf, &buf_index, 1024, info);
-		
-//         i += consumed;
-// 	}
-
-// 	flush_buf_if_needed(&head, buf, &buf_index);
-
-// 	// printf("final buf = %s", buf);
-// 	return head;
-// }
-
 t_token *tokenizer(char *user_input, t_info *info)
 {
-    t_token *head = NULL;
-    char buf[1024];
-    int buf_index = 0;
-    int i = 0;
+	t_token *head = NULL;
 
-    while (user_input[i] != '\0')
-    {
-        if (is_space_char(user_input[i]))
-        {
-            flush_buf_if_needed(&head, buf, &buf_index);
-            i++;
-            continue;
-        }
-        if (is_operator_char(user_input[i]))
-        {
-            flush_buf_if_needed(&head, buf, &buf_index);
-            head = add_operator_token(head, user_input[i], user_input[i + 1], &i);
-            i++;
-            continue;
-        }
+	char buf[1024];
+	int buf_index = 0;
 
-        if (user_input[i] == '\'')
-        {
-            // Запоминаем "старую" длину буфера
-            int old_index = buf_index;
-            int consumed = read_single_quoted(&user_input[i], buf, &buf_index, 1024);
+	int i = 0;
 
+	while(user_input[i] != '\0')
+	{
+		// printf("next char - [%c]\n", user_input[i]);
+		if(is_space_char(user_input[i]))
+		{
+			flush_buf_if_needed(&head, buf, &buf_index);
+			i++;
+			continue;
+		}
+		if(is_operator_char(user_input[i]))
+		{
+			flush_buf_if_needed(&head, buf, &buf_index);
+			head = add_operator_token(head, user_input[i], user_input[i+1], &i);
+			i++;
+			continue;
+		}
+		if(user_input[i] == '\'')
+		{
+			int consumed = read_single_quoted(&user_input[i], buf, &buf_index, 1024);
+			i += consumed;
+			
+			continue;
+		}
+		if(user_input[i] == '\"')
+		{
+			int consumed = read_double_quoted(&user_input[i], buf, &buf_index, 1024, info);
+			i += consumed;
+			continue;
+		}
+		
+		int consumed = read_unquoted(&user_input[i], buf, &buf_index, 1024, info);
+		
+        i += consumed;
+	}
 
-            if (consumed > 0)
-            {
+	flush_buf_if_needed(&head, buf, &buf_index);
 
-                i += consumed;
-
-                if (buf_index == old_index) 
-                {
-                    char *empty_str = strdup(""); 
-                    head = add_token(head, empty_str, TOKEN_WORD); 
-                    free(empty_str);
-                }
-                continue;
-            }
-            else
-            {
-
-                i++;
-                continue;
-            }
-        }
-
-        if (user_input[i] == '"')
-        {
-            int old_index = buf_index;
-            int consumed = read_double_quoted(&user_input[i], buf, &buf_index, 1024, info);
-
-            if (consumed > 0)
-            {
-                i += consumed;
-                // Если буфер не изменился => "", пустые двойные кавычки
-                if (buf_index == old_index)
-                {
-                    char *empty_str = strdup("");
-                    head = add_token(head, empty_str, TOKEN_WORD);
-                    free(empty_str);
-                }
-                continue;
-            }
-            else
-            {
-                i++;
-                continue;
-            }
-        }
-
-        {
-            int consumed = read_unquoted(&user_input[i], buf, &buf_index, 1024, info);
-            i += consumed;
-        }
-    }
-
-    // В конце, если что-то осталось в buf, сбросим
-    flush_buf_if_needed(&head, buf, &buf_index);
-    return head;
+	// printf("final buf = %s", buf);
+	return head;
 }
-
 
 
 void adjusting_token_tree(t_token **tree)
