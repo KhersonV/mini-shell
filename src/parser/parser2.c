@@ -2,7 +2,7 @@
 #include "../../include/minishell.h"
 
 void remove_space_tokens(t_token **tree);
-void adjusting_token_tree(t_token **tree);
+void adjusting_token_tree(t_token **tree, t_info *info);
 
 void	temp_print_tokens(t_token *node);
 int validate_syntax_and_adjust(t_token **tree);

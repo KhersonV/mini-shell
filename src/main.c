@@ -6,7 +6,7 @@
 /*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/03 14:58:50 by snazarov         ###   ########.fr       */
+/*   Updated: 2025/01/03 16:17:29 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,13 +159,13 @@ void print_command_list(t_exec_command *cmd_list);
 void    temp_print_tokens(t_token *tokens);
 t_token *tokenizer(char *user_input, t_info *info);
 void restore_explicit_empty_quotes(t_token **head_ref, const char *user_input);
+int validate_syntax_and_adjust(t_token **tree);
 
 
 void main_initialize(t_info *info, char **envp)
 {
 	info->std_in_reserve = dup(STDIN_FILENO);
 	info->std_out_reserve = dup(STDOUT_FILENO);
-	info->old_dir = NULL;
 	info->curr_dir = getcwd(NULL, 0);
 	info->envp = copy_envp(envp);
 	info->old_dir = get_env_value(info, "OLDPWD");
@@ -185,7 +185,7 @@ void process_user_input(char *user_input, t_exec_command **command, t_info *info
 	if (!tokens)
 		free(user_input);
 	expansion(&tokens, info);
-	adjusting_token_tree(&tokens);
+	adjusting_token_tree(&tokens, info);
 	command_ptr = parse_tokens_to_commands(tokens);
 
 
@@ -247,9 +247,11 @@ int main(int ac, char **av, char **envp)
 		}
 		// expansion(&tokens, &info);
 
-		adjusting_token_tree(&tokens);
-
+		adjusting_token_tree(&tokens, &info);
+		// validate_syntax_and_adjust(&tokens);
+		
 		restore_explicit_empty_quotes(&tokens, info.input);
+
 
 		// Построение списка команд
 		commands = parse_tokens_to_commands(tokens);
@@ -263,6 +265,7 @@ int main(int ac, char **av, char **envp)
 			continue;
 		}
 
+		// print_command_list(commands);
 		// Выполнение команд
 		execute_commands(commands, &info);
 

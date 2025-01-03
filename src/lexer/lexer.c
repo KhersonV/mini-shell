@@ -9,113 +9,6 @@
 
 */
 
-// static int is_empty_string(const char *s)
-// {
-//     return (s == NULL || s[0] == '\0');
-// }
-
-// static t_token *remove_token(t_token *head, t_token *del)
-// {
-//     if (!del) return head;
-
-//     t_token *prev = del->prev;
-//     t_token *next = del->next;
-
-//     // Если удаляем head
-//     if (head == del)
-//         head = next;
-
-//     // Связываем prev->next = next
-//     if (prev)
-//         prev->next = next;
-//     // Связываем next->prev = prev
-//     if (next)
-//         next->prev = prev;
-
-//     // Освобождаем память
-//     free(del->str);
-//     free(del);
-
-//     return head;
-// }
-
-
-// void fix_empty_arguments(t_token **head_ref)
-// {
-//     t_token *curr = *head_ref;
-//     t_token *args[256]; // Массив для хранения указателей на аргументы (упрощенно)
-//     int arg_idx = 0;
-
-//     while (curr)
-//     {
-//         // Если это PIPE или конец, мы «завершаем» предыдущую команду
-//         if (curr->type == TOKEN_PIPE || curr->next == NULL)
-//         {
-//             // Если curr->next==NULL, значит это конец списка — 
-//             // но нужно учесть и этот токен, если он не PIPE
-//             int end_is_command = 0;
-//             if (curr->type != TOKEN_PIPE && curr->next == NULL)
-//             {
-//                 // Возможно, это ARGUMENT тоже
-//                 if (curr->type == TOKEN_ARGUMENT)
-//                 {
-//                     // Добавим в args
-//                     if (arg_idx < 256)
-//                         args[arg_idx++] = curr;
-//                 }
-//                 end_is_command = 1;
-//             }
-
-//             // Теперь у нас есть массив args[0..arg_idx-1].
-//             // Применим логику:
-//             if (arg_idx == 1) 
-//             {
-//                 // Если ровно 1 аргумент
-//                 t_token *only_arg = args[0];
-//                 if (is_empty_string(only_arg->str))
-//                 {
-//                     // Удаляем этот токен
-//                     *head_ref = remove_token(*head_ref, only_arg);
-//                 }
-//             }
-//             else if (arg_idx > 1)
-//             {
-//                 // Если аргументов несколько
-//                 for (int k = 0; k < arg_idx; k++)
-//                 {
-//                     if (is_empty_string(args[k]->str))
-//                     {
-//                         // Заменяем на " "
-//                         free(args[k]->str);
-//                         args[k]->str = strdup(" ");
-//                     }
-//                 }
-//             }
-
-//             // Подготовиться к обработке следующей команды
-//             arg_idx = 0;
-//             // Если этот токен был PIPE, следующая команда начнется после него
-//             // Если это конец списка, мы закончим цикл
-//             curr = curr->next;
-//             continue;
-//         }
-
-//         // Иначе, если это не PIPE, мы проверяем:
-//         if (curr->type == TOKEN_COMMAND)
-//         {
-//             // Начало новой команды, сбрасываем массив аргументов
-//             arg_idx = 0;
-//         }
-//         else if (curr->type == TOKEN_ARGUMENT)
-//         {
-//             // Сохраняем указатель в массив
-//             if (arg_idx < 256) // чисто чтобы избежать переполнения
-//                 args[arg_idx++] = curr;
-//         }
-
-//         curr = curr->next;
-//     }
-// }
 
 static int is_delim_char(char c)
 {
@@ -514,71 +407,6 @@ t_token	*add_token(t_token *node, char *name, int type)
 	return (node);
 }
 
-// void restore_explicit_empty_quotes(t_token **head_ref, const char *user_input)
-// {
-//     int i = 0;
-//     while (user_input[i])
-//     {
-//         // Проверим паттерн '', длина = 2
-//         if (user_input[i] == '\'' && user_input[i + 1] == '\'')
-//         {
-//             // Слева должен быть либо i == 0, либо delim
-//             // Справа должен быть user_input[i+2] == '\0' или delim
-//             char left  = (i > 0) ? user_input[i-1] : '\0';
-//             char right = user_input[i+2]; // может быть '\0'
-//             if ( (i == 0 || is_delim_char(left)) 
-//                  && is_delim_char(right) )
-//             {
-//                 // Нашли отдельные ''.
-//                 // Проверим, есть ли уже пустой токен?
-//                 int has_empty = 0;
-//                 // Пробежимся по списку (простое решение)
-//                 for (t_token *tmp = *head_ref; tmp; tmp = tmp->next)
-//                 {
-//                     if (tmp->str && tmp->str[0] == '\0')
-//                     {
-//                         // Нашли какой-то пустой токен
-//                         has_empty = 1;
-//                         break;
-//                     }
-//                 }
-//                 if (!has_empty)
-//                 {
-//                     // Добавим его в список (в конец, упрощённо)
-//                     *head_ref = add_token(*head_ref, "", TOKEN_ARGUMENT);
-//                 }
-//             }
-//             i += 2;
-//             continue;
-//         }
-//         // Аналогично проверяем `""`:
-//         if (user_input[i] == '"' && user_input[i + 1] == '"')
-//         {
-//             char left  = (i > 0) ? user_input[i-1] : '\0';
-//             char right = user_input[i+2];
-//             if ( (i == 0 || is_delim_char(left))
-//                  && is_delim_char(right))
-//             {
-//                 int has_empty = 0;
-//                 for (t_token *tmp = *head_ref; tmp; tmp = tmp->next)
-//                 {
-//                     if (tmp->str && tmp->str[0] == '\0')
-//                     {
-//                         has_empty = 1;
-//                         break;
-//                     }
-//                 }
-//                 if (!has_empty)
-//                 {
-//                     *head_ref = add_token(*head_ref, "", TOKEN_ARGUMENT);
-//                 }
-//             }
-//             i += 2;
-//             continue;
-//         }
-//         i++;
-//     }
-// }
 
 void restore_explicit_empty_quotes(t_token **head_ref, const char *user_input)
 {
@@ -793,7 +621,6 @@ static int read_unquoted(const char *input, char *buf, int *buf_index, int buf_s
 }
 
 
-
 t_token *tokenizer(char *user_input, t_info *info)
 {
 	t_token *head = NULL;
@@ -844,46 +671,125 @@ t_token *tokenizer(char *user_input, t_info *info)
 	return head;
 }
 
-
-void adjusting_token_tree(t_token **tree)
+void adjusting_token_tree(t_token **tree, t_info *info)
 {
-	t_token *curr;
-	int command_found;
+    t_token *curr;
+    int command_found = 0;
 
-	curr = *tree;
-	command_found = 0;
-	while (curr != NULL)
-	{
-		if (curr->type == TOKEN_PIPE)
-		{
-			command_found = 0;
-		}
-		if (!command_found && (curr->type == TOKEN_WORD || curr->type == TOKEN_EXP_FIELD || curr->type == TOKEN_FIELD || curr->type == TOKEN_VAR))
-		{
-			curr->type = TOKEN_COMMAND;
-			command_found = 1;
-		}
-		else if (command_found && (curr->type == TOKEN_WORD || curr->type == TOKEN_FIELD ||
-								   curr->type == TOKEN_EXP_FIELD || curr->type == TOKEN_VAR
-								   || curr->type == TOKEN_EXIT_STATUS))
-		{
-			curr->type = TOKEN_ARGUMENT;
-		}
-		if (curr->type == TOKEN_REDIRECT_IN || curr->type == TOKEN_REDIRECT_OUT ||
-			curr->type == TOKEN_REDIRECT_APPEND)
-		{
-			if (curr->next != NULL)
-				curr->next->type = TOKEN_FILE;
-		}
-		else if (curr->type == TOKEN_HEREDOC)
-		{
-			if (curr->next != NULL)
-				curr->next->type = TOKEN_HEREDOC_MARKER;
-		}
-		curr = curr->next;
-	}
+    if (!tree || !*tree)
+        return;
+
+    // 1) pipe в начале
+    if ((*tree)->type == TOKEN_PIPE)
+    {
+        fprintf(stderr, "minishell: syntax error near unexpected token `|'\n");
+        info->syntax_error = 1;
+        info->exit_status = 2;
+        return;
+    }
+
+    curr = *tree;
+    while (curr)
+    {
+        if (curr->type == TOKEN_PIPE)
+        {
+            command_found = 0;
+            // pipe в конце
+            if (!curr->next)
+            {
+                fprintf(stderr, "minishell: syntax error near unexpected token `|'\n");
+                info->syntax_error = 1;
+                info->exit_status = 2;
+                return;
+            }
+            // pipe подряд: echo | | -> ошибка
+            if (curr->next->type == TOKEN_PIPE)
+            {
+                fprintf(stderr, "minishell: syntax error near unexpected token `|'\n");
+                info->syntax_error = 1;
+                info->exit_status = 2;
+                return;
+            }
+        }
+
+        // Присвоение COMMAND/ARGUMENT
+        if (!command_found &&
+            (curr->type == TOKEN_WORD || curr->type == TOKEN_EXP_FIELD ||
+             curr->type == TOKEN_FIELD || curr->type == TOKEN_VAR))
+        {
+            curr->type = TOKEN_COMMAND;
+            command_found = 1;
+        }
+        else if (command_found &&
+                 (curr->type == TOKEN_WORD || curr->type == TOKEN_FIELD ||
+                  curr->type == TOKEN_EXP_FIELD || curr->type == TOKEN_VAR
+                  || curr->type == TOKEN_EXIT_STATUS))
+        {
+            curr->type = TOKEN_ARGUMENT;
+        }
+
+        // Проверка redirect
+        if (curr->type == TOKEN_REDIRECT_IN
+            || curr->type == TOKEN_REDIRECT_OUT
+            || curr->type == TOKEN_REDIRECT_APPEND
+            || curr->type == TOKEN_HEREDOC)
+        {
+            // '>' в конце?
+            if (!curr->next)
+            {
+                fprintf(stderr, "minishell: syntax error near unexpected token `%s'\n",
+                        curr->str);
+                info->syntax_error = 1;
+                info->exit_status = 2;
+                return;
+            }
+            // '>' за которым идёт pipe или ещё один '>'
+            if (curr->next->type == TOKEN_PIPE
+                || curr->next->type == TOKEN_REDIRECT_IN
+                || curr->next->type == TOKEN_REDIRECT_OUT
+                || curr->next->type == TOKEN_REDIRECT_APPEND
+                || curr->next->type == TOKEN_HEREDOC)
+            {
+                fprintf(stderr, "minishell: syntax error near unexpected token `%s'\n",
+                        curr->next->str);
+                info->syntax_error = 1;
+                info->exit_status = 2;
+                return;
+            }
+
+            // Иначе назначаем следующий токен как FILE
+            if (curr->next->type != TOKEN_COMMAND &&
+                curr->next->type != TOKEN_ARGUMENT &&
+                curr->next->type != TOKEN_WORD &&
+                curr->next->type != TOKEN_FIELD &&
+                curr->next->type != TOKEN_EXP_FIELD &&
+                curr->next->type != TOKEN_VAR &&
+                curr->next->type != TOKEN_EXIT_STATUS)
+            {
+                fprintf(stderr, "minishell: syntax error after redirect `%s'\n",
+                        curr->str);
+                info->syntax_error = 1;
+                info->exit_status = 2;
+                return;
+            }
+            else
+            {
+                curr->next->type = TOKEN_FILE;
+            }
+        }
+
+        curr = curr->next;
+    }
+
+    // Проверка pipe в самом конце (дублируем)
+    // (Хотя уже проверено в цикле, но на всякий случай)
+    // t_token *last = get_last_token(*tree);
+    // if (last && last->type == TOKEN_PIPE) {
+    //    fprintf(stderr, "minishell: syntax error near unexpected token `|'\n");
+    //    info->syntax_error = 1;
+    //    info->exit_status = 2;
+    // }
 }
-
 // int main()
 // {
 // 	t_token *test;
