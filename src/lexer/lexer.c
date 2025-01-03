@@ -9,6 +9,114 @@
 
 */
 
+// static int is_empty_string(const char *s)
+// {
+//     return (s == NULL || s[0] == '\0');
+// }
+
+// static t_token *remove_token(t_token *head, t_token *del)
+// {
+//     if (!del) return head;
+
+//     t_token *prev = del->prev;
+//     t_token *next = del->next;
+
+//     // Если удаляем head
+//     if (head == del)
+//         head = next;
+
+//     // Связываем prev->next = next
+//     if (prev)
+//         prev->next = next;
+//     // Связываем next->prev = prev
+//     if (next)
+//         next->prev = prev;
+
+//     // Освобождаем память
+//     free(del->str);
+//     free(del);
+
+//     return head;
+// }
+
+
+// void fix_empty_arguments(t_token **head_ref)
+// {
+//     t_token *curr = *head_ref;
+//     t_token *args[256]; // Массив для хранения указателей на аргументы (упрощенно)
+//     int arg_idx = 0;
+
+//     while (curr)
+//     {
+//         // Если это PIPE или конец, мы «завершаем» предыдущую команду
+//         if (curr->type == TOKEN_PIPE || curr->next == NULL)
+//         {
+//             // Если curr->next==NULL, значит это конец списка — 
+//             // но нужно учесть и этот токен, если он не PIPE
+//             int end_is_command = 0;
+//             if (curr->type != TOKEN_PIPE && curr->next == NULL)
+//             {
+//                 // Возможно, это ARGUMENT тоже
+//                 if (curr->type == TOKEN_ARGUMENT)
+//                 {
+//                     // Добавим в args
+//                     if (arg_idx < 256)
+//                         args[arg_idx++] = curr;
+//                 }
+//                 end_is_command = 1;
+//             }
+
+//             // Теперь у нас есть массив args[0..arg_idx-1].
+//             // Применим логику:
+//             if (arg_idx == 1) 
+//             {
+//                 // Если ровно 1 аргумент
+//                 t_token *only_arg = args[0];
+//                 if (is_empty_string(only_arg->str))
+//                 {
+//                     // Удаляем этот токен
+//                     *head_ref = remove_token(*head_ref, only_arg);
+//                 }
+//             }
+//             else if (arg_idx > 1)
+//             {
+//                 // Если аргументов несколько
+//                 for (int k = 0; k < arg_idx; k++)
+//                 {
+//                     if (is_empty_string(args[k]->str))
+//                     {
+//                         // Заменяем на " "
+//                         free(args[k]->str);
+//                         args[k]->str = strdup(" ");
+//                     }
+//                 }
+//             }
+
+//             // Подготовиться к обработке следующей команды
+//             arg_idx = 0;
+//             // Если этот токен был PIPE, следующая команда начнется после него
+//             // Если это конец списка, мы закончим цикл
+//             curr = curr->next;
+//             continue;
+//         }
+
+//         // Иначе, если это не PIPE, мы проверяем:
+//         if (curr->type == TOKEN_COMMAND)
+//         {
+//             // Начало новой команды, сбрасываем массив аргументов
+//             arg_idx = 0;
+//         }
+//         else if (curr->type == TOKEN_ARGUMENT)
+//         {
+//             // Сохраняем указатель в массив
+//             if (arg_idx < 256) // чисто чтобы избежать переполнения
+//                 args[arg_idx++] = curr;
+//         }
+
+//         curr = curr->next;
+//     }
+// }
+
 
 char *expand_variable(char *var_name, t_info *info);
 static char* expand_dollar(const char *input, int *consumed, t_info *info);
@@ -33,6 +141,8 @@ char *ft_expand_variable(char *var_name, t_info *info)
     return ft_strdup(val);
     // }
 }
+
+
 
 
 
@@ -574,54 +684,140 @@ static int read_unquoted(const char *input, char *buf, int *buf_index, int buf_s
 
 
 
+// t_token *tokenizer(char *user_input, t_info *info)
+// {
+// 	t_token *head = NULL;
+
+// 	char buf[1024];
+// 	int buf_index = 0;
+
+// 	int i = 0;
+
+// 	while(user_input[i] != '\0')
+// 	{
+// 		// printf("next char - [%c]\n", user_input[i]);
+// 		if(is_space_char(user_input[i]))
+// 		{
+// 			flush_buf_if_needed(&head, buf, &buf_index);
+// 			i++;
+// 			continue;
+// 		}
+// 		if(is_operator_char(user_input[i]))
+// 		{
+// 			flush_buf_if_needed(&head, buf, &buf_index);
+// 			head = add_operator_token(head, user_input[i], user_input[i+1], &i);
+// 			i++;
+// 			continue;
+// 		}
+// 		if(user_input[i] == '\'')
+// 		{
+// 			int consumed = read_single_quoted(&user_input[i], buf, &buf_index, 1024);
+// 			i += consumed;
+			
+// 			continue;
+// 		}
+// 		if(user_input[i] == '\"')
+// 		{
+// 			int consumed = read_double_quoted(&user_input[i], buf, &buf_index, 1024, info);
+// 			i += consumed;
+// 			continue;
+// 		}
+		
+// 		int consumed = read_unquoted(&user_input[i], buf, &buf_index, 1024, info);
+		
+//         i += consumed;
+// 	}
+
+// 	flush_buf_if_needed(&head, buf, &buf_index);
+
+// 	// printf("final buf = %s", buf);
+// 	return head;
+// }
+
 t_token *tokenizer(char *user_input, t_info *info)
 {
-	t_token *head = NULL;
+    t_token *head = NULL;
+    char buf[1024];
+    int buf_index = 0;
+    int i = 0;
 
-	char buf[1024];
-	int buf_index = 0;
+    while (user_input[i] != '\0')
+    {
+        if (is_space_char(user_input[i]))
+        {
+            flush_buf_if_needed(&head, buf, &buf_index);
+            i++;
+            continue;
+        }
+        if (is_operator_char(user_input[i]))
+        {
+            flush_buf_if_needed(&head, buf, &buf_index);
+            head = add_operator_token(head, user_input[i], user_input[i + 1], &i);
+            i++;
+            continue;
+        }
 
-	int i = 0;
+        if (user_input[i] == '\'')
+        {
+            // Запоминаем "старую" длину буфера
+            int old_index = buf_index;
+            int consumed = read_single_quoted(&user_input[i], buf, &buf_index, 1024);
 
-	while(user_input[i] != '\0')
-	{
-		// printf("next char - [%c]\n", user_input[i]);
-		if(is_space_char(user_input[i]))
-		{
-			flush_buf_if_needed(&head, buf, &buf_index);
-			i++;
-			continue;
-		}
-		if(is_operator_char(user_input[i]))
-		{
-			flush_buf_if_needed(&head, buf, &buf_index);
-			head = add_operator_token(head, user_input[i], user_input[i+1], &i);
-			i++;
-			continue;
-		}
-		if(user_input[i] == '\'')
-		{
-			int consumed = read_single_quoted(&user_input[i], buf, &buf_index, 1024);
-			i += consumed;
-			
-			continue;
-		}
-		if(user_input[i] == '\"')
-		{
-			int consumed = read_double_quoted(&user_input[i], buf, &buf_index, 1024, info);
-			i += consumed;
-			continue;
-		}
-		
-		int consumed = read_unquoted(&user_input[i], buf, &buf_index, 1024, info);
-		
-        i += consumed;
-	}
 
-	flush_buf_if_needed(&head, buf, &buf_index);
+            if (consumed > 0)
+            {
 
-	// printf("final buf = %s", buf);
-	return head;
+                i += consumed;
+
+                if (buf_index == old_index) 
+                {
+                    char *empty_str = strdup(""); 
+                    head = add_token(head, empty_str, TOKEN_WORD); 
+                    free(empty_str);
+                }
+                continue;
+            }
+            else
+            {
+
+                i++;
+                continue;
+            }
+        }
+
+        if (user_input[i] == '"')
+        {
+            int old_index = buf_index;
+            int consumed = read_double_quoted(&user_input[i], buf, &buf_index, 1024, info);
+
+            if (consumed > 0)
+            {
+                i += consumed;
+                // Если буфер не изменился => "", пустые двойные кавычки
+                if (buf_index == old_index)
+                {
+                    char *empty_str = strdup("");
+                    head = add_token(head, empty_str, TOKEN_WORD);
+                    free(empty_str);
+                }
+                continue;
+            }
+            else
+            {
+                i++;
+                continue;
+            }
+        }
+
+        {
+            int consumed = read_unquoted(&user_input[i], buf, &buf_index, 1024, info);
+            i += consumed;
+        }
+    }
+
+    // В конце, если что-то осталось в buf, сбросим
+    flush_buf_if_needed(&head, buf, &buf_index);
+    return head;
 }
 
 
