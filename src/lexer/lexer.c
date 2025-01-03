@@ -58,15 +58,6 @@ int	ft_isalnum(int c)
 }
 
 
-// static int is_special_char(char c)
-// {
-// 	if (is_space_char(c))        return 1;
-// 	if (is_operator_char(c))     return 1;
-// 	if (c == '$')                return 1;
-// 	if (c == '\'' || c == '"')   return 1;
-// 	return 0;
-// }
-
 static char* read_var_name(const char *input, int *consumed)
 {
     int i = 0;
@@ -251,6 +242,7 @@ static char* read_dollar_quoted(const char *input, int *consumed, t_info *info)
                 // Раскрытие переменной внутри $"..."
                 int var_consumed = 0;
                 char *expanded = expand_dollar(&input[i], &var_consumed, info);
+				printf("last dollar sign is - %s\n", expanded);
                 if (!expanded)
                 {
                     // На случай, если expand_dollar вернёт NULL —  
@@ -317,11 +309,41 @@ static char* read_dollar_quoted(const char *input, int *consumed, t_info *info)
 
 static char* expand_dollar(const char *input, int *consumed, t_info *info)
 {
-	if (input[1] == '\'' || input[1] == '"')
+	
+if (input[1] == '\'' || input[1] == '"')
     {
-        // читаем как dollar-quoted
-        char *res = read_dollar_quoted(input, consumed, info);
-        return res; // уже готовая строка
+        // --- ДОБАВЛЕНА проверка --- 
+        // Смотрим, что в input[2]? 
+        // Если там нет "имени" переменной (а именно нет букв, цифр, '_', '?' и т.д.), 
+        // то скорее всего это просто `$"` (или `$'`) без имени -> вернём буквально "$".
+        
+        char next_char = input[2];
+        
+        // Можно уточнить, что вы считаете "признаком содержимого":
+        // ни пробел, ни конец строки, ни повторная кавычка, 
+        // ни оператор, ... 
+        // Но чаще всего хватает "не буква/цифра/'?'/'_'"
+        
+        if (next_char == '\0'                // строка кончилась
+         || is_space_char(next_char)         // пробел/таб
+         || is_operator_char(next_char)      // |, <, >
+         || next_char == '\''                // $"''
+         || next_char == '"'                 // $""
+         )
+        {
+            // В этих случаях считаем, что НЕТ никакого имени/содержимого
+            // => вернём просто "$"
+            *consumed = 1; 
+            return strdup("$");
+        }
+        else
+        {
+            // Если после кавычки есть хоть что-то "осмысленное" (например, H, 4, и т.д.),
+            // значит это действительно $'...' или $"...' 
+            // => вызываем уже знакомую функцию
+            char *res = read_dollar_quoted(input, consumed, info);
+            return res; // готовая строка
+        }
     }
 
     int var_consumed = 0;
@@ -332,6 +354,7 @@ static char* expand_dollar(const char *input, int *consumed, t_info *info)
     }
 
 	*consumed = var_consumed;
+
 
 	if (strcmp(var_name, "$") == 0) 
 	{
@@ -424,99 +447,6 @@ t_token *add_operator_token(t_token *curr, char current_char, char next_char, in
 	return curr;
 }
 
-// void handle_variable(t_token **p_head, const char *s, int *i)
-// {
-// 	(*i)++;
-// 	if (!s[*i]) {
-// 		*p_head = add_token(*p_head, "$", TOKEN_WORD);
-// 		return;
-// 	}
-// 	if (s[*i] == '?') {
-// 		(*i)++;
-// 		*p_head = add_token(*p_head, "$?", TOKEN_EXIT_STATUS);
-// 		return;
-// 	}
-// 	if (ft_isalnum(s[*i]) || s[*i] == '_') {
-// 		char var_buf[256];
-// 		int vindex = 0;
-
-// 		var_buf[vindex++] = '$';
-
-// 		while (s[*i] != '\0' && !is_space_char(s[*i])) {
-// 			var_buf[vindex++] = s[*i];
-// 			(*i)++;
-// 			if (vindex >= 255) break;
-// 		}
-// 		var_buf[vindex] = '\0';
-
-// 		*p_head = add_token(*p_head, var_buf, TOKEN_VAR);
-// 	}
-// 	else {
-// 		*p_head = add_token(*p_head, "$", TOKEN_WORD);
-// 	}
-// }
-
-// int handle_quotes(t_token **p_head, const char *s, int *i)
-// {
-// 	char quote = s[*i];
-// 	int start = *i + 1;
-// 	int len = 0;
-
-// 	int j = start;
-// 	while (s[j] && s[j] != quote) {
-// 		j++;
-// 	}
-// 	if (!s[j]) {
-// 		printf("Syntax error: quotes not closed\n");
-// 		exit(1);
-// 	}
-
-// 	len = j - start;
-// 	char *field = malloc(len + 1);
-// 	if (!field) { /* ... */ }
-// 	strncpy(field, &s[start], len);
-// 	field[len] = '\0';
-
-// 	if(strcmp(field, ""))
-// 	{
-// 	if (quote == '"')
-// 		*p_head = add_token(*p_head, field, TOKEN_EXP_FIELD);
-// 	else
-// 		*p_head = add_token(*p_head, field, TOKEN_FIELD);
-// 	}
-
-// 	// free(field);
-
-// 	*i = j + 1;
-
-// 	return 1;
-// }
-
-// void handle_special_char(t_token **p_head, const char *s, int *i)
-// {
-// 	if (is_space_char(s[*i])) {
-// 		// *p_head = add_operator_token(*p_head, s[*i], s[*i + 1], i);
-// 		(*i)++;
-// 		return;
-// 	}
-// 	if (is_operator_char(s[*i])) {
-// 		*p_head = add_operator_token(*p_head, s[*i], s[*i + 1], i);
-// 		(*i)++;
-// 		return;
-// 	}
-// 	if (s[*i] == '\'' || s[*i] == '"') {
-// 		if (!is_quotes_closed(&s[*i])) {
-// 			printf("Quotes not closed\n");
-// 			exit(1);
-// 		}
-// 		handle_quotes(p_head, s, i);
-// 		return;
-// 	}
-// 	if (s[*i] == '$') {
-// 		handle_variable(p_head, s, i);
-// 		return;
-// 	}
-// }
 
 static int read_double_quoted(const char *input, char *buf, int *buf_index, int buf_size, t_info *info)
 {
@@ -694,46 +624,6 @@ t_token *tokenizer(char *user_input, t_info *info)
 	return head;
 }
 
-// t_token *tokenize(char *s)
-// {
-// 	t_token *head = NULL;
-// 	char buf[256];
-// 	int buf_index = 0;
-// 	int i = 0;
-
-// 	while (s[i] != '\0')
-// 	{
-// 		if (is_special_char(s[i]))
-// 		{
-// 			flush_buf_if_needed(&head, buf, &buf_index);
-// 			handle_special_char(&head, s, &i);
-// 		}
-// 		else
-// 		{
-// 			buf[buf_index++] = s[i++];
-// 			if (buf_index >= 255)
-// 			{
-// 				buf[buf_index] = '\0';
-// 				head = add_token(head, buf, TOKEN_WORD);
-// 				buf_index = 0;
-// 			}
-// 		}
-// 	}
-// 	flush_buf_if_needed(&head, buf, &buf_index);
-// 	return head;
-// }
-
-// void	temp_print_tokens(t_token *node)
-// {
-// 	t_token	*curr;
-
-// 	curr = node;
-// 	while (curr)
-// 	{
-// 		printf("Token: %s, Type: %s\n", curr->str, print_token(curr->type));
-// 		curr = curr->next;
-// 	}
-// }
 
 
 void adjusting_token_tree(t_token **tree)
@@ -774,125 +664,6 @@ void adjusting_token_tree(t_token **tree)
 		curr = curr->next;
 	}
 }
-
-// int	is_var_inside(char *s)
-// {
-// 	while(*s)
-// 	{
-// 		if(*s == '$')
-// 			return 1;
-// 		s++;
-// 	}
-// 	return 0;
-// }
-
-// char *expand_variable(const char *var_name)
-// {
-// 	char *value;
-
-// 	value = getenv(var_name);
-
-// 	if (!value)
-// 		return "";
-// 	return value;
-// }
-
-
-// char *expand_field(const char *str)
-// {
-// 	char buffer[1024];
-// 	char var_name[256];
-// 	char *var_value;
-// 	const char *ptr;
-// 	unsigned long buf_index;
-// 	int var_index;
-// 	int len;
-
-// 	ptr = str;
-// 	buf_index = 0;
-
-// 	while (*ptr)
-// 	{
-// 		if (*ptr == '$')
-// 		{
-// 			ptr++;
-// 			var_index = 0;
-
-// 			while ((*ptr >= 'a' && *ptr <= 'z') || (*ptr >= 'A' && *ptr <= 'Z') ||
-// 				   (*ptr == '_') || (*ptr >= '0' && *ptr <= '9'))
-// 			{
-// 				var_name[var_index] = *ptr;
-// 				var_index++;
-// 				ptr++;
-// 			}
-// 			var_name[var_index] = '\0';
-
-// 			var_value = expand_variable(var_name);
-// 			len = strlen(var_value);
-
-// 			if (buf_index + len >= sizeof(buffer))
-// 			{
-// 				printf("Error: expansion buffer overflow\n");
-// 				exit(1);
-// 			}
-
-// 			strcpy(&buffer[buf_index], var_value);
-// 			buf_index += len;
-// 		}
-// 		else
-// 		{
-// 			buffer[buf_index] = *ptr;
-// 			buf_index++;
-// 			ptr++;
-// 		}
-
-// 		if (buf_index >= sizeof(buffer))
-// 		{
-// 			printf("Error: expansion buffer overflow\n");
-// 			exit(1);
-// 		}
-// 	}
-
-// 	buffer[buf_index] = '\0';
-// 	return strdup(buffer);
-// }
-
-// void expand_in_field(t_token *token)
-// {
-// 	char *expanded;
-
-// 	expanded = expand_field(token->str);
-// 	free(token->str);
-// 	token->str = expanded;
-// }
-
-// void expansion(t_token **tokens)
-// {
-// 	t_token *curr;
-// 	char *expanded;
-
-// 	curr = *tokens;
-
-// 	while (curr != NULL)
-// 	{
-// 		if (curr->type == TOKEN_EXP_FIELD || curr->type == TOKEN_WORD)
-// 		{
-// 			if (is_var_inside(curr->str))
-// 			{
-// 				expand_in_field(curr);
-// 			}
-// 		}
-// 		else if (curr->type == TOKEN_VAR)
-// 		{
-// 			expanded = expand_variable(curr->str);
-// 			free(curr->str);
-// 			curr->str = strdup(expanded);
-// 		}
-
-// 		curr = curr->next;
-// 	}
-// }
-
 
 // int main()
 // {
