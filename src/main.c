@@ -6,7 +6,7 @@
 /*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/02 17:45:13 by snazarov         ###   ########.fr       */
+/*   Updated: 2025/01/03 14:58:50 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -158,6 +158,7 @@
 void print_command_list(t_exec_command *cmd_list);
 void    temp_print_tokens(t_token *tokens);
 t_token *tokenizer(char *user_input, t_info *info);
+void restore_explicit_empty_quotes(t_token **head_ref, const char *user_input);
 
 
 void main_initialize(t_info *info, char **envp)
@@ -237,6 +238,7 @@ int main(int ac, char **av, char **envp)
 
 		// Лексический анализ
 		// tokens = tokenize(line);
+		info.input = line;
 		tokens = tokenizer(line, &info);
 		if (!tokens)
 		{
@@ -246,6 +248,8 @@ int main(int ac, char **av, char **envp)
 		// expansion(&tokens, &info);
 
 		adjusting_token_tree(&tokens);
+
+		restore_explicit_empty_quotes(&tokens, info.input);
 
 		// Построение списка команд
 		commands = parse_tokens_to_commands(tokens);
