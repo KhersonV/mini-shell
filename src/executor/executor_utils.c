@@ -6,11 +6,45 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:09:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/03 11:48:25 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/03 16:34:19 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
+
+int handle_heredoc(const char *delimiter)
+{
+    int pipefd[2];
+    char *line;
+
+    if (pipe(pipefd) == -1)
+    {
+        perror("pipe");
+        return -1;
+    }
+    while (1)
+    {
+        line = readline("> ");  // приглашение для heredoc
+        if (!line) 
+        {
+            // ctrl-d (EOF) — прерываем, как будто пользователь ввёл delimiter
+            break;
+        }
+        // Если пользователь ввёл delimiter (пример: "STOP")
+        if (ft_strcmp(line, delimiter) == 0)
+        {
+            free(line);
+            break;
+        }
+        // Пишем введённую строку + \n в pipe
+        write(pipefd[1], line, ft_strlen(line));
+        write(pipefd[1], "\n", 1);
+        free(line);
+    }
+    // Закрываем сторону записи, т.к. будем читать из pipefd[0]
+    close(pipefd[1]);
+    return pipefd[0];
+}
 
 int handle_redirections(t_redirection *redirects)
 {
@@ -18,12 +52,19 @@ int handle_redirections(t_redirection *redirects)
 
     while (redirects)
     {
-        if (redirects->type == TOKEN_REDIRECT_OUT) // >
+        // Проверка на обычные редиректы
+        if (redirects->type == TOKEN_REDIRECT_OUT) // '>'
             fd = open(redirects->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-        else if (redirects->type == TOKEN_REDIRECT_APPEND) // >>
+        else if (redirects->type == TOKEN_REDIRECT_APPEND) // '>>'
             fd = open(redirects->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
-        else if (redirects->type == TOKEN_REDIRECT_IN) // <
+        else if (redirects->type == TOKEN_REDIRECT_IN) // '<'
             fd = open(redirects->filename, O_RDONLY);
+        else if (redirects->type == TOKEN_HEREDOC) // '<<'
+        {
+            fd = handle_heredoc(redirects->filename);
+            if (fd == -1)
+                return 0; // Ошибка при pipe / readline
+        }
         else
         {
             fprintf(stderr, "minishell: Unsupported redirection type\n");
@@ -32,18 +73,34 @@ int handle_redirections(t_redirection *redirects)
 
         if (fd == -1)
         {
-            perror(redirects->filename);
+            // Ошибка открытия файла или создания pipe
+            if (redirects->type != TOKEN_HEREDOC)
+                perror(redirects->filename);
             return 0;
         }
 
-        if (dup2(fd, (redirects->type == TOKEN_REDIRECT_IN) ? STDIN_FILENO : STDOUT_FILENO) == -1)
+        // Делаем dup2( fd, STDIN ), если это ввод (TOKEN_REDIRECT_IN или HEREDOC)
+        // И dup2( fd, STDOUT ), если это вывод ('>' или '>>').
+        if (redirects->type == TOKEN_REDIRECT_IN || redirects->type == TOKEN_HEREDOC)
         {
-            perror("dup2");
-            close(fd);
-            return 0;
+            if (dup2(fd, STDIN_FILENO) == -1)
+            {
+                perror("dup2");
+                close(fd);
+                return 0;
+            }
         }
-
-        close(fd);
+        else
+        {
+            // Это > или >>
+            if (dup2(fd, STDOUT_FILENO) == -1)
+            {
+                perror("dup2");
+                close(fd);
+                return 0;
+            }
+        }
+        close(fd); // Закрываем fd, ведь он уже перенаправлен
         redirects = redirects->next;
     }
     return 1;
