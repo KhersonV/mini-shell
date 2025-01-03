@@ -117,6 +117,15 @@
 //     }
 // }
 
+static int is_delim_char(char c)
+{
+    if (c == '\0' || c == ' ' || (c >= 9 && c <= 13))
+        return 1;
+    if (c == '|' || c == '<' || c == '>')
+        return 1;
+    return 0;
+}
+
 
 char *expand_variable(char *var_name, t_info *info);
 static char* expand_dollar(const char *input, int *consumed, t_info *info);
@@ -197,6 +206,7 @@ static char* read_var_name(const char *input, int *consumed)
     *consumed = 0;
     return NULL;
 }
+
 
 
 char	*print_token(int current_token)
@@ -352,7 +362,6 @@ static char* read_dollar_quoted(const char *input, int *consumed, t_info *info)
                 // Раскрытие переменной внутри $"..."
                 int var_consumed = 0;
                 char *expanded = expand_dollar(&input[i], &var_consumed, info);
-				printf("last dollar sign is - %s\n", expanded);
                 if (!expanded)
                 {
                     // На случай, если expand_dollar вернёт NULL —  
@@ -504,6 +513,107 @@ t_token	*add_token(t_token *node, char *name, int type)
 	new_node->prev = curr;
 	return (node);
 }
+
+// void restore_explicit_empty_quotes(t_token **head_ref, const char *user_input)
+// {
+//     int i = 0;
+//     while (user_input[i])
+//     {
+//         // Проверим паттерн '', длина = 2
+//         if (user_input[i] == '\'' && user_input[i + 1] == '\'')
+//         {
+//             // Слева должен быть либо i == 0, либо delim
+//             // Справа должен быть user_input[i+2] == '\0' или delim
+//             char left  = (i > 0) ? user_input[i-1] : '\0';
+//             char right = user_input[i+2]; // может быть '\0'
+//             if ( (i == 0 || is_delim_char(left)) 
+//                  && is_delim_char(right) )
+//             {
+//                 // Нашли отдельные ''.
+//                 // Проверим, есть ли уже пустой токен?
+//                 int has_empty = 0;
+//                 // Пробежимся по списку (простое решение)
+//                 for (t_token *tmp = *head_ref; tmp; tmp = tmp->next)
+//                 {
+//                     if (tmp->str && tmp->str[0] == '\0')
+//                     {
+//                         // Нашли какой-то пустой токен
+//                         has_empty = 1;
+//                         break;
+//                     }
+//                 }
+//                 if (!has_empty)
+//                 {
+//                     // Добавим его в список (в конец, упрощённо)
+//                     *head_ref = add_token(*head_ref, "", TOKEN_ARGUMENT);
+//                 }
+//             }
+//             i += 2;
+//             continue;
+//         }
+//         // Аналогично проверяем `""`:
+//         if (user_input[i] == '"' && user_input[i + 1] == '"')
+//         {
+//             char left  = (i > 0) ? user_input[i-1] : '\0';
+//             char right = user_input[i+2];
+//             if ( (i == 0 || is_delim_char(left))
+//                  && is_delim_char(right))
+//             {
+//                 int has_empty = 0;
+//                 for (t_token *tmp = *head_ref; tmp; tmp = tmp->next)
+//                 {
+//                     if (tmp->str && tmp->str[0] == '\0')
+//                     {
+//                         has_empty = 1;
+//                         break;
+//                     }
+//                 }
+//                 if (!has_empty)
+//                 {
+//                     *head_ref = add_token(*head_ref, "", TOKEN_ARGUMENT);
+//                 }
+//             }
+//             i += 2;
+//             continue;
+//         }
+//         i++;
+//     }
+// }
+
+void restore_explicit_empty_quotes(t_token **head_ref, const char *user_input)
+{
+    int i = 0;
+    while (user_input[i])
+    {
+        // Проверяем '' (2 символа подряд)
+        if (user_input[i] == '\'' && user_input[i + 1] == '\'')
+        {
+            char left  = (i > 0) ? user_input[i-1] : '\0';
+            char right = user_input[i+2];
+            if ((i == 0 || is_delim_char(left)) && is_delim_char(right))
+            {
+                // Добавляем пустой токен без проверки has_empty
+                *head_ref = add_token(*head_ref, "", TOKEN_ARGUMENT);
+            }
+            i += 2;
+            continue;
+        }
+        // Проверяем ""
+        if (user_input[i] == '"' && user_input[i + 1] == '"')
+        {
+            char left  = (i > 0) ? user_input[i-1] : '\0';
+            char right = user_input[i+2];
+            if ((i == 0 || is_delim_char(left)) && is_delim_char(right))
+            {
+                *head_ref = add_token(*head_ref, "", TOKEN_ARGUMENT);
+            }
+            i += 2;
+            continue;
+        }
+        i++;
+    }
+}
+
 
 void	flush_buf_if_needed(t_token **curr, char *buf, int *buf_index)
 {
