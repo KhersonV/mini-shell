@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/04 16:20:45 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/04 23:28:03 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -326,9 +326,12 @@ int main(int ac, char **av, char **envp)
 
 		adjusting_token_tree(&tokens, &info);
 		// validate_syntax_and_adjust(&tokens);
-		
-		restore_explicit_empty_quotes(&tokens, info.input);
 
+		//restore_explicit_empty_quotes(&tokens, info.input);
+
+		// printf("tokens:\n");
+		// print_tokens(tokens);
+		// printf("------\n");
 
 		// Построение списка команд
 		commands = parse_tokens_to_commands(tokens);

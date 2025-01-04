@@ -627,15 +627,15 @@ static int read_unquoted(const char *input, char *buf, int *buf_index, int buf_s
 t_token *tokenizer(char *user_input, t_info *info)
 {
 	t_token *head = NULL;
-
 	char buf[1024];
 	int buf_index = 0;
+	int old_index;
+	int	consumed;
+	char c;
 
 	int i = 0;
-
-	while(user_input[i] != '\0')
+	while (user_input[i] != '\0')
 	{
-		// printf("next char - [%c]\n", user_input[i]);
 		if(is_space_char(user_input[i]))
 		{
 			flush_buf_if_needed(&head, buf, &buf_index);
@@ -651,30 +651,57 @@ t_token *tokenizer(char *user_input, t_info *info)
 		}
 		if(user_input[i] == '\'')
 		{
-			int consumed = read_single_quoted(&user_input[i], buf, &buf_index, 1024);
+			old_index = buf_index;
+
+			consumed = read_single_quoted(&user_input[i],
+											  buf, &buf_index,
+											  sizeof(buf));
 			i += consumed;
 
+			if (buf_index == old_index)
+			{
+				c = user_input[i];
+				if (c == '\0' || is_space_char(c) || is_operator_char(c))
+				{
+					buf[buf_index] = '\0';
+					buf_index++;
+					flush_buf_if_needed(&head, buf, &buf_index);
+				}
+			}
 			continue;
 		}
-		if(user_input[i] == '\"')
+		if(user_input[i] == '"')
 		{
-			int consumed = read_double_quoted(&user_input[i], buf, &buf_index, 1024, info);
+			old_index = buf_index;
+
+			consumed = read_double_quoted(&user_input[i],
+											  buf, &buf_index,
+											  sizeof(buf),
+											  info);
 			i += consumed;
-			// printf("i = %d\n", i);
+
+			if (buf_index == old_index)
+			{
+				c = user_input[i];
+				if (c == '\0' || is_space_char(c) || is_operator_char(c))
+				{
+					buf[buf_index] = '\0';
+					buf_index++;
+					flush_buf_if_needed(&head, buf, &buf_index);
+				}
+			}
 			continue;
 		}
-
-		int consumed = read_unquoted(&user_input[i], buf, &buf_index, 1024, info);
-
+		consumed = read_unquoted(&user_input[i],
+									 buf, &buf_index,
+									 sizeof(buf),
+									 info);
 		i += consumed;
 	}
-
 	flush_buf_if_needed(&head, buf, &buf_index);
-
-	// printf("buffer end: %s\n", buf);
-	// printf("final buf = %s", buf);
 	return head;
 }
+
 
 void adjusting_token_tree(t_token **tree, t_info *info)
 {

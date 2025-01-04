@@ -237,3 +237,253 @@ void expansion(t_token **tokens, t_info *info)
 		curr = curr->next;
 	}
 }
+
+/*
+
+>> '$USER'
+cat $USER
+/bin/rm -f '$USER'
+
+sig fault, check arguments that goes to execute
+
+>> '$USER'
+cat '$USER'
+/bin/rm -f '$USER'
+
+same. ask gpt about this command
+
+echo '' -n
+------
+echo "" "" "" -n -n -n -n
+-------
+cat << $USER
+why
+not
+$USER
+-------
+these 3 stdout errors
+----------
+cat << "$US"E"R"
+because
+we
+love
+bash
+$USER
+
+>> $HOME
+
+>> "$H"OM"E"
+cat OME
+/bin/rm -f OME
+
+>> "$USER'$USER'"
+cat "$USER'$USER'"
+/bin/rm -f "$USER'$USER'"
+
+>> "$USER"
+cat $USER
+/bin/rm -f $USER
+
+-------
+
+ENV
+
+
+'''''''''''''''' echo ok
+
+echo "$"$'$'$"$"$"$"$'$'
+
+
+export
+----wrong stdout.
+
+
+ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls
+
+ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls | ls
+?????
+
+
+----------------------------
+probably very complicated, left untill end?
+
+ls | cat << stop | grep "asd"
+is this good
+stop
+
+ls | cat << stop | ls -la | cat << stop1
+12
+32232
+23
+stop
+awdaw
+daswd
+stop1
+
+ls | cat << stop | ls -la | cat << stop1 | ls | cat << stop2 | ls -la | cat << stop3
+$USER
+ad
+as $HOME
+stop
+awd
+wf$PWDdqwdwqd
+stop1
+das
+das
+stop2
+dsq
+wd
+wf$PWDdqwdwqd
+stop3
+
+ls | cat << stop | ls -la | cat << stop1 | ls | cat << stop2 | ls -la > out | cat << 'stop3'
+$USER
+ad
+stop
+dsa
+stop1
+sad
+stop2
+as $HOME
+stop3
+/bin/rm -f out
+
+ls | cat << stop | ls -la | cat << stop1 | ls | cat << stop2 | ls -la > > out | cat << stop3
+fe
+wf
+fwe
+f
+stop
+dw
+stop1
+dwasd
+stop2
+cat Makefile | ls > out
+cat out
+/bin/rm -f out
+
+ls | cat << stop | ls -la > out0| cat << stop1 | ls | cat << stop2 | ls -la >> out | cat << stop3
+fe
+wf
+fwe
+f
+stop
+dw
+stop1
+dw
+stop2
+e
+wf
+stop3
+/bin/rm -f out
+/bin/rm -f out0
+
+---------
+ls|cat Makefile|cat<<asd>out
+$USER
+asd
+/bin/rm -f out
+
+ls|cat Makefile|cat<<'asd'>out
+$USER
+asd
+/bin/rm -f out
+
+ls|cat Makefile|cat<<"asd">out
+$USER
+asd
+/bin/rm -f out
+
+pwd
+ls|cat Makefile|>> out|cd ..
+/bin/rm -f out
+pwd
+
+-------------
+
+/bin/echo 42 > /dev/null > /dev/null > /dev/null > /dev/null > tmp_redir_out
+cat tmp_redir_out
+rm tmp_redir_out
+
+/bin/echo 42 > tmp_redir_out > tmp_redir_out1 > tmp_redir_out2 > tmp_redir_out3
+/bin/echo 0
+cat tmp_redir_out
+/bin/echo 1
+cat tmp_redir_out1
+/bin/echo 2
+cat tmp_redir_out2
+/bin/echo 3
+cat tmp_redir_out3
+rm tmp_redir_out tmp_redir_out1 tmp_redir_out2 tmp_redir_out3
+
+/bin/echo 42 > /dev/null > tmp_redir_out
+/bin/echo 2 >> /dev/null >> tmp_redir_out
+cat tmp_redir_out
+rm tmp_redir_out
+-------
+
+> out
+/bin/rm -f out
+
+< out
+/bin/rm -f out
+
+>> out
+/bin/rm -f out
+-------------
+
+unset PATH
+cd /bin
+ls
+
+unset PATH
+cd /bin/../bin/
+ls
+
+unset PATH
+echo $PATH
+/bin/ls
+echo 1
+cd -
+echo 42
+
+cd ~/Desktop/
+pwd
+
+env -i ./minishell
+cd /bin/
+ls
+
+touch tmp_x_file1
+tmp_x_file1
+echo $?
+./tmp_x_file1
+echo $?
+export PATH=$HOME
+echo $PATH
+tmp_x_file1
+echo $?
+./tmp_x_file1
+echo $?
+unset PATH
+tmp_x_file1
+echo $?
+./tmp_x_file1
+echo $?
+echo 42
+/bin/rm -f tmp_x_file1
+
+export test="arg1	arg2"
+echo 'echo $1' > tmp_test_sh
+bash tmp_test_sh $test
+echo 'echo $2' > tmp_test_sh
+bash tmp_test_sh $test
+rm -f tmp_test_sh
+
+echo "env | /usr/bin/wc -l" | env -i $MINISHELL_PATH"/"$EXECUTABLE
+echo $?
+
+echo "unset PATH" | env -i $MINISHELL_PATH"/"$EXECUTABLE
+echo $?
+
+*/
