@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/03 16:23:39 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/04 13:41:19 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,11 @@ void	execute_commands(t_exec_command *commands, t_info *info)
 {
 	if (!commands)
 		return ;
+	if (!prepare_heredocs(commands))
+	{
+		info->exit_status = 1; 
+		return;
+	}
 	if (commands->next_cmd)
 		execute_pipeline(commands, info);
 	else
@@ -44,6 +49,7 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 		restore_standard_fds(saved_stdin, saved_stdout);
 		return ;
 	}
+
 	path = find_command(command->cmd_name, info->envp);
 	if (!path)
 	{
@@ -57,6 +63,7 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 		free(path);
 		return ;
 	}
+
 	if (pid == 0)
 	{
 		if (!handle_redirections(command->redirects))
@@ -97,15 +104,12 @@ int	**init_pipes(int num_cmds)
 
 	pipes = ft_calloc(num_cmds - 1, sizeof(int *));
 	if (!pipes)
-	{ // quit_program(EXIT_FAILURE);
-	}
+		return (NULL);
 	for (int i = 0; i < num_cmds - 1; i++)
 	{
 		pipes[i] = ft_calloc(2, sizeof(int));
 		if (!pipes[i] || pipe(pipes[i]) == -1)
-		{
-			// quit_program(EXIT_FAILURE);
-		}
+			return (NULL);
 	}
 	return (pipes);
 }
@@ -153,11 +157,17 @@ void	execute_pipeline(t_exec_command *commands, t_info *info)
 	char			*path;
 	int				status;
 
-	process_index = 0;
 	num_cmds = count_commands(commands);
-	current = commands;
-	// Инициализация пайпов
+	if (num_cmds <= 0)
+		return;
 	pipes = init_pipes(num_cmds);
+	if (!pipes)
+	{
+		info->exit_status = 1;
+		return;
+	}
+	process_index = 0;
+	current = commands;
 	while (current)
 	{
 		pid = fork();
@@ -167,9 +177,8 @@ void	execute_pipeline(t_exec_command *commands, t_info *info)
 			free_pipes(pipes, num_cmds);
 			return ;
 		}
-		if (pid == 0) // Дочерний процесс
+		if (pid == 0)
 		{
-			// Настройка входа/выхода
 			if (process_index > 0)
 				dup2(pipes[process_index - 1][0], STDIN_FILENO);
 			if (process_index < num_cmds - 1)
@@ -177,7 +186,6 @@ void	execute_pipeline(t_exec_command *commands, t_info *info)
 			free_pipes(pipes, num_cmds);
 			if (!handle_redirections(current->redirects))
 				exit(EXIT_FAILURE);
-			// Выполняем builtin или execve
 			if (is_builtin(current->cmd_name))
 				exit(execute_builtin_in_child(current, info));
 			else

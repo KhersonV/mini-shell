@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
+/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/03 16:02:18 by snazarov         ###   ########.fr       */
+/*   Updated: 2025/01/04 13:39:03 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,6 +139,8 @@ char						**remove_env_entry(char **env, int index);
 void						exit_shell(t_info *info);
 
 /* Executor */
+int							handle_redirections(t_redirection *redirects);
+int							prepare_heredocs(t_exec_command *commands);
 void						execute_commands(t_exec_command *commands,
 								t_info *info);
 void						execute_pipeline(t_exec_command *commands,
