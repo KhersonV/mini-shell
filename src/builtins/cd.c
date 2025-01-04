@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:04 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/02 16:45:36 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/04 14:55:10 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,11 @@
 
 void	ft_cd(char **args, t_info *info)
 {
-	char	*dir;
+	char	*dir = NULL;
 	char	cwd[PATH_MAX];
 	char	*home;
 
-	dir = NULL;
-	// printf("args in cd = %s\n", args[1]);
-	// Получение текущего каталога перед сменой
+	// Получение текущего каталога
 	if (!getcwd(cwd, sizeof(cwd)))
 	{
 		perror("minishell: getcwd");
@@ -28,7 +26,7 @@ void	ft_cd(char **args, t_info *info)
 		return ;
 	}
 
-	// Обработка команды без аргументов, "~", или пустой строки
+	// Обработка случая без аргументов или с "~"
 	if (!args[1] || ft_strcmp(args[1], "~") == 0)
 	{
 		home = get_env_value(info, "HOME");
@@ -40,24 +38,19 @@ void	ft_cd(char **args, t_info *info)
 		}
 		dir = home;
 	}
-	else if (ft_strcmp(args[1], "") == 0) // Если аргумент - пустая строка
-	{
-		// Не меняем каталог, просто выходим из функции
-		info->exit_status = 0;
-		return ;
-	}
-	else if (ft_strcmp(args[1], "-") == 0) // Обработка команды cd -
+	// Обработка "cd -"
+	else if (ft_strcmp(args[1], "-") == 0)
 	{
 		dir = get_env_value(info, "OLDPWD");
-		if (!dir)
+		if (!dir || dir[0] == '\0')
 		{
-			ft_putendl_fd("minishell: cd: OLDPWD not set", 2);
+			ft_putendl_fd("minishell: cd: OLDPWD not set", STDERR_FILENO);
 			info->exit_status = 1;
 			return ;
 		}
 		ft_putendl_fd(dir, STDOUT_FILENO);
 	}
-	else // Обработка команды с указанным аргументом
+	else // Указан путь
 	{
 		dir = args[1];
 	}

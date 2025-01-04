@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/04 13:41:19 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/04 16:24:12 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,12 @@
 
 void	execute_commands(t_exec_command *commands, t_info *info)
 {
+	if (commands->cmd_name && ft_strlen(commands->cmd_name) == 0)
+{
+    ft_putstr_fd("minishell: : No such file or directory\n", STDERR_FILENO);
+    info->exit_status = 127;
+    return;
+}
 	if (!commands)
 		return ;
 	if (!prepare_heredocs(commands))
@@ -21,6 +27,12 @@ void	execute_commands(t_exec_command *commands, t_info *info)
 		info->exit_status = 1; 
 		return;
 	}
+	 if (commands->cmd_name && ft_strlen(commands->cmd_name) == 0)
+    {
+        ft_putstr_fd("minishell: : No such file or directory\n", STDERR_FILENO);
+        info->exit_status = 127;
+        return;
+    }
 	if (commands->next_cmd)
 		execute_pipeline(commands, info);
 	else
@@ -141,7 +153,7 @@ int	execute_builtin_in_child(t_exec_command *command, t_info *info)
 	else if (ft_strcmp(command->cmd_name, "env") == 0)
 		ft_env(command, info);
 	else if (ft_strcmp(command->cmd_name, "unset") == 0)
-		unset_env(command->args, info);
+		unset_env(command, info);
 	else if (ft_strcmp(command->cmd_name, "exit") == 0)
 		ft_exit(command->args, info);
 	return (info->exit_status);
@@ -242,7 +254,7 @@ void	execute_builtin(t_exec_command *command, t_info *info)
 	else if (ft_strcmp(command->cmd_name, "env") == 0)
 		ft_env(command, info);
 	else if (ft_strcmp(command->cmd_name, "unset") == 0)
-		unset_env(command->args, info);
+		unset_env(command, info);
 	else if (ft_strcmp(command->cmd_name, "exit") == 0)
 		ft_exit(command->args, info);
 	restore_standard_fds(saved_stdin, saved_stdout);

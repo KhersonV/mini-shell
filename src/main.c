@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
+/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/03 16:17:29 by snazarov         ###   ########.fr       */
+/*   Updated: 2025/01/04 16:20:45 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,6 +155,81 @@
 
 /****************************************************** FOR TEST ******************************************************************/
 
+
+
+void print_redirections(t_redirection *redirects)
+{
+    while (redirects)
+    {
+        printf("  Redirection type: %d\n", redirects->type);
+        printf("  Filename: %s\n", redirects->filename ? redirects->filename : "(null)");
+        redirects = redirects->next;
+    }
+}
+
+void print_exec_command(t_exec_command *commands)
+{
+    t_exec_command *current = commands;
+    int command_index = 0;
+
+    while (current)
+    {
+        printf("\nCommand %d:\n", command_index);
+        printf("  Command name: %s\n", current->cmd_name ? current->cmd_name : "(null)");
+        printf("  Execution path: %s\n", current->exec_path ? current->exec_path : "(null)");
+
+        // Print arguments
+        if (current->args)
+        {
+            printf("  Arguments:\n");
+            for (int i = 0; current->args[i]; i++)
+            {
+                printf("    [%d]: %s\n", i, current->args[i]);
+            }
+        }
+        else
+        {
+            printf("  Arguments: (null)\n");
+        }
+
+        // Print redirections
+        if (current->redirects)
+        {
+            printf("  Redirections:\n");
+            print_redirections(current->redirects);
+        }
+        else
+        {
+            printf("  Redirections: (none)\n");
+        }
+
+        printf("  Exit status: %d\n", current->exit_status);
+        printf("  Next command: %s\n", current->next_cmd ? "Present" : "(null)");
+        printf("  Previous command: %s\n", current->prev_cmd ? "Present" : "(null)");
+
+        current = current->next_cmd;
+        command_index++;
+    }
+}
+
+void print_tokens(t_token *tokens)
+{
+    t_token *current = tokens;
+    int token_index = 0;
+
+    while (current)
+    {
+        printf("Token %d:\n", token_index);
+        printf("  String: %s\n", current->str ? current->str : "(null)");
+        printf("  Type: %d\n", current->type);
+        printf("  Next: %s\n", current->next ? "Present" : "(null)");
+        printf("  Previous: %s\n", current->prev ? "Present" : "(null)");
+        current = current->next;
+        token_index++;
+    }
+}
+
+
 void print_command_list(t_exec_command *cmd_list);
 void    temp_print_tokens(t_token *tokens);
 t_token *tokenizer(char *user_input, t_info *info);
@@ -240,6 +315,8 @@ int main(int ac, char **av, char **envp)
 		// tokens = tokenize(line);
 		info.input = line;
 		tokens = tokenizer(line, &info);
+// print_tokens(tokens);
+
 		if (!tokens)
 		{
 			free(line);
@@ -257,7 +334,7 @@ int main(int ac, char **av, char **envp)
 		commands = parse_tokens_to_commands(tokens);
 
 		// print_command_list(commands); // Печать команд
-
+		// print_exec_command(commands);
 		if (!commands)
 		{
 			free_token_list(tokens);

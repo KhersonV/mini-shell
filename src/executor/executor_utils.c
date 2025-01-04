@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:09:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/04 13:44:27 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/04 14:58:07 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -172,45 +172,44 @@ char	*find_command(char *command, char **envp)
 	char		*temp;
 	int			i;
 
+	// Если команда содержит '/', предполагаем, что это абсолютный путь
 	if (ft_strchr(command, '/'))
 	{
-		if (stat(command, &statbuf) == 0)
-		{
-			if (S_ISDIR(statbuf.st_mode))
-			{
-				fprintf(stderr, "minishell: %s: is a directory\n", command);
-				return (NULL);
-			}
-			if (access(command, X_OK) == 0)
-				return (ft_strdup(command));
-		}
+		if (stat(command, &statbuf) == 0 && S_ISREG(statbuf.st_mode)
+			&& access(command, X_OK) == 0)
+			return (ft_strdup(command));
+		fprintf(stderr, "minishell: %s: No such file or directory\n", command);
+		return (NULL);
+	}
+
+	// Проверяем переменную PATH
+	path_env = get_env_value_direct(envp, "PATH");
+	if (!path_env || path_env[0] == '\0')
+	{
 		fprintf(stderr, "minishell: %s: command not found\n", command);
 		return (NULL);
 	}
-	path_env = get_env_value_direct(envp, "PATH");
-	if (!path_env)
-		return (NULL);
+
+	// Разделяем PATH на массив путей
 	paths = ft_split(path_env, ':');
 	free(path_env);
 	if (!paths)
 		return (NULL);
+
+	// Проверяем команды в каждом пути
 	i = 0;
-	full_path = NULL;
 	while (paths[i])
 	{
 		temp = ft_strjoin(paths[i], "/");
 		full_path = ft_strjoin(temp, command);
 		free(temp);
-		if (stat(full_path, &statbuf) == 0)
+		if (stat(full_path, &statbuf) == 0 && S_ISREG(statbuf.st_mode)
+			&& access(full_path, X_OK) == 0)
 		{
-			if (!S_ISDIR(statbuf.st_mode) && access(full_path, X_OK) == 0)
-			{
-				ft_free_array(paths);
-				return (full_path);
-			}
+			ft_free_array(paths);
+			return (full_path);
 		}
 		free(full_path);
-		full_path = NULL;
 		i++;
 	}
 	ft_free_array(paths);

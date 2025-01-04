@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 12:43:01 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/29 12:32:38 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/04 15:26:35 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,33 +57,34 @@ void init_env(t_info *info, char **envp)
     int i;
     char *err = "minishell: warning: shell level too high, resetting to 1\n";
 
-    // Копируем окружение
     info->envp = copy_envp(envp);
     if (!info->envp)
         exit(EXIT_FAILURE);
 
-    // Получаем текущее значение SHLVL
+	i = 0;
+	while (info->envp[i])
+	{
+    	if (env_key_compare(info->envp[i], "OLDPWD"))
+    	{
+        	info->envp = remove_env_entry(info->envp, i);
+        	break;
+    	}
+    	i++;
+	}
     shlvl_value = get_env_value(info, "SHLVL");
     if (shlvl_value)
     {
         shlvl = ft_atoi(shlvl_value);
         free(shlvl_value);
-
-        // Увеличиваем SHLVL
         shlvl++;
-        if (shlvl > 999) // В оригинальном bash, SHLVL обнуляется, если > 999
+        if (shlvl > 999)
         {
             ft_putstr_fd(err, STDERR_FILENO);
             shlvl = 1;
         }
     }
     else
-    {
-        // Если SHLVL не существует, устанавливаем его в 1
         shlvl = 1;
-    }
-
-    // Конвертируем число SHLVL в строку
     i = 0;
     while (shlvl > 0)
     {
@@ -91,8 +92,6 @@ void init_env(t_info *info, char **envp)
         shlvl /= 10;
     }
     new_shlvl[i] = '\0';
-
-    // Переворачиваем строку с числом
     int j = 0;
     while (j < i / 2)
     {
@@ -101,8 +100,6 @@ void init_env(t_info *info, char **envp)
         new_shlvl[i - j - 1] = tmp;
         j++;
     }
-
-    // Обновляем или добавляем SHLVL в окружение
     if (set_env(info, "SHLVL", new_shlvl) == -1)
         exit(EXIT_FAILURE);
 }
