@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:04 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/05 12:39:37 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/05 13:05:05 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,12 +18,20 @@ void	ft_cd(char **args, t_info *info)
 	char	cwd[PATH_MAX];
 	char	*home;
 
+	// Проверка на NULL для args
+	if (!args)
+	{
+		ft_putendl_fd("minishell: cd: Invalid arguments", 2);
+		info->exit_status = 1;
+		return;
+	}
+
 	// Получение текущего каталога
 	if (!getcwd(cwd, sizeof(cwd)))
 	{
 		perror("minishell: getcwd");
 		info->exit_status = 1;
-		return ;
+		return;
 	}
 
 	// Обработка случая без аргументов или с "~"
@@ -34,7 +42,7 @@ void	ft_cd(char **args, t_info *info)
 		{
 			ft_putendl_fd("minishell: cd: HOME not set", 2);
 			info->exit_status = 1;
-			return ;
+			return;
 		}
 		dir = home;
 	}
@@ -46,14 +54,14 @@ void	ft_cd(char **args, t_info *info)
 		{
 			ft_putendl_fd("minishell: cd: HOME not set", 2);
 			info->exit_status = 1;
-			return ;
+			return;
 		}
-		dir = ft_strjoin(home, args[1] + 1); // Соединяем HOME и остаток пути после '~'
+		dir = ft_strjoin(home, args[1] + 1); // Объединяем HOME с остатком пути
 		if (!dir)
 		{
 			ft_putendl_fd("minishell: cd: memory allocation failed", 2);
 			info->exit_status = 1;
-			return ;
+			return;
 		}
 	}
 	// Обработка "cd -"
@@ -64,7 +72,7 @@ void	ft_cd(char **args, t_info *info)
 		{
 			ft_putendl_fd("minishell: cd: OLDPWD not set", STDERR_FILENO);
 			info->exit_status = 1;
-			return ;
+			return;
 		}
 		ft_putendl_fd(dir, STDOUT_FILENO);
 	}
@@ -78,9 +86,9 @@ void	ft_cd(char **args, t_info *info)
 	{
 		perror("minishell: cd");
 		info->exit_status = 1;
-		if (args[1][0] == '~') // Освобождаем память, если использовали ft_strjoin
+		if (args[1] && args[1][0] == '~') // Освобождаем память, если использовали ft_strjoin
 			free(dir);
-		return ;
+		return;
 	}
 
 	// Обновление OLDPWD
@@ -88,9 +96,9 @@ void	ft_cd(char **args, t_info *info)
 	{
 		ft_putendl_fd("minishell: cd: failed to set OLDPWD", 2);
 		info->exit_status = 1;
-		if (args[1][0] == '~')
+		if (args[1] && args[1][0] == '~')
 			free(dir);
-		return ;
+		return;
 	}
 
 	// Получение нового текущего каталога
@@ -98,9 +106,9 @@ void	ft_cd(char **args, t_info *info)
 	{
 		perror("minishell: getcwd");
 		info->exit_status = 1;
-		if (args[1][0] == '~')
+		if (args[1] && args[1][0] == '~')
 			free(dir);
-		return ;
+		return;
 	}
 
 	// Обновление PWD
@@ -108,13 +116,13 @@ void	ft_cd(char **args, t_info *info)
 	{
 		ft_putendl_fd("minishell: cd: failed to set PWD", 2);
 		info->exit_status = 1;
-		if (args[1][0] == '~')
+		if (args[1] && args[1][0] == '~')
 			free(dir);
-		return ;
+		return;
 	}
 
 	// Освобождаем память, если использовали ft_strjoin
-	if (args[1][0] == '~')
+	if (args[1] && args[1][0] == '~')
 		free(dir);
 
 	info->exit_status = 0;
