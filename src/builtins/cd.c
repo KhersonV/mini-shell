@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:04 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/05 13:15:11 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/05 15:11:20 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,14 +55,20 @@ char	*resolve_target_directory(char **args, t_info *info)
 			ft_putendl_fd("minishell: cd: memory allocation failed", 2);
 		return (dir);
 	}
-	else if (ft_strcmp(args[1], "-") == 0)
+	else if (ft_strcmp(args[1], "-") == 0 || ft_strcmp(args[1], "--") == 0)
 	{
-		dir = get_env_value(info, "OLDPWD");
-		if (!dir || dir[0] == '\0')
-			ft_putendl_fd("minishell: cd: OLDPWD not set", STDERR_FILENO);
-		else
+		if (ft_strcmp(args[1], "-") == 0)
+		{
+			dir = get_env_value(info, "OLDPWD");
+			if (!dir || dir[0] == '\0')
+			{
+				ft_putendl_fd("minishell: cd: OLDPWD not set", STDERR_FILENO);
+				return (NULL);
+			}
 			ft_putendl_fd(dir, STDOUT_FILENO);
-		return (dir);
+			return (dir);
+		}
+		return (get_home_directory(info));
 	}
 	return (args[1]);
 }
