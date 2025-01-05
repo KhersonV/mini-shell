@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:04 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/04 14:55:10 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/05 12:39:37 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,24 @@ void	ft_cd(char **args, t_info *info)
 		}
 		dir = home;
 	}
+	// Обработка случая, когда путь начинается с '~'
+	else if (args[1][0] == '~')
+	{
+		home = get_env_value(info, "HOME");
+		if (!home)
+		{
+			ft_putendl_fd("minishell: cd: HOME not set", 2);
+			info->exit_status = 1;
+			return ;
+		}
+		dir = ft_strjoin(home, args[1] + 1); // Соединяем HOME и остаток пути после '~'
+		if (!dir)
+		{
+			ft_putendl_fd("minishell: cd: memory allocation failed", 2);
+			info->exit_status = 1;
+			return ;
+		}
+	}
 	// Обработка "cd -"
 	else if (ft_strcmp(args[1], "-") == 0)
 	{
@@ -60,6 +78,8 @@ void	ft_cd(char **args, t_info *info)
 	{
 		perror("minishell: cd");
 		info->exit_status = 1;
+		if (args[1][0] == '~') // Освобождаем память, если использовали ft_strjoin
+			free(dir);
 		return ;
 	}
 
@@ -68,6 +88,8 @@ void	ft_cd(char **args, t_info *info)
 	{
 		ft_putendl_fd("minishell: cd: failed to set OLDPWD", 2);
 		info->exit_status = 1;
+		if (args[1][0] == '~')
+			free(dir);
 		return ;
 	}
 
@@ -76,6 +98,8 @@ void	ft_cd(char **args, t_info *info)
 	{
 		perror("minishell: getcwd");
 		info->exit_status = 1;
+		if (args[1][0] == '~')
+			free(dir);
 		return ;
 	}
 
@@ -84,8 +108,14 @@ void	ft_cd(char **args, t_info *info)
 	{
 		ft_putendl_fd("minishell: cd: failed to set PWD", 2);
 		info->exit_status = 1;
+		if (args[1][0] == '~')
+			free(dir);
 		return ;
 	}
+
+	// Освобождаем память, если использовали ft_strjoin
+	if (args[1][0] == '~')
+		free(dir);
 
 	info->exit_status = 0;
 }

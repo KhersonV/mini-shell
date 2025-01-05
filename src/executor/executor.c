@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/04 16:24:12 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/05 12:55:05 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,12 +27,6 @@ void	execute_commands(t_exec_command *commands, t_info *info)
 		info->exit_status = 1; 
 		return;
 	}
-	 if (commands->cmd_name && ft_strlen(commands->cmd_name) == 0)
-    {
-        ft_putstr_fd("minishell: : No such file or directory\n", STDERR_FILENO);
-        info->exit_status = 127;
-        return;
-    }
 	if (commands->next_cmd)
 		execute_pipeline(commands, info);
 	else
@@ -49,6 +43,19 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 
 	saved_stdout = dup(STDOUT_FILENO);
 	saved_stdin = dup(STDIN_FILENO);
+
+	if (!command->cmd_name || ft_strlen(command->cmd_name) == 0)
+	{
+		if (!handle_redirections(command->redirects))
+		{
+			restore_standard_fds(saved_stdin, saved_stdout);
+			info->exit_status = 1;
+			return;
+		}
+		restore_standard_fds(saved_stdin, saved_stdout);
+		info->exit_status = 0; // Просто создаём файл
+		return;
+	}
 	if (is_builtin(command->cmd_name))
 	{
 		if (!handle_redirections(command->redirects))
