@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:20 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/04 13:52:45 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/05 17:12:38 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,33 +30,22 @@ int	is_n_flag(const char *arg)
 	return (1);
 }
 
-void print_with_escape(const char *str)
+void	print_with_escape(const char *str)
 {
-    while (*str)
-    {
-        // Если это бэкслэш или доллар,
-        // то перед ним выведем ещё один бэкслэш
-        
-
-        // Выводим сам символ (либо обычный, либо уже "экранированный")
-        putchar(*str);
-        str++;
-    }
+	while (*str)
+	{
+		printf("%c", *str);
+		str++;
+	}
 }
 
 void	ft_echo(t_exec_command *command, t_info *info)
 {
 	int	i;
 	int	newline;
-// int k = 0;
 
 	i = 1;
 	newline = 1;
-	// while (command->args[k])
-	// {
-	// 	printf("args n %d = %s\n", k, command->args[k]);
-	// 	k++;
-	// }
 	while (command->args[i] && is_n_flag(command->args[i]))
 	{
 		newline = 0;
@@ -66,10 +55,10 @@ void	ft_echo(t_exec_command *command, t_info *info)
 	{
 		print_with_escape(command->args[i]);
 		if (command->args[i + 1])
-			putchar(' ');
+			printf("%c", ' ');
 		i++;
 	}
 	if (newline)
-		putchar('\n');
+		printf("%c", '\n');
 	info->exit_status = 0;
 }
