@@ -6,11 +6,29 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/05 15:44:09 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/05 19:17:03 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
+
+// static pid_t   s_pids[MAX_PROCESSES];
+// static int     s_count = 0;
+
+// Обработчик SIGINT во время выполнения конвейера
+// static void sigint_handler_killchildren(int signo)
+// {
+//     (void)signo;
+//     // Просто перевод строки для аккуратности
+//     write(STDOUT_FILENO, "\n", 1);
+//     // Убьём всех потомков, что мы зафоркали
+//     for (int i = 0; i < s_count; i++)
+//     {
+//         if (s_pids[i] > 0)
+//             kill(s_pids[i], SIGINT);
+//     }
+//     // Не выводим prompt, не чистим строку — дождёмся waitpid
+// }
 
 void	execute_commands(t_exec_command *commands, t_info *info)
 {
@@ -108,6 +126,7 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 		return;
 	}
 
+	// g_in_child = 1;
 	// Ищем команду в PATH
 	path = find_command(command->cmd_name, info->envp);
 	if (!path)
@@ -121,6 +140,7 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 	pid = fork();
 	if (pid == -1)
 	{
+		// g_in_child = 0;
 		perror("fork");
 		free(path);
 		restore_standard_fds(saved_stdin, saved_stdout);
@@ -135,6 +155,7 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 		/* if (!handle_redirections(command->redirects))
 			exit(EXIT_FAILURE);
 		*/
+		reset_signals_to_default();
 		execve(path, command->args, info->envp);
 		perror("execve");
 		free(path);
@@ -144,6 +165,7 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 	{
 		free(path);
 		waitpid(pid, &status, 0);
+		// g_in_child = 0;
 		if (WIFEXITED(status))
 			info->exit_status = WEXITSTATUS(status);
 		else if (WIFSIGNALED(status))
@@ -236,6 +258,7 @@ void	execute_pipeline(t_exec_command *commands, t_info *info)
 		info->exit_status = 1;
 		return;
 	}
+	// g_in_child = 1;
 	process_index = 0;
 	current = commands;
 	while (current)
@@ -249,6 +272,7 @@ void	execute_pipeline(t_exec_command *commands, t_info *info)
 		}
 		if (pid == 0)
 		{
+			reset_signals_to_default();
 			if (process_index > 0)
 				dup2(pipes[process_index - 1][0], STDIN_FILENO);
 			if (process_index < num_cmds - 1)
@@ -278,6 +302,7 @@ void	execute_pipeline(t_exec_command *commands, t_info *info)
 		process_index++;
 		current = current->next_cmd;
 	}
+	// g_in_child = 0;
 	free_pipes(pipes, num_cmds);
 	waitpid(pid, &status, 0);
 	if (WIFEXITED(status))

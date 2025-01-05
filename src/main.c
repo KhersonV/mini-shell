@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
+/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/05 16:17:08 by snazarov         ###   ########.fr       */
+/*   Updated: 2025/01/05 19:17:54 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -229,13 +229,8 @@ void print_tokens(t_token *tokens)
     }
 }
 
-
 void print_command_list(t_exec_command *cmd_list);
-void    temp_print_tokens(t_token *tokens);
 t_token *tokenizer(char *user_input, t_info *info);
-void restore_explicit_empty_quotes(t_token **head_ref, const char *user_input);
-int validate_syntax_and_adjust(t_token **tree);
-
 
 void main_initialize(t_info *info, char **envp)
 {
@@ -278,23 +273,18 @@ int main(int ac, char **av, char **envp)
 	t_exec_command *commands;
 	t_info info;
 
-	// Проверка аргументов
 	if (ac != 1)
 	{
 		printf("minishell: %s: No such file or directory\n", av[1]);
 		return (1);
 	}
-
-	// Инициализация окружения и сигналов
 	main_initialize(&info, envp);
 	init_signals();
-
-	// Основной цикл Shell
 	while (1)
 	{
-		if (isatty(STDIN_FILENO)) // Если программа запущена интерактивно
+		if (isatty(STDIN_FILENO))
 			line = readline("minishell> ");
-		else // Если программа запущена неинтерактивно
+		else
 		{
 			line = get_next_line(STDIN_FILENO);
 			if (line)
@@ -304,63 +294,32 @@ int main(int ac, char **av, char **envp)
 				free(temp);
 			}
 		}
-
-		if (line == NULL) // Обработка Ctrl-D
+		if (line == NULL)
 			exit_shell(&info);
-
-		if (*line != '\0') // Добавление команды в историю
+		if (*line != '\0')
 			add_history(line);
-
-		// Лексический анализ
-		// tokens = tokenize(line);
 		info.input = line;
 		tokens = tokenizer(line, &info);
-// print_tokens(tokens);
-
 		if (!tokens)
 		{
 			free(line);
 			continue;
 		}
-		// expansion(&tokens, &info);
-
 		adjusting_token_tree(&tokens, &info);
-
 		        if (info.syntax_error == 1)
         {
-            // У нас синтаксическая ошибка => info.exit_status уже = 2
-            // Значит не запускаем parse_tokens_to_commands, execute и т.д.
-            // Просто убираем токены/строку и ждём следующую команду
             free_token_list(tokens);
             free(line);
-            continue; // возврат в начало цикла
+            continue; 
         }
-
-		// validate_syntax_and_adjust(&tokens);
-
-		//restore_explicit_empty_quotes(&tokens, info.input);
-
-		// printf("tokens:\n");
-		// print_tokens(tokens);
-		// printf("------\n");
-
-		// Построение списка команд
 		commands = parse_tokens_to_commands(tokens);
-
-		// print_command_list(commands); // Печать команд
-		// print_exec_command(commands);
 		if (!commands)
 		{
 			free_token_list(tokens);
 			free(line);
 			continue;
 		}
-
-		// print_command_list(commands);
-		// Выполнение команд
 		execute_commands(commands, &info);
-
-		// Очистка памяти
 		free_commands(commands);
 		free_token_list(tokens);
 		free(line);
