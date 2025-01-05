@@ -5,8 +5,6 @@
 	/bin/echo $"42$"
 	/bin/echo $USER'$USER'text oui oui     oui  oui $USER oui      $USER ''
 	/bin/echo '' ""
-
-
 */
 
 
@@ -25,27 +23,11 @@ static char* expand_dollar(const char *input, int *consumed, t_info *info);
 
 char *ft_expand_variable(char *var_name, t_info *info)
 {
-	// if (ft_strcmp(var_name, "?") == 0)
-	// {
-	//     char *exit_str = ft_itoa(info->exit_status);
-	//     return exit_str;
-	// }
-	// else if (ft_strcmp(var_name, "$") == 0)
-	// {
-	//     char *pid_str = ft_itoa(getpid());
-	//     return pid_str;
-	// }
-	// else
-	// {
 	char *val = get_env_value(info, var_name);
 	if (val == NULL)
 		return ft_strdup("");
 	return ft_strdup(val);
-	// }
 }
-
-
-
 
 
 // TODO : echo $$HOME,  $$ check.
@@ -413,7 +395,6 @@ void restore_explicit_empty_quotes(t_token **head_ref, const char *user_input)
 	int i = 0;
 	while (user_input[i])
 	{
-		// Проверяем '' (2 символа подряд)
 		if (user_input[i] == '\'' && user_input[i + 1] == '\'')
 		{
 			char left  = (i > 0) ? user_input[i-1] : '\0';
@@ -492,8 +473,7 @@ t_token *add_operator_token(t_token *curr, char current_char, char next_char, in
 		else
 			curr = add_token(curr, ">", TOKEN_REDIRECT_OUT);
 	}
-	// else if (current_char == ' ' || (current_char >= 9 && current_char <= 13))
-	// 	curr = add_token(curr, "[]", TOKEN_SPACE);
+
 	return curr;
 }
 
@@ -702,119 +682,113 @@ t_token *tokenizer(char *user_input, t_info *info)
 	return head;
 }
 
+// int check_pipes_error(t_token *token, t_info *info)
+// {
+// 	if (!token->next)
+// 	{
+// 		fprintf(stderr, "minishell: syntax error near unexpected token `|'\n");
+// 		info->syntax_error = 1;
+// 		info->exit_status = 258;
+// 		return -1;
+// 	}
+// 	if (token->next->type == TOKEN_PIPE)
+// 	{
+// 		fprintf(stderr, "minishell: syntax error near unexpected token `|'\n");
+// 		info->syntax_error = 1;
+// 		info->exit_status = 258;
+// 		return -1;
+// 	}
+// 	return 0;
+// }
 
-void adjusting_token_tree(t_token **tree, t_info *info)
-{
-	t_token *curr;
-	int command_found = 0;
+// int print_syntax_error(char *token_str, t_info *info)
+// {
+//     write(2, "minishell: syntax error near unexpected token `", 47);
+//     write(2, token_str, strlen(token_str));
+//     write(2, "'\n", 2);
+//     info->syntax_error = 1;
+//     info->exit_status = 258;
+//     return -1;
+// }
 
-	info->syntax_error = 0;
+// int validate_redirect_target(t_token *token, t_info *info)
+// {
+//     if (!token->next)
+//         return print_syntax_error( token->str, info);
 
-	if (!tree || !*tree)
-		return;
+//     if (token->next->type == TOKEN_PIPE || token->next->type == TOKEN_REDIRECT_IN ||
+//         token->next->type == TOKEN_REDIRECT_OUT || token->next->type == TOKEN_REDIRECT_APPEND ||
+//         token->next->type == TOKEN_HEREDOC)
+//         return print_syntax_error(token->next->str, info);
 
-	// 1) pipe в начале
-	if ((*tree)->type == TOKEN_PIPE)
-	{
-		fprintf(stderr, "minishell: syntax error near unexpected token `|'\n");
-		info->syntax_error = 1;
-		info->exit_status = 2;
-		return;
-	}
+//     if (token->next->type != TOKEN_COMMAND && token->next->type != TOKEN_ARGUMENT &&
+//         token->next->type != TOKEN_WORD && token->next->type != TOKEN_FIELD &&
+//         token->next->type != TOKEN_EXP_FIELD && token->next->type != TOKEN_VAR &&
+//         token->next->type != TOKEN_EXIT_STATUS)
+//         return print_syntax_error(token->str, info);
 
-	curr = *tree;
-	while (curr)
-	{
-		if (curr->type == TOKEN_PIPE)
-		{
-			command_found = 0;
-			// pipe в конце
-			if (!curr->next)
-			{
-				fprintf(stderr, "minishell: syntax error near unexpected token `|'\n");
-				info->syntax_error = 1;
-				info->exit_status = 258;
-				return;
-			}
-			// pipe подряд: echo | | -> ошибка
-			if (curr->next->type == TOKEN_PIPE)
-			{
-				fprintf(stderr, "minishell: syntax error near unexpected token `|'\n");
-				info->syntax_error = 1;
-				info->exit_status = 258;
-				return;
-			}
-		}
+//     token->next->type = TOKEN_FILE; 
+//     return 0;
+// }
 
-		// Присвоение COMMAND/ARGUMENT
-		if (!command_found &&
-			(curr->type == TOKEN_WORD || curr->type == TOKEN_EXP_FIELD ||
-			 curr->type == TOKEN_FIELD || curr->type == TOKEN_VAR))
-		{
-			curr->type = TOKEN_COMMAND;
-			command_found = 1;
-		}
-		else if (command_found &&
-				 (curr->type == TOKEN_WORD || curr->type == TOKEN_FIELD ||
-				  curr->type == TOKEN_EXP_FIELD || curr->type == TOKEN_VAR
-				  || curr->type == TOKEN_EXIT_STATUS))
-		{
-			curr->type = TOKEN_ARGUMENT;
-		}
+// int redirect_check(t_token *token, t_info *info)
+// {
+//     if (token->type == TOKEN_REDIRECT_IN || token->type == TOKEN_REDIRECT_OUT ||
+//         token->type == TOKEN_REDIRECT_APPEND || token->type == TOKEN_HEREDOC)
+//     {
+//         return validate_redirect_target(token, info);
+//     }
+//     return 0;
+// }
 
-		// Проверка redirect
-		if (curr->type == TOKEN_REDIRECT_IN
-			|| curr->type == TOKEN_REDIRECT_OUT
-			|| curr->type == TOKEN_REDIRECT_APPEND
-			|| curr->type == TOKEN_HEREDOC)
-		{
-			// '>' в конце?
-			if (!curr->next)
-			{
-				fprintf(stderr, "minishell: syntax error near unexpected token `%s'\n",
-						curr->str);
-				info->syntax_error = 1;
-				info->exit_status = 258;
-				return;
-			}
-			// '>' за которым идёт pipe или ещё один '>'
-			if (curr->next->type == TOKEN_PIPE
-				|| curr->next->type == TOKEN_REDIRECT_IN
-				|| curr->next->type == TOKEN_REDIRECT_OUT
-				|| curr->next->type == TOKEN_REDIRECT_APPEND
-				|| curr->next->type == TOKEN_HEREDOC)
-			{
-				fprintf(stderr, "minishell: syntax error near unexpected token `%s'\n",
-						curr->next->str);
-				info->syntax_error = 1;
-				info->exit_status = 258;
-				return;
-			}
+// void adjust_word_token(t_token *token, int *command)
+// {
+// 	if (!(*command) &&
+// 			(token->type == TOKEN_WORD || token->type == TOKEN_EXP_FIELD ||
+// 			 token->type == TOKEN_FIELD || token->type == TOKEN_VAR))
+// 		{
+// 			token->type = TOKEN_COMMAND;
+// 			(*command) = 1;
+// 		}
+// 		else if ((*command) &&
+// 				 (token->type == TOKEN_WORD || token->type == TOKEN_FIELD ||
+// 				  token->type == TOKEN_EXP_FIELD || token->type == TOKEN_VAR
+// 				  || token->type == TOKEN_EXIT_STATUS))
+// 						token->type = TOKEN_ARGUMENT;
+// }
 
-			// Иначе назначаем следующий токен как FILE
-			if (curr->next->type != TOKEN_COMMAND &&
-				curr->next->type != TOKEN_ARGUMENT &&
-				curr->next->type != TOKEN_WORD &&
-				curr->next->type != TOKEN_FIELD &&
-				curr->next->type != TOKEN_EXP_FIELD &&
-				curr->next->type != TOKEN_VAR &&
-				curr->next->type != TOKEN_EXIT_STATUS)
-			{
-				fprintf(stderr, "minishell: syntax error after redirect `%s'\n",
-						curr->str);
-				info->syntax_error = 1;
-				info->exit_status = 258;
-				return;
-			}
-			else
-			{
-				curr->next->type = TOKEN_FILE;
-			}
-		}
+// void adjusting_token_tree(t_token **tree, t_info *info)
+// {
+// 	t_token *curr;
+// 	int command_found; 
+	
+// 	command_found = 0;
+// 	info->syntax_error = 0;
+// 	if (!tree || !*tree)
+// 		return;
+// 	if ((*tree)->type == TOKEN_PIPE)
+// 	{
+// 		fprintf(stderr, "minishell: syntax error near unexpected token `|'\n");
+// 		info->syntax_error = 1;
+// 		info->exit_status = 2;
+// 		return;
+// 	}
+// 	curr = *tree;
+// 	while (curr)
+// 	{
+// 		if (curr->type == TOKEN_PIPE)
+// 		{
+// 			command_found = 0;
+// 			if (check_pipes_error(curr, info) == -1)
+// 				return ;
+// 		}
+// 		adjust_word_token(curr, &command_found);
+// 		if(redirect_check(curr, info) == -1)
+// 			return ;
+// 		curr = curr->next;
+// 	}
+// }
 
-		curr = curr->next;
-	}
-}
 // int main()
 // {
 // 	t_token *test;

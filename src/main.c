@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/05 15:57:30 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/05 16:17:08 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -260,7 +260,7 @@ void process_user_input(char *user_input, t_exec_command **command, t_info *info
 	if (!tokens)
 		free(user_input);
 	expansion(&tokens, info);
-	adjusting_token_tree(&tokens, info);
+	// adjusting_token_tree(&tokens, info);
 	command_ptr = parse_tokens_to_commands(tokens);
 
 
