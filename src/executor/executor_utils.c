@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:09:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/05 14:41:24 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/05 15:57:20 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,18 +91,37 @@ int	prepare_heredocs(t_exec_command *commands)
 	return (1);
 }
 
+static t_redirection *reverse_redirections(t_redirection *head)
+{
+	t_redirection	*prev = NULL;
+	t_redirection	*curr = head;
+	t_redirection	*next = NULL;
+
+	while (curr)
+	{
+		next = curr->next;
+		curr->next = prev;
+		prev = curr;
+		curr = next;
+	}
+	return (prev);
+}
+
 int	handle_redirections(t_redirection *redirects)
 {
-	int	fd;
+	int				fd;
+	t_redirection	*rev;
 
-	while (redirects)
+	rev = reverse_redirections(redirects);
+
+	while (rev)
 	{
-		if (redirects->type == TOKEN_REDIRECT_OUT) // '>'
-			fd = open(redirects->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-		else if (redirects->type == TOKEN_REDIRECT_APPEND) // '>>'
-			fd = open(redirects->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
-		else if (redirects->type == TOKEN_REDIRECT_IN) // '<'
-			fd = open(redirects->filename, O_RDONLY);
+		if (rev->type == TOKEN_REDIRECT_OUT) // '>'
+			fd = open(rev->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		else if (rev->type == TOKEN_REDIRECT_APPEND) // '>>'
+			fd = open(rev->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+		else if (rev->type == TOKEN_REDIRECT_IN) // '<'
+			fd = open(rev->filename, O_RDONLY);
 		else
 		{
 			fprintf(stderr, "minishell: Unsupported redirection type\n");
@@ -110,10 +129,11 @@ int	handle_redirections(t_redirection *redirects)
 		}
 		if (fd == -1)
 		{
-			perror(redirects->filename);
+			perror(rev->filename);
 			return (0);
 		}
-		if (redirects->type == TOKEN_REDIRECT_IN)
+
+		if (rev->type == TOKEN_REDIRECT_IN)
 		{
 			if (dup2(fd, STDIN_FILENO) == -1)
 			{
@@ -122,7 +142,7 @@ int	handle_redirections(t_redirection *redirects)
 				return (0);
 			}
 		}
-		else
+		else // (TOKEN_REDIRECT_OUT) или (TOKEN_REDIRECT_APPEND)
 		{
 			if (dup2(fd, STDOUT_FILENO) == -1)
 			{
@@ -132,10 +152,12 @@ int	handle_redirections(t_redirection *redirects)
 			}
 		}
 		close(fd);
-		redirects = redirects->next;
+
+		rev = rev->next;
 	}
 	return (1);
 }
+
 
 void	restore_standard_fds(int fd_in, int fd_out)
 {
