@@ -708,6 +708,8 @@ void adjusting_token_tree(t_token **tree, t_info *info)
 	t_token *curr;
 	int command_found = 0;
 
+	info->syntax_error = 0;
+
 	if (!tree || !*tree)
 		return;
 

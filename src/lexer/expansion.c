@@ -486,4 +486,8 @@ echo $?
 echo "unset PATH" | env -i $MINISHELL_PATH"/"$EXECUTABLE
 echo $?
 
+---------------------------------------
+cd ~/Desktop/
+pwd
+
 */

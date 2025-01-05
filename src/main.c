@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
+/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/04 23:28:03 by lynchsama        ###   ########.fr       */
+/*   Updated: 2025/01/05 14:09:00 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -325,6 +325,17 @@ int main(int ac, char **av, char **envp)
 		// expansion(&tokens, &info);
 
 		adjusting_token_tree(&tokens, &info);
+
+		        if (info.syntax_error == 1)
+        {
+            // У нас синтаксическая ошибка => info.exit_status уже = 2
+            // Значит не запускаем parse_tokens_to_commands, execute и т.д.
+            // Просто убираем токены/строку и ждём следующую команду
+            free_token_list(tokens);
+            free(line);
+            continue; // возврат в начало цикла
+        }
+
 		// validate_syntax_and_adjust(&tokens);
 
 		//restore_explicit_empty_quotes(&tokens, info.input);
