@@ -1,22 +1,6 @@
 
 #include "../../include/minishell.h"
 
-/*
-	/bin/echo $"42$"
-	/bin/echo $USER'$USER'text oui oui     oui  oui $USER oui      $USER ''
-	/bin/echo '' ""
-*/
-
-
-static int is_delim_char(char c)
-{
-	if (c == '\0' || c == ' ' || (c >= 9 && c <= 13))
-		return 1;
-	if (c == '|' || c == '<' || c == '>')
-		return 1;
-	return 0;
-}
-
 
 char *expand_variable(char *var_name, t_info *info);
 static char* expand_dollar(const char *input, int *consumed, t_info *info);
@@ -29,8 +13,6 @@ char *ft_expand_variable(char *var_name, t_info *info)
 	return ft_strdup(val);
 }
 
-
-// TODO : echo $$HOME,  $$ check.
 void expansion(t_token **tokens, t_info *info);
 
 static int is_space_char(char c)
@@ -239,14 +221,12 @@ static char* read_dollar_quoted(const char *input, int *consumed, t_info *info)
 				char *expanded = expand_dollar(&input[i], &var_consumed, info);
 				if (!expanded)
 				{
-					// На случай, если expand_dollar вернёт NULL —
-					// вы сами решаете, как обработать
+
 					fprintf(stderr, "expand_dollar returned NULL\n");
 					stop = 1;
 					break;
 				}
 
-				// Копируем expanded
 				for (int k = 0; expanded[k] != '\0'; k++)
 				{
 					if (append_char_to_buf(buf, &buf_index, 1024, expanded[k]) < 0)
@@ -259,7 +239,6 @@ static char* read_dollar_quoted(const char *input, int *consumed, t_info *info)
 				}
 				free(expanded);
 
-				// Если внутри цикла уже выставили stop = 1, тоже прерываем
 				if (stop)
 					break;
 
@@ -267,7 +246,6 @@ static char* read_dollar_quoted(const char *input, int *consumed, t_info *info)
 			}
 			else
 			{
-				// Обычный символ
 				if (append_char_to_buf(buf, &buf_index, 1024, input[i]) < 0)
 				{
 					fprintf(stderr, "Buffer overflow in $\"...\"\n");
@@ -278,96 +256,105 @@ static char* read_dollar_quoted(const char *input, int *consumed, t_info *info)
 			}
 		}
 
-		// Если цикл закончился не из-за stop,
-		// но из-за input[i] == '"' — "проглатываем" закрывающую кавычку
 		if (!stop && input[i] == '"')
 			i++;
 	}
 
-	// Завершаем строку в буфере
 	buf[buf_index] = '\0';
 
-	// Если это $'...', возможно стоит проглотить закрывающую кавычку (вне цикла)
-	// но мы уже сделали выше для одинарной кавычки:
-	// if (!stop && input[i] == '\'') i++;
-
-	// Запоминаем, сколько всего «съели»
 	*consumed = i;
 
-	// Возвращаем malloc'нутую копию
-	// (даже если stop == 1, вернём то, что удалось записать;
-	//  или вы можете вернуть пустую строку / NULL)
 	return strdup(buf);
 }
 
+/************* */
 
-static char* expand_dollar(const char *input, int *consumed, t_info *info)
+static char *handle_quoted_dollar(const char *input, int *consumed)
 {
+    char quote;
+    char next_char;
+    int j;
+    int found_closing_quote;
 
-if (input[1] == '\'' || input[1] == '"')
-	{
-	char quote = input[1];
-
-	char next_char = input[2];
-
-
-	if (next_char == '\0'
-	 || is_space_char(next_char)
-	 || is_operator_char(next_char)
-	 || next_char == quote
-	)
-	{
-		*consumed = 1;
-		return strdup("$");
-	}
-	int j = 2;
-	int found_closing_quote = 0;
-	while (input[j])
-	{
-		if (input[j] == quote)
-		{
-			found_closing_quote = 1;
-			break;
-		}
-		j++;
-	}
-	if (!found_closing_quote)
-	{
-		*consumed = 1;
-		return strdup("$");
-	}
-	char *res = read_dollar_quoted(input, consumed, info);
-	return res;
-	}
-
-	int var_consumed = 0;
-	char *var_name = read_var_name(input, &var_consumed);
-	if (!var_name) {
-		*consumed = 0;
-		return strdup("");
-	}
-
-	*consumed = var_consumed;
-
-
-	if (strcmp(var_name, "$") == 0)
-	{
-		// free(var_name);
-		return strdup("$");
-	}
-
-	if (strcmp(var_name, "?") == 0) {
-		// free(var_name);
-		char *exit_str = ft_itoa(info->exit_status);
-		return exit_str;
-	}
-
-	char *expanded = ft_expand_variable(var_name, info);
-	// free(var_name);
-	return expanded; // уже malloc'нута
-
-	return var_name;
+    quote = input[1];
+    next_char = input[2];
+    if (next_char == '\0' || is_space_char(next_char) || is_operator_char(next_char) || next_char == quote)
+    {
+        *consumed = 1;
+        return strdup("$");
+    }
+    j = 2;
+    found_closing_quote = 0;
+    while (input[j])
+    {
+        if (input[j] == quote)
+        {
+            found_closing_quote = 1;
+            break;
+        }
+        j++;
+    }
+    if (!found_closing_quote)
+    {
+        *consumed = 1;
+        return strdup("$");
+    }
+    return NULL;
 }
+
+static char *handle_special_variable(const char *var_name, t_info *info)
+{
+    if (strcmp(var_name, "?") == 0)
+    {
+        return ft_itoa(info->exit_status);
+    }
+    if (strcmp(var_name, "$") == 0)
+    {
+        return strdup("$");
+    }
+    return NULL; 
+}
+
+static char *handle_variable_expansion(const char *input, int *consumed, t_info *info)
+{
+    int var_consumed;
+    char *var_name;
+    char *expanded;
+
+    var_consumed = 0;
+    var_name = read_var_name(input, &var_consumed);
+    if (!var_name)
+    {
+        *consumed = 0;
+        return strdup("");
+    }
+    *consumed = var_consumed;
+    expanded = handle_special_variable(var_name, info);
+    if (expanded)
+    {
+        free(var_name);
+        return expanded;
+    }
+    expanded = ft_expand_variable(var_name, info);
+    free(var_name);
+    return expanded;
+}
+
+static char *expand_dollar(const char *input, int *consumed, t_info *info)
+{
+    char *result;
+
+    if (input[1] == '\'' || input[1] == '"')
+    {
+        result = handle_quoted_dollar(input, consumed);
+        if (result)
+            return result;
+        return read_dollar_quoted(input, consumed, info);
+    }
+    return handle_variable_expansion(input, consumed, info);
+}
+
+//****************** */
 
 t_token	*add_token(t_token *node, char *name, int type)
 {
@@ -389,49 +376,12 @@ t_token	*add_token(t_token *node, char *name, int type)
 	return (node);
 }
 
-
-void restore_explicit_empty_quotes(t_token **head_ref, const char *user_input)
-{
-	int i = 0;
-	while (user_input[i])
-	{
-		if (user_input[i] == '\'' && user_input[i + 1] == '\'')
-		{
-			char left  = (i > 0) ? user_input[i-1] : '\0';
-			char right = user_input[i+2];
-			if ((i == 0 || is_delim_char(left)) && is_delim_char(right))
-			{
-				// Добавляем пустой токен без проверки has_empty
-				*head_ref = add_token(*head_ref, "", TOKEN_ARGUMENT);
-			}
-			i += 2;
-			continue;
-		}
-		// Проверяем ""
-		if (user_input[i] == '"' && user_input[i + 1] == '"')
-		{
-			char left  = (i > 0) ? user_input[i-1] : '\0';
-			char right = user_input[i+2];
-			if ((i == 0 || is_delim_char(left)) && is_delim_char(right))
-			{
-				*head_ref = add_token(*head_ref, "", TOKEN_ARGUMENT);
-			}
-			i += 2;
-			continue;
-		}
-		i++;
-	}
-}
-
-
 void	flush_buf_if_needed(t_token **curr, char *buf, int *buf_index)
 {
-	//printf("flush function. buff : %s, buff-index: %d \n", buf, *buf_index);
 	if(*buf_index > 0)
 	{
 		buf[*buf_index] = '\0';
 		*curr = add_token(*curr, buf, TOKEN_WORD);
-		// printf("buffer? : %s\n", buf);
 		*buf_index = 0;
 	}
 }
@@ -473,134 +423,171 @@ t_token *add_operator_token(t_token *curr, char current_char, char next_char, in
 		else
 			curr = add_token(curr, ">", TOKEN_REDIRECT_OUT);
 	}
-
 	return curr;
 }
 
-
-static int read_double_quoted(const char *input, char *buf, int *buf_index, int buf_size, t_info *info)
+static void append_expanded_unquoted(const char *input,
+                                     int *i,
+                                     char *buf,
+                                     int *buf_index,
+                                     int buf_size,
+                                     t_info *info)
 {
-	int i = 1;
-	while(input[i] && input[i] != '"')
-	{
-		if (input[i] == '\\')
-		{
-			i++;
-			if(!input[i])
-			{
-				break;
-			}
-			if(input[i] == '"' || input[i] == '$' || input[i] == '\\')
-			{
-				if(append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
-				{
-					fprintf(stderr, "Buffer overflow in double quotes\n");
-					return i;
-				}
-				i++;
-			} else {
-				if (append_char_to_buf(buf, buf_index, buf_size, '\\') < 0) {
-					fprintf(stderr, "Buffer overflow in double quotes\n");
-					return i;
-				}
-				if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0) {
-					fprintf(stderr, "Buffer overflow in double quotes\n");
-					return i;
-				}
-				i++;
-			}
-		} else if (input[i] == '$')
-		{
-			int consumed = 0;
-			char *expanded = expand_dollar(&input[i], &consumed, info);
+    int var_consumed;
+    char *expanded;
+    int k;
+    int len;
 
+    var_consumed = 0;
+    expanded = expand_dollar(&input[*i], &var_consumed, info);
+    if (!expanded)
+        return;
 
-			for(int k = 0; expanded[k] != '\0'; k++)
-			{
-				if (append_char_to_buf(buf, buf_index, buf_size, expanded[k]) < 0) {
-					fprintf(stderr, "Buffer overflow in double quotes\n");
-					// free(expanded);
-					return i + consumed;
-				}
-				// printf("buffer - %s\n", buf);
-			}
-			// free(expanded);
-			i += consumed;
-		}
-		else
-		{
-			if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0) {
-				fprintf(stderr, "Buffer overflow in double quotes\n");
-				return i;
-			}
-			i++;
-		}
-	}
-	// printf("last char in field - [%c]\n", input[i]); - []
-	if (input[i] == '"') {
-		i++;
-	}
-	return i;
+    k = 0;
+    len = strlen(expanded);
+
+    while (k < len)
+    {
+        if (append_char_to_buf(buf, buf_index, buf_size, expanded[k]) < 0)
+        {
+            free(expanded);
+            return;
+        }
+        k++;
+    }
+    free(expanded);
+
+    *i = *i + var_consumed;
 }
 
-static int read_unquoted(const char *input, char *buf, int *buf_index, int buf_size, t_info *info)
+static void append_expanded_dquotes(const char *input,
+                                    int *i,
+                                    char *buf,
+                                    int *buf_index,
+                                    int buf_size,
+                                    t_info *info)
 {
-	int i = 0;
-	while (input[i] != '\0') {
-		if (is_space_char(input[i]) || is_operator_char(input[i])) {
-			break;
-		}
-		if (input[i] == '\'' || input[i] == '"') {
-			break;
-		}
-		if (input[i] == '$') {
-			int consumed = 0;
-			char *expanded = expand_dollar(&input[i], &consumed, info);
-			// printf("test check: %s\n", expanded);
-			for (int k = 0; expanded[k] != '\0'; k++) {
-				if (append_char_to_buf(buf, buf_index, buf_size, expanded[k]) < 0) {
-					fprintf(stderr, "Buffer overflow in unquoted\n");
-					// free(expanded);
-					return i + consumed;
-				}
-			}
-			// free(expanded);
-			i += consumed;
-			continue;
-		}
-		if (input[i] == '\\') {
-			i++;
-			if (!input[i]) break;
+    int var_consumed;
+    char *expanded;
+    int k;
+    int len;
 
-			if (strchr("$\\\"\'", input[i])) {
-				if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0) {
-					fprintf(stderr, "Buffer overflow in unquoted (backslash)\n");
-					return i;
-				}
-				i++;
-			} else {
-				// Иначе пишем сам бэкслэш + символ
-				if (append_char_to_buf(buf, buf_index, buf_size, '\\') < 0) {
-					fprintf(stderr, "Buffer overflow in unquoted (backslash)\n");
-					return i;
-				}
-				// второй символ
-				if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0) {
-					fprintf(stderr, "Buffer overflow in unquoted (backslash)\n");
-					return i;
-				}
-				i++;
-			}
-			continue;
-		}
+    var_consumed = 0;
+    expanded = expand_dollar(&input[*i], &var_consumed, info);
+    if (!expanded)
+        return;
 
-		if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0) {
-			fprintf(stderr, "Buffer overflow in unquoted\n");
-			return i;
-		}
-		i++;
-	}
-	return i;
+    k = 0;
+    len = strlen(expanded);
+
+    while (k < len)
+    {
+        if (append_char_to_buf(buf, buf_index, buf_size, expanded[k]) < 0)
+        {
+            free(expanded);
+            return;
+        }
+        k++;
+    }
+    free(expanded);
+
+    *i = *i + var_consumed;
+}
+
+static int read_double_quoted(const char *input,
+                              char *buf,
+                              int *buf_index,
+                              int buf_size,
+                              t_info *info)
+{
+    int i;
+    i = 1; // пропускаем первую кавычку "
+
+    while (input[i] && input[i] != '"')
+    {
+        if (input[i] == '\\')
+        {
+            i++;
+            if (!input[i])
+                break;
+            if (input[i] == '"' || input[i] == '$' || input[i] == '\\')
+            {
+                if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
+                    return i;
+                i++;
+            }
+            else
+            {
+                if (append_char_to_buf(buf, buf_index, buf_size, '\\') < 0)
+                    return i;
+                if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
+                    return i;
+                i++;
+            }
+        }
+        else if (input[i] == '$')
+        {
+            append_expanded_dquotes(input, &i, buf, buf_index, buf_size, info);
+            continue; // <--- чтобы не делать i++ здесь
+        }
+        else
+        {
+            if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
+                return i;
+            i++;
+        }
+    }
+    if (input[i] == '"')
+        i++;
+    return i;
+}
+
+static int read_unquoted(const char *input,
+                         char *buf,
+                         int *buf_index,
+                         int buf_size,
+                         t_info *info)
+{
+    int i;
+    i = 0;
+
+    while (input[i] != '\0')
+    {
+        if (is_space_char(input[i]) || is_operator_char(input[i]))
+            break;
+        if (input[i] == '\'' || input[i] == '"')
+            break;
+        if (input[i] == '$')
+        {
+            append_expanded_unquoted(input, &i, buf, buf_index, buf_size, info);
+            continue;  // <--- чтобы не делать i++ ещё раз
+        }
+        if (input[i] == '\\')
+        {
+            i++;
+            if (!input[i])
+                break;
+            if (strchr("$\\\"'", input[i]))
+            {
+                if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
+                    return i;
+                i++;
+            }
+            else
+            {
+                if (append_char_to_buf(buf, buf_index, buf_size, '\\') < 0)
+                    return i;
+                if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
+                    return i;
+                i++;
+            }
+            continue;
+        }
+        if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
+            return i;
+        i++;
+    }
+    return i;
 }
 
 
@@ -681,151 +668,3 @@ t_token *tokenizer(char *user_input, t_info *info)
 	flush_buf_if_needed(&head, buf, &buf_index);
 	return head;
 }
-
-// int check_pipes_error(t_token *token, t_info *info)
-// {
-// 	if (!token->next)
-// 	{
-// 		fprintf(stderr, "minishell: syntax error near unexpected token `|'\n");
-// 		info->syntax_error = 1;
-// 		info->exit_status = 258;
-// 		return -1;
-// 	}
-// 	if (token->next->type == TOKEN_PIPE)
-// 	{
-// 		fprintf(stderr, "minishell: syntax error near unexpected token `|'\n");
-// 		info->syntax_error = 1;
-// 		info->exit_status = 258;
-// 		return -1;
-// 	}
-// 	return 0;
-// }
-
-// int print_syntax_error(char *token_str, t_info *info)
-// {
-//     write(2, "minishell: syntax error near unexpected token `", 47);
-//     write(2, token_str, strlen(token_str));
-//     write(2, "'\n", 2);
-//     info->syntax_error = 1;
-//     info->exit_status = 258;
-//     return -1;
-// }
-
-// int validate_redirect_target(t_token *token, t_info *info)
-// {
-//     if (!token->next)
-//         return print_syntax_error( token->str, info);
-
-//     if (token->next->type == TOKEN_PIPE || token->next->type == TOKEN_REDIRECT_IN ||
-//         token->next->type == TOKEN_REDIRECT_OUT || token->next->type == TOKEN_REDIRECT_APPEND ||
-//         token->next->type == TOKEN_HEREDOC)
-//         return print_syntax_error(token->next->str, info);
-
-//     if (token->next->type != TOKEN_COMMAND && token->next->type != TOKEN_ARGUMENT &&
-//         token->next->type != TOKEN_WORD && token->next->type != TOKEN_FIELD &&
-//         token->next->type != TOKEN_EXP_FIELD && token->next->type != TOKEN_VAR &&
-//         token->next->type != TOKEN_EXIT_STATUS)
-//         return print_syntax_error(token->str, info);
-
-//     token->next->type = TOKEN_FILE; 
-//     return 0;
-// }
-
-// int redirect_check(t_token *token, t_info *info)
-// {
-//     if (token->type == TOKEN_REDIRECT_IN || token->type == TOKEN_REDIRECT_OUT ||
-//         token->type == TOKEN_REDIRECT_APPEND || token->type == TOKEN_HEREDOC)
-//     {
-//         return validate_redirect_target(token, info);
-//     }
-//     return 0;
-// }
-
-// void adjust_word_token(t_token *token, int *command)
-// {
-// 	if (!(*command) &&
-// 			(token->type == TOKEN_WORD || token->type == TOKEN_EXP_FIELD ||
-// 			 token->type == TOKEN_FIELD || token->type == TOKEN_VAR))
-// 		{
-// 			token->type = TOKEN_COMMAND;
-// 			(*command) = 1;
-// 		}
-// 		else if ((*command) &&
-// 				 (token->type == TOKEN_WORD || token->type == TOKEN_FIELD ||
-// 				  token->type == TOKEN_EXP_FIELD || token->type == TOKEN_VAR
-// 				  || token->type == TOKEN_EXIT_STATUS))
-// 						token->type = TOKEN_ARGUMENT;
-// }
-
-// void adjusting_token_tree(t_token **tree, t_info *info)
-// {
-// 	t_token *curr;
-// 	int command_found; 
-	
-// 	command_found = 0;
-// 	info->syntax_error = 0;
-// 	if (!tree || !*tree)
-// 		return;
-// 	if ((*tree)->type == TOKEN_PIPE)
-// 	{
-// 		fprintf(stderr, "minishell: syntax error near unexpected token `|'\n");
-// 		info->syntax_error = 1;
-// 		info->exit_status = 2;
-// 		return;
-// 	}
-// 	curr = *tree;
-// 	while (curr)
-// 	{
-// 		if (curr->type == TOKEN_PIPE)
-// 		{
-// 			command_found = 0;
-// 			if (check_pipes_error(curr, info) == -1)
-// 				return ;
-// 		}
-// 		adjust_word_token(curr, &command_found);
-// 		if(redirect_check(curr, info) == -1)
-// 			return ;
-// 		curr = curr->next;
-// 	}
-// }
-
-// int main()
-// {
-// 	t_token *test;
-// 	t_token *test2;
-// 	t_info *info;
-// 	// char input[] = "echo Hello world > out.txt | grep 'pattern' < in.txt";
-// 	// char input[] = "echo 'static text' \"$DYNAMIC_VAR\" $USER";
-// 	// char input[] = "echo Hello | grep 'pattern' > out.txt";
-// 	// char input[] = "cat $HOME.txt | echo \"$HOMEsomeworkds\" ";
-// 	char input[] = "echo $HOME$? >> out.txt | echo $?\"42\"";
-
-// 	// char input[] = "env VAR=HELLO";
-
-// 	printf("Input command: %s\n", input);
-// 	test = tokenize(input);
-
-// 	test2 = tokenizer(input, info);
-
-// 	printf("\nNew tokenizer:\n");
-// 	temp_print_tokens(test2);
-// 	printf("---------\n");
-
-
-// 	// printf("\nTokens:\n");
-// 	// temp_print_tokens(test);
-
-// 	// remove_space_tokens(&test);
-
-// 	// expansion(&test,info);
-
-// 	// printf("\nTokens after expansion:\n");
-// 	// temp_print_tokens(test);
-
-// 	adjusting_token_tree(&test);
-
-// 	printf("\nTokens after adjustment:\n");
-// 	temp_print_tokens(test);
-
-// 	return 0;
-// }
