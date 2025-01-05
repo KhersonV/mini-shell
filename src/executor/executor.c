@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/05 12:55:05 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/05 14:11:02 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,6 @@ void	execute_commands(t_exec_command *commands, t_info *info)
 	else
 		execute_single_command(commands, info);
 }
-
 void	execute_single_command(t_exec_command *command, t_info *info)
 {
 	pid_t	pid;
@@ -40,10 +39,12 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 	char	*path;
 	int		saved_stdout;
 	int		saved_stdin;
+	struct stat statbuf;
 
 	saved_stdout = dup(STDOUT_FILENO);
 	saved_stdin = dup(STDIN_FILENO);
 
+	// Если команда пустая
 	if (!command->cmd_name || ft_strlen(command->cmd_name) == 0)
 	{
 		if (!handle_redirections(command->redirects))
@@ -56,31 +57,67 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 		info->exit_status = 0; // Просто создаём файл
 		return;
 	}
+
+	// Проверка на специальные команды `.` и `..`
+	if (ft_strcmp(command->cmd_name, ".") == 0)
+	{
+		if (!command->args[1])
+		{
+			ft_putendl_fd("minishell: .: filename argument required", STDERR_FILENO);
+			ft_putendl_fd(".: usage: . filename [arguments]", STDERR_FILENO);
+			info->exit_status = 2; // Код ошибки для отсутствия аргумента
+			restore_standard_fds(saved_stdin, saved_stdout);
+			return;
+		}
+	}
+	else if (ft_strcmp(command->cmd_name, "..") == 0)
+	{
+		ft_putendl_fd("minishell: ..: command not found", STDERR_FILENO);
+		info->exit_status = 127; // Код ошибки для команды не найдено
+		restore_standard_fds(saved_stdin, saved_stdout);
+		return;
+	}
+
+	// Если команда является встроенной
 	if (is_builtin(command->cmd_name))
 	{
 		if (!handle_redirections(command->redirects))
 		{
 			restore_standard_fds(saved_stdin, saved_stdout);
 			info->exit_status = 1;
-			return ;
+			return;
 		}
 		execute_builtin(command, info);
 		restore_standard_fds(saved_stdin, saved_stdout);
-		return ;
+		return;
 	}
 
+	// Проверка команды как директории
+	if (stat(command->cmd_name, &statbuf) == 0 && S_ISDIR(statbuf.st_mode))
+	{
+		ft_putendl_fd("minishell: /: is a directory", STDERR_FILENO);
+		info->exit_status = 126; // Код завершения для директории
+		restore_standard_fds(saved_stdin, saved_stdout);
+		return;
+	}
+
+	// Проверка команды в PATH
 	path = find_command(command->cmd_name, info->envp);
 	if (!path)
 	{
-		info->exit_status = 127;
-		return ; // Ошибка уже обработана в find_command
+		info->exit_status = 127; // Код завершения для команды не найдено
+		restore_standard_fds(saved_stdin, saved_stdout);
+		return;
 	}
+
+	// Создание дочернего процесса
 	pid = fork();
 	if (pid == -1)
 	{
 		perror("fork");
 		free(path);
-		return ;
+		restore_standard_fds(saved_stdin, saved_stdout);
+		return;
 	}
 
 	if (pid == 0)
@@ -101,8 +138,11 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 		else if (WIFSIGNALED(status))
 			info->exit_status = 128 + WTERMSIG(status);
 	}
+
 	restore_standard_fds(saved_stdin, saved_stdout);
 }
+
+
 
 int	count_commands(t_exec_command *commands)
 {

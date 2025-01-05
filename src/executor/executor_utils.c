@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:09:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/04 14:58:07 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/05 13:59:22 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,10 +175,17 @@ char	*find_command(char *command, char **envp)
 	// Если команда содержит '/', предполагаем, что это абсолютный путь
 	if (ft_strchr(command, '/'))
 	{
-		if (stat(command, &statbuf) == 0 && S_ISREG(statbuf.st_mode)
-			&& access(command, X_OK) == 0)
-			return (ft_strdup(command));
-		fprintf(stderr, "minishell: %s: No such file or directory\n", command);
+		if (stat(command, &statbuf) == 0)
+		{
+			if (S_ISDIR(statbuf.st_mode))
+			{
+				ft_putendl_fd("minishell: /: is a directory", STDERR_FILENO);
+				return (NULL); // Установка exit_status в вызывающем коде
+			}
+			if (access(command, X_OK) == 0)
+				return (ft_strdup(command));
+		}
+		ft_putendl_fd("minishell: /: No such file or directory", STDERR_FILENO);
 		return (NULL);
 	}
 
@@ -203,11 +210,20 @@ char	*find_command(char *command, char **envp)
 		temp = ft_strjoin(paths[i], "/");
 		full_path = ft_strjoin(temp, command);
 		free(temp);
-		if (stat(full_path, &statbuf) == 0 && S_ISREG(statbuf.st_mode)
-			&& access(full_path, X_OK) == 0)
+		if (stat(full_path, &statbuf) == 0)
 		{
-			ft_free_array(paths);
-			return (full_path);
+			if (S_ISDIR(statbuf.st_mode))
+			{
+				ft_putendl_fd("minishell: /: is a directory", STDERR_FILENO);
+				ft_free_array(paths);
+				free(full_path);
+				return (NULL); // Установка exit_status в вызывающем коде
+			}
+			if (access(full_path, X_OK) == 0)
+			{
+				ft_free_array(paths);
+				return (full_path);
+			}
 		}
 		free(full_path);
 		i++;
@@ -216,3 +232,4 @@ char	*find_command(char *command, char **envp)
 	fprintf(stderr, "minishell: %s: command not found\n", command);
 	return (NULL);
 }
+
