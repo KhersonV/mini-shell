@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/05 14:39:39 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/05 15:44:09 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ void	execute_commands(t_exec_command *commands, t_info *info)
 	else
 		execute_single_command(commands, info);
 }
+
 void	execute_single_command(t_exec_command *command, t_info *info)
 {
 	pid_t	pid;
@@ -47,6 +48,7 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 	// Если команда пустая
 	if (!command->cmd_name || ft_strlen(command->cmd_name) == 0)
 	{
+		// Сразу проверим редиректы (чтобы создать пустой файл или выдать ошибку)
 		if (!handle_redirections(command->redirects))
 		{
 			restore_standard_fds(saved_stdin, saved_stdout);
@@ -54,7 +56,7 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 			return;
 		}
 		restore_standard_fds(saved_stdin, saved_stdout);
-		info->exit_status = 0; // Просто создаём файл
+		info->exit_status = 0; // Просто создаём файл (как и раньше)
 		return;
 	}
 
@@ -65,7 +67,7 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 		{
 			ft_putendl_fd("minishell: .: filename argument required", STDERR_FILENO);
 			ft_putendl_fd(".: usage: . filename [arguments]", STDERR_FILENO);
-			info->exit_status = 2; // Код ошибки для отсутствия аргумента
+			info->exit_status = 2; // Ошибка: нет аргумента
 			restore_standard_fds(saved_stdin, saved_stdout);
 			return;
 		}
@@ -73,44 +75,49 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 	else if (ft_strcmp(command->cmd_name, "..") == 0)
 	{
 		ft_putendl_fd("minishell: ..: command not found", STDERR_FILENO);
-		info->exit_status = 127; // Код ошибки для команды не найдено
+		info->exit_status = 127; // "команда не найдена"
 		restore_standard_fds(saved_stdin, saved_stdout);
+		return;
+	}
+
+	/* 
+	 * ВАЖНО! Сначала проверяем редиректы (если файла нет, дадим exit_status=1),
+	 * а только потом идём дальше. Это главное отличие от предыдущей версии.
+	 */
+	if (!handle_redirections(command->redirects))
+	{
+		restore_standard_fds(saved_stdin, saved_stdout);
+		info->exit_status = 1;
 		return;
 	}
 
 	// Если команда является встроенной
 	if (is_builtin(command->cmd_name))
 	{
-		if (!handle_redirections(command->redirects))
-		{
-			restore_standard_fds(saved_stdin, saved_stdout);
-			info->exit_status = 1;
-			return;
-		}
 		execute_builtin(command, info);
 		restore_standard_fds(saved_stdin, saved_stdout);
 		return;
 	}
 
-	// Проверка команды как директории
+	// Проверка, не является ли команда директорией (./some_dir, допустим)
 	if (stat(command->cmd_name, &statbuf) == 0 && S_ISDIR(statbuf.st_mode))
 	{
 		ft_putendl_fd("minishell: /: is a directory", STDERR_FILENO);
-		info->exit_status = 126; // Код завершения для директории
+		info->exit_status = 126; // Директория не выполняется
 		restore_standard_fds(saved_stdin, saved_stdout);
 		return;
 	}
 
-	// Проверка команды в PATH
+	// Ищем команду в PATH
 	path = find_command(command->cmd_name, info->envp);
 	if (!path)
 	{
-		info->exit_status = 127; // Код завершения для команды не найдено
+		info->exit_status = 127; // Команда не найдена
 		restore_standard_fds(saved_stdin, saved_stdout);
 		return;
 	}
 
-	// Создание дочернего процесса
+	// Создаём дочерний процесс
 	pid = fork();
 	if (pid == -1)
 	{
@@ -119,11 +126,15 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 		restore_standard_fds(saved_stdin, saved_stdout);
 		return;
 	}
-
 	if (pid == 0)
 	{
-		if (!handle_redirections(command->redirects))
+		// В дочернем процессе редиректы мы уже настроили в родительском,
+		// но если у вас логика такова, что нужно "дублировать" —
+		// тогда, если здесь провалится, сразу завершаемся:
+		// (Можно оставить, если у вас всё так и было)
+		/* if (!handle_redirections(command->redirects))
 			exit(EXIT_FAILURE);
+		*/
 		execve(path, command->args, info->envp);
 		perror("execve");
 		free(path);
