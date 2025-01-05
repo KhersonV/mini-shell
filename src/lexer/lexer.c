@@ -733,7 +733,7 @@ void adjusting_token_tree(t_token **tree, t_info *info)
 			{
 				fprintf(stderr, "minishell: syntax error near unexpected token `|'\n");
 				info->syntax_error = 1;
-				info->exit_status = 2;
+				info->exit_status = 258;
 				return;
 			}
 			// pipe подряд: echo | | -> ошибка
@@ -741,7 +741,7 @@ void adjusting_token_tree(t_token **tree, t_info *info)
 			{
 				fprintf(stderr, "minishell: syntax error near unexpected token `|'\n");
 				info->syntax_error = 1;
-				info->exit_status = 2;
+				info->exit_status = 258;
 				return;
 			}
 		}
@@ -774,7 +774,7 @@ void adjusting_token_tree(t_token **tree, t_info *info)
 				fprintf(stderr, "minishell: syntax error near unexpected token `%s'\n",
 						curr->str);
 				info->syntax_error = 1;
-				info->exit_status = 2;
+				info->exit_status = 258;
 				return;
 			}
 			// '>' за которым идёт pipe или ещё один '>'
@@ -787,7 +787,7 @@ void adjusting_token_tree(t_token **tree, t_info *info)
 				fprintf(stderr, "minishell: syntax error near unexpected token `%s'\n",
 						curr->next->str);
 				info->syntax_error = 1;
-				info->exit_status = 2;
+				info->exit_status = 258;
 				return;
 			}
 
@@ -803,7 +803,7 @@ void adjusting_token_tree(t_token **tree, t_info *info)
 				fprintf(stderr, "minishell: syntax error after redirect `%s'\n",
 						curr->str);
 				info->syntax_error = 1;
-				info->exit_status = 2;
+				info->exit_status = 258;
 				return;
 			}
 			else
