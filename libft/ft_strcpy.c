@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_strcpy.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: admin <admin@student.42.fr>                +#+  +:+       +#+        */
+/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/11 21:28:31 by admin             #+#    #+#             */
-/*   Updated: 2024/10/11 21:31:39 by admin            ###   ########.fr       */
+/*   Updated: 2025/01/06 17:02:26 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,8 @@
 
 char	*ft_strcpy(char *str, char *dst)
 {
-	int i;
+	int	i;
+
 	i = 0;
 	while (str[i])
 	{

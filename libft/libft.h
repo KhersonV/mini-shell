@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/10 13:24:08 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/29 13:35:49 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/06 16:53:38 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # include <stddef.h>
 # include <stdlib.h>
 # include <unistd.h>
+# include <limits.h> 
 
 typedef struct s_list
 {
@@ -23,6 +24,7 @@ typedef struct s_list
 	struct s_list	*next;
 }					t_list;
 
+long long			ft_atoll(const char *str);
 char				*ft_itoa(int n);
 int					ft_atoi(const char *str);
 void				ft_bzero(void *s, size_t n);

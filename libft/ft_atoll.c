@@ -1,33 +1,41 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ft_strndup.c                                       :+:      :+:    :+:   */
+/*   ft_atoll.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/18 12:34:52 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 17:03:12 by vmamoten         ###   ########.fr       */
+/*   Created: 2025/01/06 16:50:09 by vmamoten          #+#    #+#             */
+/*   Updated: 2025/01/06 17:01:02 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-char	*ft_strndup(const char *s, size_t n)
+long long	ft_atoll(const char *str)
 {
-	char	*new_str;
-	size_t	i;
+	long long	result;
+	int			sign;
 
-	if (!s)
-		return (NULL);
-	new_str = (char *)malloc(n + 1);
-	if (!new_str)
-		return (NULL);
-	i = 0;
-	while (i < n && s[i] != '\0')
+	result = 0;
+	sign = 1;
+	if (*str == '-' || *str == '+')
 	{
-		new_str[i] = s[i];
-		i++;
+		if (*str == '-')
+			sign = -1;
+		str++;
 	}
-	new_str[i] = '\0';
-	return (new_str);
+	while (*str && *str >= '0' && *str <= '9')
+	{
+		if (result > (LLONG_MAX - (*str - '0')) / 10)
+		{
+			if (sign == 1)
+				return (LLONG_MAX);
+			else
+				return (LLONG_MIN);
+		}
+		result = result * 10 + (*str - '0');
+		str++;
+	}
+	return (result * sign);
 }

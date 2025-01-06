@@ -6,36 +6,11 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:26 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 16:38:02 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/06 16:49:32 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
-
-long long	ft_atoll(const char *str)
-{
-	long long	result;
-	int			sign;
-
-	result = 0;
-	sign = 1;
-	while (*str == ' ' || (*str >= 9 && *str <= 13))
-		str++;
-	if (*str == '-' || *str == '+')
-	{
-		if (*str == '-')
-			sign = -1;
-		str++;
-	}
-	while (*str && *str >= '0' && *str <= '9')
-	{
-		if (result > (LLONG_MAX - (*str - '0')) / 10)
-			return (sign == 1 ? LLONG_MAX : LLONG_MIN);
-		result = result * 10 + (*str - '0');
-		str++;
-	}
-	return (result * sign);
-}
 
 int	is_numeric(const char *str)
 {
@@ -60,11 +35,23 @@ int	handle_numeric_argument_error(char *arg)
 	return (255);
 }
 
-int	handle_exit_args(char **args, t_info *info)
+int	process_exit_argument(const char *arg)
 {
 	long long	value;
 	int			exit_code;
-	int			arg_count;
+
+	value = ft_atoll(arg);
+	if (value < 0)
+		exit_code = 256 + (value % 256);
+	else
+		exit_code = value % 256;
+	return (exit_code);
+}
+
+int	handle_exit_args(char **args, t_info *info)
+{
+	int	exit_code;
+	int	arg_count;
 
 	exit_code = info->exit_status;
 	arg_count = 0;
@@ -74,17 +61,13 @@ int	handle_exit_args(char **args, t_info *info)
 	{
 		if (!is_numeric(args[1]))
 			return (handle_numeric_argument_error(args[1]));
-		else if (arg_count > 2)
+		if (arg_count > 2)
 		{
 			ft_putendl_fd("minishell: exit: too many arguments", STDERR_FILENO);
 			info->exit_status = 1;
 			return (-1);
 		}
-		else
-		{
-			value = ft_atoll(args[1]);
-			exit_code = (value < 0) ? 256 + (value % 256) : value % 256;
-		}
+		exit_code = process_exit_argument(args[1]);
 	}
 	return (exit_code);
 }
