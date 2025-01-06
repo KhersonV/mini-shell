@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:09:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 14:47:44 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/06 15:05:36 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ static char	*generate_heredoc_filename(void)
 	{
 		number = ft_itoa(counter);
 		if (number == NULL)
-			return (free(filename),NULL);
+			return (free(filename), NULL);
 		free(filename);
 		filename = ft_strjoin("/tmp/minishell_heredoc_", number);
 		free(number);
@@ -69,11 +69,28 @@ int	read_heredoc_to_file(const char *delimiter, const char *tmpfile)
 	return (1);
 }
 
+int	handle_heredoc(t_redirection *redir)
+{
+	char	*tmpfile;
+
+	tmpfile = generate_heredoc_filename();
+	if (!tmpfile)
+		return (0);
+	if (!read_heredoc_to_file(redir->filename, tmpfile))
+	{
+		free(tmpfile);
+		return (0);
+	}
+	free(redir->filename);
+	redir->filename = tmpfile;
+	redir->type = TOKEN_REDIRECT_IN;
+	return (1);
+}
+
 int	prepare_heredocs(t_exec_command *commands)
 {
 	t_exec_command	*cmd;
 	t_redirection	*redir;
-	char			*tmpfile;
 
 	cmd = commands;
 	while (cmd)
@@ -83,17 +100,8 @@ int	prepare_heredocs(t_exec_command *commands)
 		{
 			if (redir->type == TOKEN_HEREDOC)
 			{
-				tmpfile = generate_heredoc_filename();
-				if (!tmpfile)
+				if (!handle_heredoc(redir))
 					return (0);
-				if (!read_heredoc_to_file(redir->filename, tmpfile))
-				{
-					free(tmpfile);
-					return (0);
-				}
-				free(redir->filename);
-				redir->filename = tmpfile;
-				redir->type = TOKEN_REDIRECT_IN;
 			}
 			redir = redir->next;
 		}
