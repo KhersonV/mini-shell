@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:09:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 15:05:36 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/06 15:13:21 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,49 +129,59 @@ static t_redirection	*reverse_redirections(t_redirection *head)
 	return (prev);
 }
 
+int	open_redirection_file(t_redirection *redir)
+{
+	int	fd;
+
+	if (redir->type == TOKEN_REDIRECT_OUT) // '>'
+		fd = open(redir->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	else if (redir->type == TOKEN_REDIRECT_APPEND) // '>>'
+		fd = open(redir->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+	else if (redir->type == TOKEN_REDIRECT_IN) // '<'
+		fd = open(redir->filename, O_RDONLY);
+	else
+	{
+		fprintf(stderr, "minishell: Unsupported redirection type\n");
+		return (-1);
+	}
+	if (fd == -1)
+		perror(redir->filename);
+	return (fd);
+}
+
+int	apply_redirection(int fd, int target_fd)
+{
+	if (dup2(fd, target_fd) == -1)
+	{
+		perror("dup2");
+		close(fd);
+		return (0);
+	}
+	close(fd);
+	return (1);
+}
+
 int	handle_redirections(t_redirection *redirects)
 {
-	int				fd;
 	t_redirection	*rev;
+	int				fd;
 
 	rev = reverse_redirections(redirects);
 	while (rev)
 	{
-		if (rev->type == TOKEN_REDIRECT_OUT) // '>'
-			fd = open(rev->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-		else if (rev->type == TOKEN_REDIRECT_APPEND) // '>>'
-			fd = open(rev->filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
-		else if (rev->type == TOKEN_REDIRECT_IN) // '<'
-			fd = open(rev->filename, O_RDONLY);
-		else
-		{
-			fprintf(stderr, "minishell: Unsupported redirection type\n");
-			return (0);
-		}
+		fd = open_redirection_file(rev);
 		if (fd == -1)
-		{
-			perror(rev->filename);
 			return (0);
-		}
 		if (rev->type == TOKEN_REDIRECT_IN)
 		{
-			if (dup2(fd, STDIN_FILENO) == -1)
-			{
-				perror("dup2");
-				close(fd);
+			if (!apply_redirection(fd, STDIN_FILENO))
 				return (0);
-			}
 		}
 		else
 		{
-			if (dup2(fd, STDOUT_FILENO) == -1)
-			{
-				perror("dup2");
-				close(fd);
+			if (!apply_redirection(fd, STDOUT_FILENO))
 				return (0);
-			}
 		}
-		close(fd);
 		rev = rev->next;
 	}
 	return (1);
@@ -203,6 +213,24 @@ int	is_builtin(char *command)
 		|| ft_strcmp(command, "ENV") == 0 || ft_strcmp(command, "exit") == 0);
 }
 
+char	*check_absolute_path(char *command)
+{
+	struct stat	statbuf;
+
+	if (stat(command, &statbuf) == 0)
+	{
+		if (S_ISDIR(statbuf.st_mode))
+		{
+			ft_putendl_fd("minishell: /: is a directory", STDERR_FILENO);
+			return (NULL);
+		}
+		if (access(command, X_OK) == 0)
+			return (ft_strdup(command));
+	}
+	ft_putendl_fd("minishell: /: No such file or directory", STDERR_FILENO);
+	return (NULL);
+}
+
 char	*find_command(char *command, char **envp)
 {
 	struct stat	statbuf;
@@ -213,20 +241,7 @@ char	*find_command(char *command, char **envp)
 	int			i;
 
 	if (ft_strchr(command, '/'))
-	{
-		if (stat(command, &statbuf) == 0)
-		{
-			if (S_ISDIR(statbuf.st_mode))
-			{
-				ft_putendl_fd("minishell: /: is a directory", STDERR_FILENO);
-				return (NULL);
-			}
-			if (access(command, X_OK) == 0)
-				return (ft_strdup(command));
-		}
-		ft_putendl_fd("minishell: /: No such file or directory", STDERR_FILENO);
-		return (NULL);
-	}
+		 return (check_absolute_path(command));
 	path_env = get_env_value_direct(envp, "PATH");
 	if (!path_env || path_env[0] == '\0')
 	{
