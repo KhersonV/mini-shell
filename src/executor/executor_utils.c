@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:09:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 14:24:11 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/06 14:47:44 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,18 +14,29 @@
 
 static char	*generate_heredoc_filename(void)
 {
-	char	*filename;
-	int		fd;
+	static int	counter = 0;
+	char		*filename;
+	char		*number;
+	int			fd;
 
-	filename = ft_strdup("/tmp/minishell_heredoc_XXXXXX");
-	fd = mkstemp(filename);
-	if (fd == -1)
+	filename = NULL;
+	while (1)
 	{
-		perror("mkstemp");
+		number = ft_itoa(counter);
+		if (number == NULL)
+			return (free(filename),NULL);
 		free(filename);
-		return (NULL);
+		filename = ft_strjoin("/tmp/minishell_heredoc_", number);
+		free(number);
+		if (filename == NULL)
+			return (NULL);
+		fd = open(filename, O_CREAT | O_EXCL | O_WRONLY, 0600);
+		if (fd >= 0)
+			break ;
+		counter++;
 	}
 	close(fd);
+	counter++;
 	return (filename);
 }
 
