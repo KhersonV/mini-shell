@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:09:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/05 15:57:20 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/06 14:24:11 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,12 +91,15 @@ int	prepare_heredocs(t_exec_command *commands)
 	return (1);
 }
 
-static t_redirection *reverse_redirections(t_redirection *head)
+static t_redirection	*reverse_redirections(t_redirection *head)
 {
-	t_redirection	*prev = NULL;
-	t_redirection	*curr = head;
-	t_redirection	*next = NULL;
+	t_redirection	*prev;
+	t_redirection	*curr;
+	t_redirection	*next;
 
+	prev = NULL;
+	curr = head;
+	next = NULL;
 	while (curr)
 	{
 		next = curr->next;
@@ -113,7 +116,6 @@ int	handle_redirections(t_redirection *redirects)
 	t_redirection	*rev;
 
 	rev = reverse_redirections(redirects);
-
 	while (rev)
 	{
 		if (rev->type == TOKEN_REDIRECT_OUT) // '>'
@@ -132,7 +134,6 @@ int	handle_redirections(t_redirection *redirects)
 			perror(rev->filename);
 			return (0);
 		}
-
 		if (rev->type == TOKEN_REDIRECT_IN)
 		{
 			if (dup2(fd, STDIN_FILENO) == -1)
@@ -142,7 +143,7 @@ int	handle_redirections(t_redirection *redirects)
 				return (0);
 			}
 		}
-		else // (TOKEN_REDIRECT_OUT) или (TOKEN_REDIRECT_APPEND)
+		else
 		{
 			if (dup2(fd, STDOUT_FILENO) == -1)
 			{
@@ -152,12 +153,10 @@ int	handle_redirections(t_redirection *redirects)
 			}
 		}
 		close(fd);
-
 		rev = rev->next;
 	}
 	return (1);
 }
-
 
 void	restore_standard_fds(int fd_in, int fd_out)
 {
@@ -194,7 +193,6 @@ char	*find_command(char *command, char **envp)
 	char		*temp;
 	int			i;
 
-	// Если команда содержит '/', предполагаем, что это абсолютный путь
 	if (ft_strchr(command, '/'))
 	{
 		if (stat(command, &statbuf) == 0)
@@ -202,7 +200,7 @@ char	*find_command(char *command, char **envp)
 			if (S_ISDIR(statbuf.st_mode))
 			{
 				ft_putendl_fd("minishell: /: is a directory", STDERR_FILENO);
-				return (NULL); // Установка exit_status в вызывающем коде
+				return (NULL);
 			}
 			if (access(command, X_OK) == 0)
 				return (ft_strdup(command));
@@ -210,22 +208,16 @@ char	*find_command(char *command, char **envp)
 		ft_putendl_fd("minishell: /: No such file or directory", STDERR_FILENO);
 		return (NULL);
 	}
-
-	// Проверяем переменную PATH
 	path_env = get_env_value_direct(envp, "PATH");
 	if (!path_env || path_env[0] == '\0')
 	{
 		fprintf(stderr, "minishell: %s: command not found\n", command);
 		return (NULL);
 	}
-
-	// Разделяем PATH на массив путей
 	paths = ft_split(path_env, ':');
 	free(path_env);
 	if (!paths)
 		return (NULL);
-
-	// Проверяем команды в каждом пути
 	i = 0;
 	while (paths[i])
 	{
@@ -239,7 +231,7 @@ char	*find_command(char *command, char **envp)
 				ft_putendl_fd("minishell: /: is a directory", STDERR_FILENO);
 				ft_free_array(paths);
 				free(full_path);
-				return (NULL); // Установка exit_status в вызывающем коде
+				return (NULL);
 			}
 			if (access(full_path, X_OK) == 0)
 			{
@@ -254,4 +246,3 @@ char	*find_command(char *command, char **envp)
 	fprintf(stderr, "minishell: %s: command not found\n", command);
 	return (NULL);
 }
-

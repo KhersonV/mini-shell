@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/05 19:18:24 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/06 13:32:55 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,11 +29,9 @@
 # include <unistd.h>
 # include <termios.h>
 
-/* Макросы */
 # define TRUE 1
 # define FALSE 0
 
-/* Структуры */
 typedef struct s_info
 {
 	char					*input;
@@ -78,9 +76,8 @@ typedef struct s_token
 	struct s_token			*prev;
 }							t_token;
 
+extern t_exec_command *g_commands;
 
-
-/* Перечисления */
 typedef enum e_token_type
 {
 	TOKEN_WORD,
@@ -102,9 +99,7 @@ typedef enum e_token_type
 
 /* Прототипы функций */
 
-t_exec_command				*build_fake_command_list(void);
 t_exec_command				*parse_tokens_to_commands(t_token *tokens);
-
 
 void						print_command_list(t_exec_command *cmd_list);
 /* Builtins */
@@ -123,7 +118,6 @@ void						init_env(t_info *info, char **envp);
 char						*get_env_value(t_info *info, const char *key);
 int							set_env(t_info *info, const char *key, const char *value);
 char						**env_to_array(t_info *info);
-
 
 /* Env utils */
 
@@ -159,8 +153,8 @@ int							is_builtin(char *command);
 void						execute_commands(t_exec_command *commands, t_info *info);
 
 /* Lexer */
-// t_token						*tokenize(char *input);
-t_token *tokenizer(char *user_input, t_info *info);
+
+t_token						*tokenizer(char *user_input, t_info *info);
 void						adjusting_token_tree(t_token **tree, t_info *info);
 void						free_token_list(t_token *tokens);
 void						expansion(t_token **tokens, t_info *info);
