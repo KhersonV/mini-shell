@@ -6,15 +6,15 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:35 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/05 16:05:45 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/06 17:45:22 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
-static void	print_unset_error(char *arg)
+static void	print_unset_error(char *arg, int is_option)
 {
-	if (arg[0] == '-')
+	if (is_option)
 	{
 		ft_putstr_fd("minishell: unset: -", STDERR_FILENO);
 		ft_putchar_fd(arg[1], STDERR_FILENO);
@@ -26,14 +26,29 @@ static void	print_unset_error(char *arg)
 	{
 		ft_putstr_fd("minishell: unset: `", STDERR_FILENO);
 		ft_putstr_fd(arg, STDERR_FILENO);
-		ft_putstr_fd("': not a valid identifier\n", STDERR_FILENO);
+		ft_putendl_fd("': not a valid identifier", STDERR_FILENO);
+	}
+}
+
+void	process_unset_argument(char *arg, t_info *info)
+{
+	int	j;
+
+	j = 0;
+	while (info->envp[j])
+	{
+		if (env_key_compare(info->envp[j], arg))
+		{
+			info->envp = remove_env_entry(info->envp, j);
+			break ;
+		}
+		j++;
 	}
 }
 
 void	unset_env(t_exec_command *command, t_info *info)
 {
 	int	i;
-	int	j;
 
 	if (!info || !command || !command->args)
 		return ;
@@ -43,27 +58,18 @@ void	unset_env(t_exec_command *command, t_info *info)
 	{
 		if (command->args[i][0] == '-')
 		{
-			print_unset_error(command->args[i]);
+			print_unset_error(command->args[i], 1);
 			info->exit_status = 2;
 			return ;
 		}
 		if (!is_valid_env_key(command->args[i]))
 		{
-			print_unset_error(command->args[i]);
+			print_unset_error(command->args[i], 0);
 			info->exit_status = 1;
 			i++;
 			continue ;
 		}
-		j = 0;
-		while (info->envp[j])
-		{
-			if (env_key_compare(info->envp[j], command->args[i]))
-			{
-				info->envp = remove_env_entry(info->envp, j);
-				break ;
-			}
-			j++;
-		}
+		process_unset_argument(command->args[i], info);
 		i++;
 	}
 }

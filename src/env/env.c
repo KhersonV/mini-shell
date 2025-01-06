@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 12:43:01 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/04 15:26:35 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/06 17:59:56 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,8 +46,6 @@ char	**copy_envp(char **envp)
 	env_copy[i] = NULL;
 	return (env_copy);
 }
-
-#include "../../include/minishell.h"
 
 void init_env(t_info *info, char **envp)
 {

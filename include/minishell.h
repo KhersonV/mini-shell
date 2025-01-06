@@ -6,18 +6,19 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 13:32:55 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/06 18:08:43 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MINISHELL_H
 # define MINISHELL_H
 
-# include "../libft/libft.h"
 # include "../get_next_line/get_next_line.h"
+# include <stdio.h>
+# include <unistd.h>
+# include "../libft/libft.h"
 # include <fcntl.h>
 # include <limits.h>
-# include <stdio.h>
 # include <readline/history.h>
 # include <readline/readline.h>
 # include <signal.h>
@@ -26,7 +27,6 @@
 # include <sys/stat.h>
 # include <sys/types.h>
 # include <sys/wait.h>
-# include <unistd.h>
 # include <termios.h>
 
 # define TRUE 1
@@ -76,7 +76,7 @@ typedef struct s_token
 	struct s_token			*prev;
 }							t_token;
 
-extern t_exec_command *g_commands;
+extern t_exec_command		*g_commands;
 
 typedef enum e_token_type
 {
@@ -102,7 +102,19 @@ typedef enum e_token_type
 t_exec_command				*parse_tokens_to_commands(t_token *tokens);
 
 void						print_command_list(t_exec_command *cmd_list);
-/* Builtins */
+
+/* Builtins utils */
+
+int							get_current_directory(char *cwd);
+char						*resolve_target_directory(char **args,
+								t_info *info);
+int							handle_directory_change(char *dir, char **args,
+								t_info *info);
+int							update_env_vars(t_info *info, char *old_cwd);
+int							is_numeric(const char *str);
+
+/* Builtins  */
+
 void						ft_echo(t_exec_command *command, t_info *info);
 void						ft_cd(char **args, t_info *info);
 void						ft_pwd(t_info *info);
@@ -112,11 +124,13 @@ void						ft_env(t_exec_command *commands, t_info *info);
 void						ft_exit(char **args, t_info *info);
 
 /* Env */
+
 void						sort_env(char **env);
 char						**copy_envp(char **envp);
 void						init_env(t_info *info, char **envp);
 char						*get_env_value(t_info *info, const char *key);
-int							set_env(t_info *info, const char *key, const char *value);
+int							set_env(t_info *info, const char *key,
+								const char *value);
 char						**env_to_array(t_info *info);
 
 /* Env utils */
@@ -125,16 +139,15 @@ int							is_valid_env_key(const char *key);
 int							env_key_compare(const char *env_entry,
 								const char *key);
 char						*get_value_from_env(const char *env_entry);
-char 						*get_env_value_direct(char **envp, const char *key);
-
+char						*get_env_value_direct(char **envp, const char *key);
 char						*create_env_entry(const char *key,
 								const char *value);
 char						**append_env_entry(char **env, const char *entry);
 char						**remove_env_entry(char **env, int index);
-
 void						exit_shell(t_info *info);
 
 /* Executor */
+
 int							handle_redirections(t_redirection *redirects);
 int							prepare_heredocs(t_exec_command *commands);
 void						execute_commands(t_exec_command *commands,
@@ -149,8 +162,8 @@ int							handle_redirections(t_redirection *redirects);
 void						restore_standard_fds(int fd_in, int fd_out);
 char						*find_command(char *command, char **envp);
 int							is_builtin(char *command);
-
-void						execute_commands(t_exec_command *commands, t_info *info);
+void						execute_commands(t_exec_command *commands,
+								t_info *info);
 
 /* Lexer */
 
@@ -159,17 +172,13 @@ void						adjusting_token_tree(t_token **tree, t_info *info);
 void						free_token_list(t_token *tokens);
 void						expansion(t_token **tokens, t_info *info);
 
-
 /* Signals */
 void						init_signals(void);
 void						reset_signals_to_default(void);
 
 /* utils - free_utils */
 void						ft_free_array(char **array);
-
-void						free_env_array(char **env);
 void						free_commands(t_exec_command *commands);
-
 void						free_env(t_info *info);
 void						free_redirections(t_redirection *redirects);
 #endif
