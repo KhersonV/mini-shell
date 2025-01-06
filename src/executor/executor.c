@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 13:46:59 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/06 19:15:57 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -270,7 +270,6 @@ void	execute_pipeline(t_exec_command *commands, t_info *info)
 		process_index++;
 		current = current->next_cmd;
 	}
-	// g_in_child = 0;
 	free_pipes(pipes, num_cmds);
 	waitpid(pid, &status, 0);
 	if (WIFEXITED(status))

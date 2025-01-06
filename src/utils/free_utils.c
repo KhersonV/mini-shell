@@ -1,3 +1,14 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   free_utils.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/06 19:00:23 by vmamoten          #+#    #+#             */
+/*   Updated: 2025/01/06 19:07:51 by vmamoten         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
@@ -37,9 +48,8 @@ void	free_commands(t_exec_command *commands)
 	{
 		temp = commands;
 		free(commands->cmd_name);
-		ft_free_array(commands->args);         
-			// Освобождение массива аргументов
-		free_redirections(commands->redirects); // Освобождение редиректов
+		ft_free_array(commands->args);
+		free_redirections(commands->redirects);
 		commands = commands->next_cmd;
 		free(temp);
 	}
@@ -52,15 +62,15 @@ void	free_redirections(t_redirection *redirects)
 	while (redirects)
 	{
 		temp = redirects;
-		free(redirects->filename); // Освобождаем имя файла
+		free(redirects->filename);
 		redirects = redirects->next;
-		free(temp); // Освобождаем текущую структуру
+		free(temp);
 	}
 }
 
 void	exit_shell(t_info *info)
 {
 	free_env(info);
-	// printf("Exit\n");
+	//printf("Exit\n");
 	exit(info->exit_status);
 }

@@ -6,105 +6,11 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 12:52:06 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 15:40:03 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/06 19:15:38 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
-
-int	is_valid_env_key(const char *key)
-{
-    int i = 0;
-
-    if (!key || !key[0] || ft_isdigit(key[0]))
-        return (0);
-    while (key[i])
-    {
-        if (!(ft_isalnum(key[i]) || key[i] == '_'))
-            return (0);
-        i++;
-    }
-    return (1);
-}
-
-
-int	env_key_compare(const char *env_entry, const char *key)
-{
-	int	key_len;
-
-	key_len = ft_strlen(key);
-	return (ft_strncmp(env_entry, key, key_len) == 0 && env_entry[key_len] == '=');
-}
-
-char	*get_value_from_env(const char *env_entry)
-{
-	char	*equals;
-
-	equals = ft_strchr(env_entry, '=');
-	if (!equals)
-		return (NULL);
-	return (ft_strdup(equals + 1));
-}
-
-
-char *get_env_value_direct(char **envp, const char *key)
-{
-    int i = 0;
-    size_t key_len = ft_strlen(key);
-
-    while (envp[i])
-    {
-        if (ft_strncmp(envp[i], key, key_len) == 0 && envp[i][key_len] == '=')
-            return (ft_strdup(envp[i] + key_len + 1));
-        i++;
-    }
-    return (NULL);
-}
-
-char	*create_env_entry(const char *key, const char *value)
-{
-	char	*entry;
-	size_t	len_key;
-	size_t	len_value;
-	size_t	len;
-
-	if (!key || !value)
-		return (NULL);
-	len_key = ft_strlen(key);
-	len_value = ft_strlen(value);
-	len = len_key + len_value + 2;
-	entry = (char *)malloc(len);
-	if (!entry)
-		exit(EXIT_FAILURE);
-	ft_strlcpy(entry, key, len_key + 1);
-	entry[len_key] = '=';
-	ft_strlcpy(entry + len_key + 1, value, len - len_key - 1);
-	return (entry);
-}
-
-char	**append_env_entry(char **env, const char *entry)
-{
-	int		i;
-	int		count;
-	char	**new_env;
-
-	i = 0;
-	count = 0;
-	while (env[count])
-		count++;
-	new_env = (char **)malloc((count + 2) * sizeof(char *));
-	if (!new_env)
-		exit(EXIT_FAILURE);
-	while (i < count)
-	{
-		new_env[i] = env[i];
-		i++;
-	}
-	new_env[i] = ft_strdup(entry);
-	new_env[i + 1] = NULL;
-	free(env);
-	return (new_env);
-}
 
 char	**remove_env_entry(char **env, int index)
 {
@@ -132,4 +38,90 @@ char	**remove_env_entry(char **env, int index)
 	new_env[j] = NULL;
 	free(env);
 	return (new_env);
+}
+
+char	**copy_envp(char **envp)
+{
+	int		i;
+	int		size;
+	char	**env_copy;
+
+	size = 0;
+	env_copy = allocate_env_copy(envp, &size);
+	if (!env_copy)
+		return (NULL);
+	i = 0;
+	while (i < size)
+	{
+		env_copy[i] = ft_strdup(envp[i]);
+		if (!env_copy[i])
+		{
+			free_partial_env_copy(env_copy, i);
+			return (NULL);
+		}
+		i++;
+	}
+	env_copy[i] = NULL;
+	return (env_copy);
+}
+
+void	remove_oldpwd(char ***envp)
+{
+	int	i;
+
+	i = 0;
+	while ((*envp)[i])
+	{
+		if (env_key_compare((*envp)[i], "OLDPWD"))
+		{
+			*envp = remove_env_entry(*envp, i);
+			break ;
+		}
+		i++;
+	}
+}
+
+int	calculate_shlvl(char *shlvl_value)
+{
+	int		shlvl;
+	char	*str;
+
+	str = "minishell: warning: shell level too high, resetting to 1\n";
+	if (shlvl_value)
+	{
+		shlvl = ft_atoi(shlvl_value);
+		free(shlvl_value);
+		shlvl++;
+		if (shlvl > 999)
+		{
+			ft_putstr_fd(str, STDERR_FILENO);
+			return (1);
+		}
+	}
+	else
+		shlvl = 1;
+	return (shlvl);
+}
+
+void	shlvl_to_string(int shlvl, char *buffer)
+{
+	int		i;
+	int		j;
+	char	tmp;
+
+	i = 0;
+	while (shlvl > 0)
+	{
+		buffer[i++] = (shlvl % 10) + '0';
+		shlvl /= 10;
+	}
+	buffer[i] = '\0';
+	j = 0;
+	while (j < i / 2)
+	{
+		tmp = buffer[j];
+		buffer[j] = buffer[i - j - 1];
+		buffer[i - j - 1] = tmp;
+		j++;
+	}
 }

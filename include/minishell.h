@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 18:08:43 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/06 19:13:56 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,7 +103,7 @@ t_exec_command				*parse_tokens_to_commands(t_token *tokens);
 
 void						print_command_list(t_exec_command *cmd_list);
 
-/* Builtins utils */
+/* Builtins u */
 
 int							get_current_directory(char *cwd);
 char						*resolve_target_directory(char **args,
@@ -124,7 +124,12 @@ void						ft_env(t_exec_command *commands, t_info *info);
 void						ft_exit(char **args, t_info *info);
 
 /* Env */
-
+void						shlvl_to_string(int shlvl, char *buffer);
+int							calculate_shlvl(char *shlvl_value);
+void						remove_oldpwd(char ***envp);
+char						**append_env_entry(char **env, const char *entry);
+void						free_partial_env_copy(char **env_copy, int count);
+char						**allocate_env_copy(char **envp, int *size);
 void						sort_env(char **env);
 char						**copy_envp(char **envp);
 void						init_env(t_info *info, char **envp);
