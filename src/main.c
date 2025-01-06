@@ -6,13 +6,68 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 13:22:41 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/06 15:48:06 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
  t_exec_command *g_commands = NULL;
+
+
+
+void free_array(t_exec_command *commands)
+{
+    t_exec_command *current;
+    t_exec_command *next;
+
+    current = commands;
+    while (current)
+    {
+        next = current->next_cmd;
+
+        // Освобождаем память для имени команды
+        if (current->cmd_name)
+            free(current->cmd_name);
+
+        // Освобождаем путь к исполняемому файлу
+        if (current->exec_path)
+            free(current->exec_path);
+
+        // Освобождаем аргументы
+        if (current->args)
+        {
+            char **args = current->args;
+            while (*args)
+            {
+                free(*args);
+                args++;
+            }
+            free(current->args);
+        }
+
+        // Освобождаем перенаправления
+        if (current->redirects)
+        {
+            t_redirection *redir = current->redirects;
+            t_redirection *next_redir;
+            while (redir)
+            {
+                next_redir = redir->next;
+                if (redir->filename)
+                    free(redir->filename);
+                free(redir);
+                redir = next_redir;
+            }
+        }
+
+        // Освобождаем текущую команду
+        free(current);
+        current = next;
+    }
+}
+
+
 
 // void print_redirections(t_redirection *redirects)
 // {
@@ -179,9 +234,10 @@ int main(int ac, char **av, char **envp)
 		g_commands = commands;
 		execute_commands(commands, &info);
 		g_commands = NULL;
-		free_commands(commands);
+		free_array(commands);
 		free_token_list(tokens);
 		free(line);
 	}
 	return (0);
 }
+

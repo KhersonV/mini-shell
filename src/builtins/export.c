@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:29 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/05 14:51:21 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/06 15:50:28 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ void	ft_export(char **args, t_info *info)
 				printf("declare -x %s\n", sorted_env[i]);
 			i++;
 		}
-		free_env_array(sorted_env);
+		ft_free_array(sorted_env);
 		info->exit_status = 0;
 		return;
 	}

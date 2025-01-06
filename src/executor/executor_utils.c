@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:09:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 15:13:21 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/06 15:24:45 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -231,27 +231,13 @@ char	*check_absolute_path(char *command)
 	return (NULL);
 }
 
-char	*find_command(char *command, char **envp)
+char	*search_in_path(char *command, char **paths)
 {
 	struct stat	statbuf;
-	char		*path_env;
-	char		**paths;
 	char		*full_path;
 	char		*temp;
 	int			i;
 
-	if (ft_strchr(command, '/'))
-		 return (check_absolute_path(command));
-	path_env = get_env_value_direct(envp, "PATH");
-	if (!path_env || path_env[0] == '\0')
-	{
-		fprintf(stderr, "minishell: %s: command not found\n", command);
-		return (NULL);
-	}
-	paths = ft_split(path_env, ':');
-	free(path_env);
-	if (!paths)
-		return (NULL);
 	i = 0;
 	while (paths[i])
 	{
@@ -263,20 +249,54 @@ char	*find_command(char *command, char **envp)
 			if (S_ISDIR(statbuf.st_mode))
 			{
 				ft_putendl_fd("minishell: /: is a directory", STDERR_FILENO);
-				ft_free_array(paths);
-				free(full_path);
-				return (NULL);
+				return (free(full_path), NULL);
 			}
 			if (access(full_path, X_OK) == 0)
-			{
-				ft_free_array(paths);
 				return (full_path);
-			}
 		}
 		free(full_path);
 		i++;
 	}
-	ft_free_array(paths);
-	fprintf(stderr, "minishell: %s: command not found\n", command);
 	return (NULL);
+}
+
+void	print_command_not_found(char *command)
+{
+	char	*prefix;
+	char	*message;
+
+	prefix = ft_strjoin("minishell: ", command);
+	if (!prefix)
+		return ;
+	message = ft_strjoin(prefix, ": command not found\n");
+	free(prefix);
+	if (!message)
+		return ;
+	ft_putstr_fd(message, STDERR_FILENO);
+	free(message);
+}
+
+char	*find_command(char *command, char **envp)
+{
+	char	*path_env;
+	char	**paths;
+	char	*result;
+
+	if (ft_strchr(command, '/'))
+		return (check_absolute_path(command));
+	path_env = get_env_value_direct(envp, "PATH");
+	if (!path_env || path_env[0] == '\0')
+	{
+		print_command_not_found(command);
+		return (NULL);
+	}
+	paths = ft_split(path_env, ':');
+	free(path_env);
+	if (!paths)
+		return (NULL);
+	result = search_in_path(command, paths);
+	ft_free_array(paths);
+	if (!result)
+		print_command_not_found(command);
+	return (result);
 }

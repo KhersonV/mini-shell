@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 12:52:06 by vmamoten          #+#    #+#             */
-/*   Updated: 2024/12/31 16:07:37 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/06 15:40:03 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,19 +132,4 @@ char	**remove_env_entry(char **env, int index)
 	new_env[j] = NULL;
 	free(env);
 	return (new_env);
-}
-
-void	free_env_array(char **env)
-{
-    int i;
-
-    if (!env)
-        return;
-    i = 0;
-    while (env[i])
-    {
-        free(env[i]);
-        i++;
-    }
-    free(env);
 }
