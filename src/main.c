@@ -6,58 +6,15 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/07 16:26:32 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/07 17:48:07 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
 
- t_exec_command *g_commands = NULL;
+t_exec_command	*g_commands = NULL;
 
-
-
-void free_array(t_exec_command *commands)
-{
-    t_exec_command *current;
-    t_exec_command *next;
-
-    current = commands;
-    while (current)
-    {
-        next = current->next_cmd;
-        if (current->cmd_name)
-            free(current->cmd_name);
-        if (current->exec_path)
-            free(current->exec_path);
-        if (current->args)
-        {
-            char **args = current->args;
-            while (*args)
-            {
-                free(*args);
-                args++;
-            }
-            free(current->args);
-        }
-        if (current->redirects)
-        {
-            t_redirection *redir = current->redirects;
-            t_redirection *next_redir;
-            while (redir)
-            {
-                next_redir = redir->next;
-                if (redir->filename)
-                    free(redir->filename);
-                free(redir);
-                redir = next_redir;
-            }
-        }
-        free(current);
-        current = next;
-    }
-}
-
-void main_initialize(t_info *info, char **envp)
+void	main_initialize(t_info *info, char **envp)
 {
 	info->std_in_reserve = dup(STDIN_FILENO);
 	info->std_out_reserve = dup(STDOUT_FILENO);
@@ -69,30 +26,64 @@ void main_initialize(t_info *info, char **envp)
 	init_env(info, envp);
 }
 
-// void process_user_input(char *user_input, t_exec_command **command, t_info *info)
-// {
-// 	t_token *tokens;
-// 	t_exec_command *command_ptr;
-
-// 	command_ptr = *command;
-// 	tokens = tokenizer(user_input, info);
-// 	if (!tokens)
-// 		free(user_input);
-// 	expansion(&tokens, info);
-// 	command_ptr = parse_tokens_to_commands(tokens);
-// 	if (!command_ptr)
-// 	{
-// 		free_token_list(tokens);
-// 		free(user_input);
-// 	}
-// }
-
-int main(int ac, char **av, char **envp)
+char	*get_user_input(void)
 {
-	char *line;
-	t_token *tokens;
-	t_exec_command *commands;
-	t_info info;
+	char	*line;
+	char	*temp;
+
+	if (isatty(STDIN_FILENO))
+		return (readline("minishell> "));
+	line = get_next_line(STDIN_FILENO);
+	if (line)
+	{
+		temp = line;
+		line = ft_strtrim(line, "\n");
+		free(temp);
+	}
+	return (line);
+}
+
+t_exec_command	*process_tokens(char *line, t_info *info, t_token **tokens)
+{
+	*tokens = tokenizer(line, info);
+	if (!*tokens)
+	{
+		free(line);
+		return (NULL);
+	}
+	adjusting_token_tree(tokens, info);
+	if (info->syntax_error == 1)
+	{
+		free_token_list(*tokens);
+		free(line);
+		return (NULL);
+	}
+	return (parse_tokens_to_commands(*tokens));
+}
+
+void	process_input(char *line, t_info *info)
+{
+	t_token			*tokens;
+	t_exec_command	*commands;
+
+	if (*line != '\0')
+		add_history(line);
+	info->input = line;
+	commands = process_tokens(line, info, &tokens);
+	if (!commands)
+		return ;
+	g_commands = commands;
+	execute_commands(commands, info);
+	g_commands = NULL;
+	free_array(commands);
+	free_token_list(tokens);
+	free(line);
+}
+
+int	main(int ac, char **av, char **envp)
+{
+	char	*line;
+	t_info	info;
 
 	if (ac != 1)
 	{
@@ -103,50 +94,10 @@ int main(int ac, char **av, char **envp)
 	init_signals();
 	while (1)
 	{
-		if (isatty(STDIN_FILENO))
-			line = readline("minishell> ");
-		else
-		{
-			line = get_next_line(STDIN_FILENO);
-			if (line)
-			{
-				char *temp = line;
-				line = ft_strtrim(line, "\n");
-				free(temp);
-			}
-		}
+		line = get_user_input();
 		if (line == NULL)
 			exit_shell(&info);
-		if (*line != '\0')
-			add_history(line);
-		info.input = line;
-		tokens = tokenizer(line, &info);
-		if (!tokens)
-		{
-			free(line);
-			continue;
-		}
-		adjusting_token_tree(&tokens, &info);
-		        if (info.syntax_error == 1)
-        {
-            free_token_list(tokens);
-            free(line);
-            continue; 
-        }
-		commands = parse_tokens_to_commands(tokens);
-		if (!commands)
-		{
-			free_token_list(tokens);
-			free(line);
-			continue;
-		}
-		g_commands = commands;
-		execute_commands(commands, &info);
-		g_commands = NULL;
-		free_array(commands);
-		free_token_list(tokens);
-		free(line);
+		process_input(line, &info);
 	}
 	return (0);
 }
-

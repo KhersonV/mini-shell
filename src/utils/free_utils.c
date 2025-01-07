@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/06 19:00:23 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 19:07:51 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/07 17:31:41 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,9 +68,20 @@ void	free_redirections(t_redirection *redirects)
 	}
 }
 
-void	exit_shell(t_info *info)
+void	free_array(t_exec_command *commands)
 {
-	free_env(info);
-	//printf("Exit\n");
-	exit(info->exit_status);
+	t_exec_command	*current;
+	t_exec_command	*next;
+
+	current = commands;
+	while (current)
+	{
+		next = current->next_cmd;
+		free(current->cmd_name);
+		free(current->exec_path);
+		ft_free_array(current->args);
+		free_redirections(current->redirects);
+		free(current);
+		current = next;
+	}
 }
