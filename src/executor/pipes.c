@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:10:51 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/07 12:54:55 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/07 13:33:52 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,26 +62,52 @@ void	free_pipes(int **pipes, int num_cmds)
 	free(pipes);
 }
 
+void	setup_redirections(int **pipes, int process_index, int num_cmds)
+{
+	if (process_index > 0)
+		dup2(pipes[process_index - 1][0], STDIN_FILENO);
+	if (process_index < num_cmds - 1)
+		dup2(pipes[process_index][1], STDOUT_FILENO);
+}
+
+void	child_execute(t_exec_command *current, t_info *info, int **pipes,
+		t_pipeline_params *params)
+{
+	char	*path;
+
+	reset_signals_to_default();
+	setup_redirections(pipes, params->index, params->num_cmds);
+	free_pipes(pipes, params->num_cmds);
+	if (!handle_redirections(current->redirects))
+		exit(EXIT_FAILURE);
+	if (is_builtin(current->cmd_name))
+		exit(execute_builtin_in_child(current, info));
+	path = find_command(current->cmd_name, info->envp);
+	if (!path)
+		exit(127);
+	execve(path, current->args, info->envp);
+	perror("execve");
+	exit(EXIT_FAILURE);
+}
+
 void	execute_pipeline(t_exec_command *commands, t_info *info)
 {
-	int				**pipes;
-	pid_t			pid;
-	int				process_index;
-	int				num_cmds;
-	t_exec_command	*current;
-	char			*path;
-	int				status;
+	int					**pipes;
+	pid_t				pid;
+	t_exec_command		*current;
+	int					status;
+	t_pipeline_params	params;
 
-	num_cmds = count_commands(commands);
-	if (num_cmds <= 0)
+	params.num_cmds = count_commands(commands);
+	if (params.num_cmds <= 0)
 		return;
-	pipes = init_pipes(num_cmds);
+	pipes = init_pipes(params.num_cmds);
 	if (!pipes)
 	{
 		info->exit_status = 1;
 		return;
 	}
-	process_index = 0;
+	params.index = 0;
 	current = commands;
 	while (current)
 	{
@@ -89,42 +115,44 @@ void	execute_pipeline(t_exec_command *commands, t_info *info)
 		if (pid == -1)
 		{
 			perror("fork");
-			free_pipes(pipes, num_cmds);
+			free_pipes(pipes, params.num_cmds);
 			return ;
 		}
 		if (pid == 0)
 		{
-			reset_signals_to_default();
-			if (process_index > 0)
-				dup2(pipes[process_index - 1][0], STDIN_FILENO);
-			if (process_index < num_cmds - 1)
-				dup2(pipes[process_index][1], STDOUT_FILENO);
-			free_pipes(pipes, num_cmds);
-			if (!handle_redirections(current->redirects))
-				exit(EXIT_FAILURE);
-			if (is_builtin(current->cmd_name))
-				exit(execute_builtin_in_child(current, info));
-			else
-			{
-				path = find_command(current->cmd_name, info->envp);
-				if (!path)
-					exit(127);
-				execve(path, current->args, info->envp);
-				perror("execve");
-				exit(EXIT_FAILURE);
-			}
+			// reset_signals_to_default();
+			// setup_redirections(pipes, process_index, num_cmds);
+			// // if (process_index > 0)
+			// // 	dup2(pipes[process_index - 1][0], STDIN_FILENO);
+			// // if (process_index < num_cmds - 1)
+			// // 	dup2(pipes[process_index][1], STDOUT_FILENO);
+			// free_pipes(pipes, num_cmds);
+			// if (!handle_redirections(current->redirects))
+			// 	exit(EXIT_FAILURE);
+			// if (is_builtin(current->cmd_name))
+			// 	exit(execute_builtin_in_child(current, info));
+			// else
+			// {
+			// 	path = find_command(current->cmd_name, info->envp);
+			// 	if (!path)
+			// 		exit(127);
+			// 	execve(path, current->args, info->envp);
+			// 	perror("execve");
+			// 	exit(EXIT_FAILURE);
+			// }
+			child_execute(current,info,pipes,&params);
 		}
 		else
 		{
-			if (process_index > 0)
-				close(pipes[process_index - 1][0]);
-			if (process_index < num_cmds - 1)
-				close(pipes[process_index][1]);
+			if (params.index > 0)
+				close(pipes[params.index - 1][0]);
+			if (params.index < params.num_cmds - 1)
+				close(pipes[params.index][1]);
 		}
-		process_index++;
+		params.index++;
 		current = current->next_cmd;
 	}
-	free_pipes(pipes, num_cmds);
+	free_pipes(pipes, params.num_cmds);
 	waitpid(pid, &status, 0);
 	if (WIFEXITED(status))
 		info->exit_status = WEXITSTATUS(status);
@@ -133,35 +161,3 @@ void	execute_pipeline(t_exec_command *commands, t_info *info)
 	while (wait(NULL) > 0)
 		;
 }
-
-void	execute_builtin(t_exec_command *command, t_info *info)
-{
-	int	saved_stdout;
-	int	saved_stdin;
-
-	saved_stdout = dup(STDOUT_FILENO);
-	saved_stdin = dup(STDIN_FILENO);
-	if (!handle_redirections(command->redirects))
-	{
-		restore_standard_fds(saved_stdin, saved_stdout);
-		info->exit_status = 1;
-		return ;
-	}
-	if (ft_strcmp(command->cmd_name, "echo") == 0)
-		ft_echo(command, info);
-	else if (ft_strcmp(command->cmd_name, "cd") == 0)
-		ft_cd(command->args, info);
-	else if (ft_strcmp(command->cmd_name, "pwd") == 0)
-		ft_pwd(info);
-	else if (ft_strcmp(command->cmd_name, "export") == 0)
-		ft_export(command->args, info);
-	else if (ft_strcmp(command->cmd_name, "env") == 0 ||
-			 ft_strcmp(command->cmd_name, "ENV") == 0)
-		ft_env(command, info);
-	else if (ft_strcmp(command->cmd_name, "unset") == 0)
-		unset_env(command, info);
-	else if (ft_strcmp(command->cmd_name, "exit") == 0)
-		ft_exit(command->args, info);
-	restore_standard_fds(saved_stdin, saved_stdout);
-}
-
