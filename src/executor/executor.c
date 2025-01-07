@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/07 14:22:56 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/07 14:41:18 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,6 +76,53 @@ void	execute_builtin(t_exec_command *command, t_info *info)
 }
 
 
+
+
+
+static int	handle_empty_command(t_exec_command *command, t_info *info, int saved_stdin, int saved_stdout)
+{
+	if (!command->cmd_name || ft_strlen(command->cmd_name) == 0)
+	{
+		if (!handle_redirections(command->redirects))
+		{
+			restore_standard_fds(saved_stdin, saved_stdout);
+			info->exit_status = 1;
+			return (1);
+		}
+		restore_standard_fds(saved_stdin, saved_stdout);
+		info->exit_status = 0;
+		return (1);
+	}
+	return (0);
+}
+
+
+
+static int	handle_special_cases(t_exec_command *command, t_info *info, int saved_stdin, int saved_stdout)
+{
+	if (ft_strcmp(command->cmd_name, ".") == 0)
+	{
+		if (!command->args[1])
+		{
+			ft_putendl_fd("minishell: .: filename argument required", STDERR_FILENO);
+			ft_putendl_fd(".: usage: . filename [arguments]", STDERR_FILENO);
+			info->exit_status = 2;
+			restore_standard_fds(saved_stdin, saved_stdout);
+			return (1);
+		}
+	}
+	else if (ft_strcmp(command->cmd_name, "..") == 0)
+	{
+		ft_putendl_fd("minishell: ..: command not found", STDERR_FILENO);
+		info->exit_status = 127;
+		restore_standard_fds(saved_stdin, saved_stdout);
+		return (1);
+	}
+	return (0);
+}
+
+
+
 void	execute_single_command(t_exec_command *command, t_info *info)
 {
 	pid_t		pid;
@@ -87,37 +134,26 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 
 	saved_stdout = dup(STDOUT_FILENO);
 	saved_stdin = dup(STDIN_FILENO);
-	if (!command->cmd_name || ft_strlen(command->cmd_name) == 0)
-	{
-		if (!handle_redirections(command->redirects))
-		{
-			restore_standard_fds(saved_stdin, saved_stdout);
-			info->exit_status = 1;
-			return ;
-		}
-		restore_standard_fds(saved_stdin, saved_stdout);
-		info->exit_status = 0;
-		return ;
-	}
-	if (ft_strcmp(command->cmd_name, ".") == 0)
-	{
-		if (!command->args[1])
-		{
-			ft_putendl_fd("minishell: .: filename argument required",
-				STDERR_FILENO);
-			ft_putendl_fd(".: usage: . filename [arguments]", STDERR_FILENO);
-			info->exit_status = 2;
-			restore_standard_fds(saved_stdin, saved_stdout);
-			return ;
-		}
-	}
-	else if (ft_strcmp(command->cmd_name, "..") == 0)
-	{
-		ft_putendl_fd("minishell: ..: command not found", STDERR_FILENO);
-		info->exit_status = 127;
-		restore_standard_fds(saved_stdin, saved_stdout);
-		return ;
-	}
+
+	if (handle_empty_command(command, info, saved_stdin, saved_stdout))
+		return;
+
+	// if (!command->cmd_name || ft_strlen(command->cmd_name) == 0)
+	// {
+	// 	if (!handle_redirections(command->redirects))
+	// 	{
+	// 		restore_standard_fds(saved_stdin, saved_stdout);
+	// 		info->exit_status = 1;
+	// 		return ;
+	// 	}
+	// 	restore_standard_fds(saved_stdin, saved_stdout);
+	// 	info->exit_status = 0;
+	// 	return ;
+	// }
+
+	
+	if (handle_special_cases(command, info, saved_stdin, saved_stdout))
+		return;
 	if (!handle_redirections(command->redirects))
 	{
 		restore_standard_fds(saved_stdin, saved_stdout);
