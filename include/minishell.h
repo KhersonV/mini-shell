@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/07 13:22:50 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/07 13:50:20 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,9 +34,10 @@
 
 typedef struct s_pipeline_params
 {
-	int num_cmds;
-	int index;
-} t_pipeline_params;
+	int						num_cmds;
+	int						index;
+	pid_t					last_pid;
+}							t_pipeline_params;
 
 typedef struct s_info
 {
