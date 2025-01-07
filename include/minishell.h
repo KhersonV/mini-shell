@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/07 14:02:20 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/07 16:33:50 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,6 +159,20 @@ char						**remove_env_entry(char **env, int index);
 void						exit_shell(t_info *info);
 
 /* Executor */
+void						handle_parent_process(pid_t pid, t_info *info);
+void						handle_child_process(char *path,
+								t_exec_command *command, t_info *info);
+void						ext_cmd(t_exec_command *command, t_info *info,
+								int stin, int stout);
+int							handle_directory_command(t_exec_command *command,
+								t_info *info, int saved_stdin,
+								int saved_stdout);
+int							handle_special_cases(t_exec_command *command,
+								t_info *info, int saved_stdin,
+								int saved_stdout);
+int							handle_empty_command(t_exec_command *command,
+								t_info *info, int saved_stdin,
+								int saved_stdout);
 int							count_commands(t_exec_command *commands);
 int							**init_pipes(int num_cmds);
 void						free_pipes(int **pipes, int num_cmds);

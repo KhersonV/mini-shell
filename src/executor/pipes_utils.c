@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/07 13:59:10 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/07 14:00:00 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/07 16:24:03 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,4 +60,25 @@ void	free_pipes(int **pipes, int num_cmds)
 		i++;
 	}
 	free(pipes);
+}
+
+void	handle_child_process(char *path, t_exec_command *command,
+		t_info *info)
+{
+	reset_signals_to_default();
+	execve(path, command->args, info->envp);
+	perror("execve");
+	free(path);
+	exit(EXIT_FAILURE);
+}
+
+void	handle_parent_process(pid_t pid, t_info *info)
+{
+	int	status;
+
+	waitpid(pid, &status, 0);
+	if (WIFEXITED(status))
+		info->exit_status = WEXITSTATUS(status);
+	else if (WIFSIGNALED(status))
+		info->exit_status = 128 + WTERMSIG(status);
 }

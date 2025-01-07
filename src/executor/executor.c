@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/07 15:08:38 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/07 16:18:15 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,113 +75,17 @@ void	execute_builtin(t_exec_command *command, t_info *info)
 	restore_standard_fds(saved_stdin, saved_stdout);
 }
 
-
-int	handle_empty_command(t_exec_command *command, t_info *info, int saved_stdin, int saved_stdout)
-{
-	if (!command->cmd_name || ft_strlen(command->cmd_name) == 0)
-	{
-		if (!handle_redirections(command->redirects))
-		{
-			restore_standard_fds(saved_stdin, saved_stdout);
-			info->exit_status = 1;
-			return (1);
-		}
-		restore_standard_fds(saved_stdin, saved_stdout);
-		info->exit_status = 0;
-		return (1);
-	}
-	return (0);
-}
-
-int	handle_special_cases(t_exec_command *command, t_info *info, int saved_stdin, int saved_stdout)
-{
-	if (ft_strcmp(command->cmd_name, ".") == 0)
-	{
-		if (!command->args[1])
-		{
-			ft_putendl_fd("minishell: .: filename argument required", STDERR_FILENO);
-			ft_putendl_fd(".: usage: . filename [arguments]", STDERR_FILENO);
-			info->exit_status = 2;
-			restore_standard_fds(saved_stdin, saved_stdout);
-			return (1);
-		}
-	}
-	else if (ft_strcmp(command->cmd_name, "..") == 0)
-	{
-		ft_putendl_fd("minishell: ..: command not found", STDERR_FILENO);
-		info->exit_status = 127;
-		restore_standard_fds(saved_stdin, saved_stdout);
-		return (1);
-	}
-	return (0);
-}
-
-
-int	handle_directory_command(t_exec_command *command, t_info *info, int saved_stdin, int saved_stdout)
-{
-	struct stat	statbuf;
-
-	if (stat(command->cmd_name, &statbuf) == 0 && S_ISDIR(statbuf.st_mode))
-	{
-		ft_putendl_fd("minishell: /: is a directory", STDERR_FILENO);
-		info->exit_status = 126;
-		restore_standard_fds(saved_stdin, saved_stdout);
-		return (1);
-	}
-	return (0);
-}
-
-void	ext_cmd(t_exec_command *command, t_info *info, int stin, int stout)
-{
-	char	*path;
-	pid_t	pid;
-	int		status;
-
-	path = find_command(command->cmd_name, info->envp);
-	if (!path)
-	{
-		info->exit_status = 127;
-		restore_standard_fds(stin, stout);
-		return ;
-	}
-	pid = fork();
-	if (pid == -1)
-	{
-		perror("fork");
-		free(path);
-		restore_standard_fds(stin, stout);
-		return ;
-	}
-	if (pid == 0)
-	{
-		reset_signals_to_default();
-		execve(path, command->args, info->envp);
-		perror("execve");
-		free(path);
-		exit(EXIT_FAILURE);
-	}
-	else
-	{
-		free(path);
-		waitpid(pid, &status, 0);
-		if (WIFEXITED(status))
-			info->exit_status = WEXITSTATUS(status);
-		else if (WIFSIGNALED(status))
-			info->exit_status = 128 + WTERMSIG(status);
-	}
-}
-
 void	execute_single_command(t_exec_command *command, t_info *info)
 {
-	int			saved_stdout;
-	int			saved_stdin;
+	int	saved_stdout;
+	int	saved_stdin;
 
 	saved_stdout = dup(STDOUT_FILENO);
 	saved_stdin = dup(STDIN_FILENO);
 	if (handle_empty_command(command, info, saved_stdin, saved_stdout))
-		return;
+		return ;
 	if (handle_special_cases(command, info, saved_stdin, saved_stdout))
-		return;
+		return ;
 	if (!handle_redirections(command->redirects))
 	{
 		restore_standard_fds(saved_stdin, saved_stdout);
@@ -195,7 +99,7 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 		return ;
 	}
 	if (handle_directory_command(command, info, saved_stdin, saved_stdout))
-		return;
-	ext_cmd(command,info,saved_stdin,saved_stdout);
+		return ;
+	ext_cmd(command, info, saved_stdin, saved_stdout);
 	restore_standard_fds(saved_stdin, saved_stdout);
 }

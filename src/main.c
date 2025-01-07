@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 15:48:06 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/07 16:26:32 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,16 +25,10 @@ void free_array(t_exec_command *commands)
     while (current)
     {
         next = current->next_cmd;
-
-        // Освобождаем память для имени команды
         if (current->cmd_name)
             free(current->cmd_name);
-
-        // Освобождаем путь к исполняемому файлу
         if (current->exec_path)
             free(current->exec_path);
-
-        // Освобождаем аргументы
         if (current->args)
         {
             char **args = current->args;
@@ -45,8 +39,6 @@ void free_array(t_exec_command *commands)
             }
             free(current->args);
         }
-
-        // Освобождаем перенаправления
         if (current->redirects)
         {
             t_redirection *redir = current->redirects;
@@ -60,89 +52,10 @@ void free_array(t_exec_command *commands)
                 redir = next_redir;
             }
         }
-
-        // Освобождаем текущую команду
         free(current);
         current = next;
     }
 }
-
-
-
-// void print_redirections(t_redirection *redirects)
-// {
-//     while (redirects)
-//     {
-//         printf("  Redirection type: %d\n", redirects->type);
-//         printf("  Filename: %s\n", redirects->filename ? redirects->filename : "(null)");
-//         redirects = redirects->next;
-//     }
-// }
-
-// void print_exec_command(t_exec_command *commands)
-// {
-//     t_exec_command *current = commands;
-//     int command_index = 0;
-
-//     while (current)
-//     {
-//         printf("\nCommand %d:\n", command_index);
-//         printf("  Command name: %s\n", current->cmd_name ? current->cmd_name : "(null)");
-//         printf("  Execution path: %s\n", current->exec_path ? current->exec_path : "(null)");
-
-//         // Print arguments
-//         if (current->args)
-//         {
-//             printf("  Arguments:\n");
-//             for (int i = 0; current->args[i]; i++)
-//             {
-//                 printf("    [%d]: %s\n", i, current->args[i]);
-//             }
-//         }
-//         else
-//         {
-//             printf("  Arguments: (null)\n");
-//         }
-
-//         // Print redirections
-//         if (current->redirects)
-//         {
-//             printf("  Redirections:\n");
-//             print_redirections(current->redirects);
-//         }
-//         else
-//         {
-//             printf("  Redirections: (none)\n");
-//         }
-
-//         printf("  Exit status: %d\n", current->exit_status);
-//         printf("  Next command: %s\n", current->next_cmd ? "Present" : "(null)");
-//         printf("  Previous command: %s\n", current->prev_cmd ? "Present" : "(null)");
-
-//         current = current->next_cmd;
-//         command_index++;
-//     }
-// }
-
-// void print_tokens(t_token *tokens)
-// {
-//     t_token *current = tokens;
-//     int token_index = 0;
-
-//     while (current)
-//     {
-//         printf("Token %d:\n", token_index);
-//         printf("  String: %s\n", current->str ? current->str : "(null)");
-//         printf("  Type: %d\n", current->type);
-//         printf("  Next: %s\n", current->next ? "Present" : "(null)");
-//         printf("  Previous: %s\n", current->prev ? "Present" : "(null)");
-//         current = current->next;
-//         token_index++;
-//     }
-// }
-
-// void print_command_list(t_exec_command *cmd_list);
-// t_token *tokenizer(char *user_input, t_info *info);
 
 void main_initialize(t_info *info, char **envp)
 {
@@ -156,27 +69,23 @@ void main_initialize(t_info *info, char **envp)
 	init_env(info, envp);
 }
 
-void process_user_input(char *user_input, t_exec_command **command, t_info *info)
-{
-	t_token *tokens;
-	t_exec_command *command_ptr;
+// void process_user_input(char *user_input, t_exec_command **command, t_info *info)
+// {
+// 	t_token *tokens;
+// 	t_exec_command *command_ptr;
 
-	command_ptr = *command;
-
-	tokens = tokenizer(user_input, info);
-	if (!tokens)
-		free(user_input);
-	expansion(&tokens, info);
-	// adjusting_token_tree(&tokens, info);
-	command_ptr = parse_tokens_to_commands(tokens);
-
-
-	if (!command_ptr)
-	{
-		free_token_list(tokens);
-		free(user_input);
-	}
-}
+// 	command_ptr = *command;
+// 	tokens = tokenizer(user_input, info);
+// 	if (!tokens)
+// 		free(user_input);
+// 	expansion(&tokens, info);
+// 	command_ptr = parse_tokens_to_commands(tokens);
+// 	if (!command_ptr)
+// 	{
+// 		free_token_list(tokens);
+// 		free(user_input);
+// 	}
+// }
 
 int main(int ac, char **av, char **envp)
 {
