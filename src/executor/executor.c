@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 19:15:57 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/07 12:47:11 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,10 +45,8 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 	saved_stdout = dup(STDOUT_FILENO);
 	saved_stdin = dup(STDIN_FILENO);
 
-	// Если команда пустая
 	if (!command->cmd_name || ft_strlen(command->cmd_name) == 0)
 	{
-		// Сразу проверим редиректы (чтобы создать пустой файл или выдать ошибку)
 		if (!handle_redirections(command->redirects))
 		{
 			restore_standard_fds(saved_stdin, saved_stdout);
@@ -56,18 +54,17 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 			return;
 		}
 		restore_standard_fds(saved_stdin, saved_stdout);
-		info->exit_status = 0; // Просто создаём файл (как и раньше)
+		info->exit_status = 0;
 		return;
 	}
 
-	// Проверка на специальные команды `.` и `..`
 	if (ft_strcmp(command->cmd_name, ".") == 0)
 	{
 		if (!command->args[1])
 		{
 			ft_putendl_fd("minishell: .: filename argument required", STDERR_FILENO);
 			ft_putendl_fd(".: usage: . filename [arguments]", STDERR_FILENO);
-			info->exit_status = 2; // Ошибка: нет аргумента
+			info->exit_status = 2;
 			restore_standard_fds(saved_stdin, saved_stdout);
 			return;
 		}
@@ -75,7 +72,7 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 	else if (ft_strcmp(command->cmd_name, "..") == 0)
 	{
 		ft_putendl_fd("minishell: ..: command not found", STDERR_FILENO);
-		info->exit_status = 127; // "команда не найдена"
+		info->exit_status = 127;
 		restore_standard_fds(saved_stdin, saved_stdout);
 		return;
 	}
@@ -87,7 +84,6 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 		return;
 	}
 
-	// Если команда является встроенной
 	if (is_builtin(command->cmd_name))
 	{
 		execute_builtin(command, info);
@@ -95,25 +91,22 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 		return;
 	}
 
-	// Проверка, не является ли команда директорией (./some_dir, допустим)
 	if (stat(command->cmd_name, &statbuf) == 0 && S_ISDIR(statbuf.st_mode))
 	{
 		ft_putendl_fd("minishell: /: is a directory", STDERR_FILENO);
-		info->exit_status = 126; // Директория не выполняется
+		info->exit_status = 126; 
 		restore_standard_fds(saved_stdin, saved_stdout);
 		return;
 	}
 
-	// Ищем команду в PATH
 	path = find_command(command->cmd_name, info->envp);
 	if (!path)
 	{
-		info->exit_status = 127; // Команда не найдена
+		info->exit_status = 127; 
 		restore_standard_fds(saved_stdin, saved_stdout);
 		return;
 	}
 
-	// Создаём дочерний процесс
 	pid = fork();
 	if (pid == -1)
 	{
@@ -143,51 +136,6 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 	restore_standard_fds(saved_stdin, saved_stdout);
 }
 
-
-
-int	count_commands(t_exec_command *commands)
-{
-	int	count;
-
-	count = 0;
-	while (commands)
-	{
-		count++;
-		commands = commands->next_cmd;
-	}
-	return (count);
-}
-
-int	**init_pipes(int num_cmds)
-{
-	int	**pipes;
-
-	pipes = ft_calloc(num_cmds - 1, sizeof(int *));
-	if (!pipes)
-		return (NULL);
-	for (int i = 0; i < num_cmds - 1; i++)
-	{
-		pipes[i] = ft_calloc(2, sizeof(int));
-		if (!pipes[i] || pipe(pipes[i]) == -1)
-			return (NULL);
-	}
-	return (pipes);
-}
-
-void	free_pipes(int **pipes, int num_cmds)
-{
-	for (int i = 0; i < num_cmds - 1; i++)
-	{
-		if (pipes[i])
-		{
-			close(pipes[i][0]);
-			close(pipes[i][1]);
-			free(pipes[i]);
-		}
-	}
-	free(pipes);
-}
-
 int	execute_builtin_in_child(t_exec_command *command, t_info *info)
 {
 	if (ft_strcmp(command->cmd_name, "echo") == 0)
@@ -207,106 +155,124 @@ int	execute_builtin_in_child(t_exec_command *command, t_info *info)
 	return (info->exit_status);
 }
 
-void	execute_pipeline(t_exec_command *commands, t_info *info)
-{
-	int				**pipes;
-	pid_t			pid;
-	int				process_index;
-	int				num_cmds;
-	t_exec_command	*current;
-	char			*path;
-	int				status;
+// int	count_commands(t_exec_command *commands)
+// {
+// 	int	count;
 
-	num_cmds = count_commands(commands);
-	if (num_cmds <= 0)
-		return;
-	pipes = init_pipes(num_cmds);
-	if (!pipes)
-	{
-		info->exit_status = 1;
-		return;
-	}
-	// g_in_child = 1;
-	process_index = 0;
-	current = commands;
-	while (current)
-	{
-		pid = fork();
-		if (pid == -1)
-		{
-			perror("fork");
-			free_pipes(pipes, num_cmds);
-			return ;
-		}
-		if (pid == 0)
-		{
-			reset_signals_to_default();
-			if (process_index > 0)
-				dup2(pipes[process_index - 1][0], STDIN_FILENO);
-			if (process_index < num_cmds - 1)
-				dup2(pipes[process_index][1], STDOUT_FILENO);
-			free_pipes(pipes, num_cmds);
-			if (!handle_redirections(current->redirects))
-				exit(EXIT_FAILURE);
-			if (is_builtin(current->cmd_name))
-				exit(execute_builtin_in_child(current, info));
-			else
-			{
-				path = find_command(current->cmd_name, info->envp);
-				if (!path)
-					exit(127);
-				execve(path, current->args, info->envp);
-				perror("execve");
-				exit(EXIT_FAILURE);
-			}
-		}
-		else
-		{
-			if (process_index > 0)
-				close(pipes[process_index - 1][0]);
-			if (process_index < num_cmds - 1)
-				close(pipes[process_index][1]);
-		}
-		process_index++;
-		current = current->next_cmd;
-	}
-	free_pipes(pipes, num_cmds);
-	waitpid(pid, &status, 0);
-	if (WIFEXITED(status))
-		info->exit_status = WEXITSTATUS(status);
-	else if (WIFSIGNALED(status))
-		info->exit_status = 128 + WTERMSIG(status);
-	while (wait(NULL) > 0)
-		;
-}
+// 	count = 0;
+// 	while (commands)
+// 	{
+// 		count++;
+// 		commands = commands->next_cmd;
+// 	}
+// 	return (count);
+// }
 
-void	execute_builtin(t_exec_command *command, t_info *info)
-{
-	int	saved_stdout;
-	int	saved_stdin;
+// int	**init_pipes(int num_cmds)
+// {
+// 	int	**pipes;
+// 	int	i;
 
-	saved_stdout = dup(STDOUT_FILENO);
-	saved_stdin = dup(STDIN_FILENO);
-	if (!handle_redirections(command->redirects))
-	{
-		restore_standard_fds(saved_stdin, saved_stdout);
-		info->exit_status = 1;
-		return ;
-	}
-	if (ft_strcmp(command->cmd_name, "echo") == 0)
-		ft_echo(command, info);
-	else if (ft_strcmp(command->cmd_name, "cd") == 0)
-		ft_cd(command->args, info);
-	else if (ft_strcmp(command->cmd_name, "pwd") == 0)
-		ft_pwd(info);
-	else if (ft_strcmp(command->cmd_name, "export") == 0)
-		ft_export(command->args, info);
-	else if (ft_strcmp(command->cmd_name, "env") == 0 ||
-			 ft_strcmp(command->cmd_name, "ENV") == 0)
-		ft_env(command, info);
-	else if (ft_strcmp(command->cmd_name, "unset") == 0)
-		unset_env(command, info);
-	else if (ft_strcmp(command->cmd_name, "exit") == 0)
-		ft_exit(command->args, info);
-	restore_standard_fds(saved_stdin, saved_stdout);
-}
+// 	pipes = ft_calloc(num_cmds - 1, sizeof(int *));
+// 	if (!pipes)
+// 		return (NULL);
+// 	i = 0;
+// 	while (i < num_cmds - 1)
+// 	{
+// 		pipes[i] = ft_calloc(2, sizeof(int));
+// 		if (!pipes[i || pipe(pipes[i]) == -1])
+// 			return (NULL);
+// 		i++;
+// 	}
+// 	return (pipes);
+// }
+
+// void	free_pipes(int **pipes, int num_cmds)
+// {
+// 	int	i;
+
+// 	i = 0;
+// 	while (i < num_cmds - 1)
+// 	{
+// 		if (pipes[i])
+// 		{
+// 			close(pipes[i][0]);
+// 			close(pipes[i][1]);
+// 			free(pipes[i]);
+// 		}
+// 		i++;
+// 	}
+// 	free(pipes);
+// }
+
+// void	execute_pipeline(t_exec_command *commands, t_info *info)
+// {
+// 	int				**pipes;
+// 	pid_t			pid;
+// 	int				process_index;
+// 	int				num_cmds;
+// 	t_exec_command	*current;
+// 	char			*path;
+// 	int				status;
+
+// 	num_cmds = count_commands(commands);
+// 	if (num_cmds <= 0)
+// 		return ;
+// 	pipes = init_pipes(num_cmds);
+// 	if (!pipes)
+// 	{
+// 		info->exit_status = 1;
+// 		return ;
+// 	}
+// 	process_index = 0;
+// 	current = commands;
+// 	while (current)
+// 	{
+// 		pid = fork();
+// 		if (pid == -1)
+// 		{
+// 			perror("fork");
+// 			free_pipes(pipes, num_cmds);
+// 			return ;
+// 		}
+// 		if (pid == 0)
+// 		{
+// 			reset_signals_to_default();
+// 			if (process_index > 0)
+// 				dup2(pipes[process_index - 1][0], STDIN_FILENO);
+// 			if (process_index < num_cmds - 1)
+// 				dup2(pipes[process_index][1], STDOUT_FILENO);
+// 			free_pipes(pipes, num_cmds);
+// 			if (!handle_redirections(current->redirects))
+// 				exit(EXIT_FAILURE);
+// 			if (is_builtin(current->cmd_name))
+// 				exit(execute_builtin_in_child(current, info));
+// 			else
+// 			{
+// 				path = find_command(current->cmd_name, info->envp);
+// 				if (!path)
+// 					exit(127);
+// 				execve(path, current->args, info->envp);
+// 				perror("execve");
+// 				exit(EXIT_FAILURE);
+// 			}
+// 		}
+// 		else
+// 		{
+// 			if (process_index > 0)
+// 				close(pipes[process_index - 1][0]);
+// 			if (process_index < num_cmds - 1)
+// 				close(pipes[process_index][1]);
+// 		}
+// 		process_index++;
+// 		current = current->next_cmd;
+// 	}
+// 	free_pipes(pipes, num_cmds);
+// 	waitpid(pid, &status, 0);
+// 	if (WIFEXITED(status))
+// 		info->exit_status = WEXITSTATUS(status);
+// 	else if (WIFSIGNALED(status))
+// 		info->exit_status = 128 + WTERMSIG(status);
+// 	while (wait(NULL) > 0)
+// 		;
+// }

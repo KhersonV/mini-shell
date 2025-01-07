@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 19:13:56 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/07 12:57:04 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,9 @@
 # define MINISHELL_H
 
 # include "../get_next_line/get_next_line.h"
+# include "../libft/libft.h"
 # include <stdio.h>
 # include <unistd.h>
-# include "../libft/libft.h"
 # include <fcntl.h>
 # include <limits.h>
 # include <readline/history.h>
@@ -152,7 +152,8 @@ char						**remove_env_entry(char **env, int index);
 void						exit_shell(t_info *info);
 
 /* Executor */
-
+int							execute_builtin_in_child(t_exec_command *command,
+								t_info *info);
 int							handle_redirections(t_redirection *redirects);
 int							prepare_heredocs(t_exec_command *commands);
 void						execute_commands(t_exec_command *commands,
