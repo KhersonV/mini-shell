@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/07 13:50:20 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/07 14:02:20 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,6 +159,10 @@ char						**remove_env_entry(char **env, int index);
 void						exit_shell(t_info *info);
 
 /* Executor */
+int							count_commands(t_exec_command *commands);
+int							**init_pipes(int num_cmds);
+void						free_pipes(int **pipes, int num_cmds);
+
 int							execute_builtin_in_child(t_exec_command *command,
 								t_info *info);
 int							handle_redirections(t_redirection *redirects);
@@ -175,8 +179,6 @@ int							handle_redirections(t_redirection *redirects);
 void						restore_standard_fds(int fd_in, int fd_out);
 char						*find_command(char *command, char **envp);
 int							is_builtin(char *command);
-void						execute_commands(t_exec_command *commands,
-								t_info *info);
 
 /* Lexer */
 
