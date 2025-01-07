@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/07 14:41:18 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/07 15:08:38 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ void	execute_commands(t_exec_command *commands, t_info *info)
 		execute_single_command(commands, info);
 }
 
-static void	execute_builtin_command(t_exec_command *command, t_info *info)
+void	execute_builtin_command(t_exec_command *command, t_info *info)
 {
 	if (ft_strcmp(command->cmd_name, "echo") == 0)
 		ft_echo(command, info);
@@ -76,10 +76,7 @@ void	execute_builtin(t_exec_command *command, t_info *info)
 }
 
 
-
-
-
-static int	handle_empty_command(t_exec_command *command, t_info *info, int saved_stdin, int saved_stdout)
+int	handle_empty_command(t_exec_command *command, t_info *info, int saved_stdin, int saved_stdout)
 {
 	if (!command->cmd_name || ft_strlen(command->cmd_name) == 0)
 	{
@@ -96,9 +93,7 @@ static int	handle_empty_command(t_exec_command *command, t_info *info, int saved
 	return (0);
 }
 
-
-
-static int	handle_special_cases(t_exec_command *command, t_info *info, int saved_stdin, int saved_stdout)
+int	handle_special_cases(t_exec_command *command, t_info *info, int saved_stdin, int saved_stdout)
 {
 	if (ft_strcmp(command->cmd_name, ".") == 0)
 	{
@@ -122,62 +117,31 @@ static int	handle_special_cases(t_exec_command *command, t_info *info, int saved
 }
 
 
-
-void	execute_single_command(t_exec_command *command, t_info *info)
+int	handle_directory_command(t_exec_command *command, t_info *info, int saved_stdin, int saved_stdout)
 {
-	pid_t		pid;
-	int			status;
-	char		*path;
-	int			saved_stdout;
-	int			saved_stdin;
 	struct stat	statbuf;
 
-	saved_stdout = dup(STDOUT_FILENO);
-	saved_stdin = dup(STDIN_FILENO);
-
-	if (handle_empty_command(command, info, saved_stdin, saved_stdout))
-		return;
-
-	// if (!command->cmd_name || ft_strlen(command->cmd_name) == 0)
-	// {
-	// 	if (!handle_redirections(command->redirects))
-	// 	{
-	// 		restore_standard_fds(saved_stdin, saved_stdout);
-	// 		info->exit_status = 1;
-	// 		return ;
-	// 	}
-	// 	restore_standard_fds(saved_stdin, saved_stdout);
-	// 	info->exit_status = 0;
-	// 	return ;
-	// }
-
-	
-	if (handle_special_cases(command, info, saved_stdin, saved_stdout))
-		return;
-	if (!handle_redirections(command->redirects))
-	{
-		restore_standard_fds(saved_stdin, saved_stdout);
-		info->exit_status = 1;
-		return ;
-	}
-	if (is_builtin(command->cmd_name))
-	{
-		execute_builtin(command, info);
-		restore_standard_fds(saved_stdin, saved_stdout);
-		return ;
-	}
 	if (stat(command->cmd_name, &statbuf) == 0 && S_ISDIR(statbuf.st_mode))
 	{
 		ft_putendl_fd("minishell: /: is a directory", STDERR_FILENO);
 		info->exit_status = 126;
 		restore_standard_fds(saved_stdin, saved_stdout);
-		return ;
+		return (1);
 	}
+	return (0);
+}
+
+void	ext_cmd(t_exec_command *command, t_info *info, int stin, int stout)
+{
+	char	*path;
+	pid_t	pid;
+	int		status;
+
 	path = find_command(command->cmd_name, info->envp);
 	if (!path)
 	{
 		info->exit_status = 127;
-		restore_standard_fds(saved_stdin, saved_stdout);
+		restore_standard_fds(stin, stout);
 		return ;
 	}
 	pid = fork();
@@ -185,7 +149,7 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 	{
 		perror("fork");
 		free(path);
-		restore_standard_fds(saved_stdin, saved_stdout);
+		restore_standard_fds(stin, stout);
 		return ;
 	}
 	if (pid == 0)
@@ -205,5 +169,33 @@ void	execute_single_command(t_exec_command *command, t_info *info)
 		else if (WIFSIGNALED(status))
 			info->exit_status = 128 + WTERMSIG(status);
 	}
+}
+
+void	execute_single_command(t_exec_command *command, t_info *info)
+{
+	int			saved_stdout;
+	int			saved_stdin;
+
+	saved_stdout = dup(STDOUT_FILENO);
+	saved_stdin = dup(STDIN_FILENO);
+	if (handle_empty_command(command, info, saved_stdin, saved_stdout))
+		return;
+	if (handle_special_cases(command, info, saved_stdin, saved_stdout))
+		return;
+	if (!handle_redirections(command->redirects))
+	{
+		restore_standard_fds(saved_stdin, saved_stdout);
+		info->exit_status = 1;
+		return ;
+	}
+	if (is_builtin(command->cmd_name))
+	{
+		execute_builtin(command, info);
+		restore_standard_fds(saved_stdin, saved_stdout);
+		return ;
+	}
+	if (handle_directory_command(command, info, saved_stdin, saved_stdout))
+		return;
+	ext_cmd(command,info,saved_stdin,saved_stdout);
 	restore_standard_fds(saved_stdin, saved_stdout);
 }
