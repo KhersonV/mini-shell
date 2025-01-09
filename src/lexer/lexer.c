@@ -93,7 +93,7 @@ static int	read_single_quoted(const char *input, char *buf, int *buf_index,
 	{
 		if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
 		{
-			fprintf(stderr, "Buffer overflow in single quotes\n");
+			fprintf(stderr, "Buffer overflow in single quotes\n"); //todo
 			return (i);
 		}
 		i++;
@@ -130,7 +130,7 @@ static int read_dollar_single(const char *input, char *buf, int *buf_index)
 	{
 		if (append_char_to_buf(buf, buf_index, 1024, input[i]) < 0)
 		{
-			fprintf(stderr, "Buffer overflow in $'...'\n");
+			fprintf(stderr, "Buffer overflow in $'...'\n"); // todo
 			stop = 1;
 		}
 		else
@@ -141,52 +141,75 @@ static int read_dollar_single(const char *input, char *buf, int *buf_index)
 	return (i);
 }
 
-
-static int handle_dquotes_backslash(const char *input, int *i, char *buf,
-									int *buf_index)
+static int handle_bslash_short(const char **p, char *buf, int *buf_index)
 {
 	int stop;
 	int res;
 
 	stop = 0;
-	*i = *i + 1;
-	if (!input[*i])
-		return stop;
-	if (ft_strchr("\"$\\", input[*i]))
+	res = append_char_to_buf(buf, buf_index, 1024, (*p)[0]);
+	if (res < 0)
+		stop = 1;
+	*p = (*p) + 1;
+	return (stop);
+}
+
+static int handle_bslash_long(const char **p, char *buf, int *buf_index)
+{
+	int local_stop;
+	int res;
+
+	local_stop = 0;
+	res = append_char_to_buf(buf, buf_index, 1024, '\\');
+	if (res < 0)
+		local_stop = 1;
+
+	if (local_stop == 0)
 	{
-		res = append_char_to_buf(buf, buf_index, 1024, input[*i]);
+		res = append_char_to_buf(buf, buf_index, 1024, (*p)[0]);
 		if (res < 0)
+			local_stop = 1;
+	}
+	*p = (*p) + 1;
+	return local_stop;
+}
+
+static int handle_dquotes_backslash(const char **p, char *buf, int *buf_index)
+{
+	int stop;
+	int check;
+
+	stop = 0;
+	*p = (*p) + 1;
+	if ((*p)[0] == '\0')
+		return stop;
+
+	if (ft_strchr("\"$\\", (*p)[0]))
+	{
+		check = handle_bslash_short(p, buf, buf_index);
+		if (check != 0)
 			stop = 1;
-		*i = *i + 1;
 	}
 	else
 	{
-		res = append_char_to_buf(buf, buf_index, 1024, '\\');
-		if (res < 0)
+		check = handle_bslash_long(p, buf, buf_index);
+		if (check != 0)
 			stop = 1;
-		if (stop == 0)
-		{
-			res = append_char_to_buf(buf, buf_index, 1024, input[*i]);
-			if (res < 0)
-				stop = 1;
-		}
-		*i = *i + 1;
 	}
 	return (stop);
 }
 
-static int handle_dquotes_dollar(const char *input, int *i, char *buf,
-								 int *buf_index,
+static int handle_dquotes_dollar(const char **p, char *buf, int *buf_index,
 								 t_info *info)
 {
-	int var_consumed;
 	int stop;
+	int var_consumed;
 	char *expanded;
 	int copy_stop;
 
 	stop = 0;
 	var_consumed = 0;
-	expanded = expand_dollar(&input[*i], &var_consumed, info);
+	expanded = expand_dollar(*p, &var_consumed, info);
 	if (!expanded)
 		stop = 1;
 	else
@@ -200,51 +223,51 @@ static int handle_dquotes_dollar(const char *input, int *i, char *buf,
 				copy_stop = copy_stop + 1;
 		}
 		free(expanded);
-		*i = *i + var_consumed;
+		*p = (*p) + var_consumed;
 	}
 	return (stop);
 }
 
-static int handle_dquotes_normal_char(const char *input, int *i,char *buf,
+static int	handle_dquotes_normal_char(const char **p, char *buf,
 									  int *buf_index)
 {
 	int stop;
 	int res;
 
 	stop = 0;
-	res = append_char_to_buf(buf, buf_index, 1024, input[*i]);
+	res = append_char_to_buf(buf, buf_index, 1024, (*p)[0]);
 	if (res < 0)
 		stop = 1;
 	else
-		*i = *i + 1;
-	return stop;
+		*p = (*p) + 1;
+	return (stop);
 }
 
-static int read_dollar_double(const char *input, char *buf, int *buf_index,
+static int	read_dollar_double(const char *input, char *buf, int *buf_index,
 							  t_info *info)
 {
-	int i;
+	const char *p;
+	const char *start;
 	int stop;
 
-	i = 2;
+	start = &input[2];
+	p = start;
 	stop = 0;
-	while (input[i] && input[i] != '"' && stop == 0)
+	while (p[0] && p[0] != '"' && stop == 0)
 	{
-		if (input[i] == '\\')
-			stop = handle_dquotes_backslash(input, &i, buf, buf_index);
-		else if (input[i] == '$')
-			stop = handle_dquotes_dollar(input, &i, buf, buf_index, info);
+		if (p[0] == '\\')
+			stop = handle_dquotes_backslash(&p, buf, buf_index);
+		else if (p[0] == '$')
+			stop = handle_dquotes_dollar(&p, buf, buf_index, info);
 		else
-			stop = handle_dquotes_normal_char(input, &i, buf, buf_index);
+			stop = handle_dquotes_normal_char(&p, buf, buf_index);
 	}
-	if (stop == 0 && input[i] == '"')
-		i = i + 1;
-	return (i);
+	if (stop == 0 && p[0] == '"')
+		p++;
+	return (p - input);
 }
 
-static char *read_dollar_quoted(const char *input,
-								int *consumed,
-								t_info *info)
+static char *read_dollar_quoted(const char *input, int *consumed, t_info *info)
 {
 	char quote;
 	char buf[1024];
@@ -254,7 +277,6 @@ static char *read_dollar_quoted(const char *input,
 	quote = input[1];
 	buf_index = 0;
 	i = 0;
-
 	if (quote == '\'')
 		i = read_dollar_single(input, buf, &buf_index);
 	else if (quote == '"')
