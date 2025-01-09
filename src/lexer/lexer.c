@@ -1,7 +1,7 @@
 
 #include "../../include/minishell.h"
 
-char		*expand_variable(char *var_name, t_info *info);
+// char		*expand_variable(char *var_name, t_info *info);
 static char	*expand_dollar(const char *input, int *consumed, t_info *info);
 
 char	*ft_expand_variable(char *var_name, t_info *info)
@@ -119,120 +119,150 @@ t_token	*create_token_node(char *name, int type)
 	return (new_node);
 }
 
-static char	*read_dollar_quoted(const char *input, int *consumed, t_info *info)
+static int read_dollar_single(const char *input, char *buf, int *buf_index)
 {
-	char	quote;
-	char	buf[1024];
-	int		buf_index;
-	int		var_consumed;
-	char	*expanded;
+	int i;
+	int stop;
 
-	// Ожидаем, что input[0] == '$' и input[1] == ''' или '"'
-	quote = input[1];
-	int i = 2; // Пропускаем символы $ и (') или (")
-	buf_index = 0;
-	int stop = 0; // Флаг, если случилось что-то, требующее выхода
-	if (quote == '\'') // $'...'
+	i = 2;
+	stop = 0;
+	while (input[i] && input[i] != '\'' && stop == 0)
 	{
-		// Просто копируем до следующей одинарной кавычки
-		while (input[i] && input[i] != '\'' && !stop)
+		if (append_char_to_buf(buf, buf_index, 1024, input[i]) < 0)
 		{
-			// НЕ раскрываем переменные, не обрабатываем бэкслэши
-			if (append_char_to_buf(buf, &buf_index, 1024, input[i]) < 0)
-			{
-				fprintf(stderr, "Buffer overflow in $'...'\n");
+			fprintf(stderr, "Buffer overflow in $'...'\n");
+			stop = 1;
+		}
+		else
+			i++;
+	}
+	if (stop == 0 && input[i] == '\'')
+		i++;
+	return (i);
+}
+
+
+static int handle_dquotes_backslash(const char *input, int *i, char *buf,
+									int *buf_index)
+{
+	int stop;
+	int res;
+
+	stop = 0;
+	*i = *i + 1;
+	if (!input[*i])
+		return stop;
+	if (ft_strchr("\"$\\", input[*i]))
+	{
+		res = append_char_to_buf(buf, buf_index, 1024, input[*i]);
+		if (res < 0)
+			stop = 1;
+		*i = *i + 1;
+	}
+	else
+	{
+		res = append_char_to_buf(buf, buf_index, 1024, '\\');
+		if (res < 0)
+			stop = 1;
+		if (stop == 0)
+		{
+			res = append_char_to_buf(buf, buf_index, 1024, input[*i]);
+			if (res < 0)
 				stop = 1;
-				break ;
-			}
-			i++;
 		}
-		// Если нашли закрывающую кавычку
-		if (!stop && input[i] == '\'')
-			i++;
+		*i = *i + 1;
 	}
-	else if (quote == '"') // $"..."
+	return (stop);
+}
+
+static int handle_dquotes_dollar(const char *input, int *i, char *buf,
+								 int *buf_index,
+								 t_info *info)
+{
+	int var_consumed;
+	int stop;
+	char *expanded;
+	int copy_stop;
+
+	stop = 0;
+	var_consumed = 0;
+	expanded = expand_dollar(&input[*i], &var_consumed, info);
+	if (!expanded)
+		stop = 1;
+	else
 	{
-		// Аналогично double quotes, но с раскрытием $ и экранированием
-		while (input[i] && input[i] != '"' && !stop)
+		copy_stop = 0;
+		while (expanded[copy_stop] != '\0' && stop == 0)
 		{
-			if (input[i] == '\\')
-			{
-				i++;
-				// Если вдруг строка кончилась на бэкслэше
-				if (!input[i])
-					break ;
-				// Экранируем ", $,
-				if (strchr("\"$\\", input[i]))
-				{
-					if (append_char_to_buf(buf, &buf_index, 1024, input[i]) < 0)
-					{
-						fprintf(stderr, "Buffer overflow in $\"...\"\n");
-						stop = 1;
-						break ;
-					}
-					i++;
-				}
-				else
-				{
-					// Пишем '\' + текущий символ
-					if (append_char_to_buf(buf, &buf_index, 1024, '\\') < 0)
-					{
-						fprintf(stderr, "Buffer overflow in $\"...\"\n");
-						stop = 1;
-						break ;
-					}
-					if (append_char_to_buf(buf, &buf_index, 1024, input[i]) < 0)
-					{
-						fprintf(stderr, "Buffer overflow in $\"...\"\n");
-						stop = 1;
-						break ;
-					}
-					i++;
-				}
-			}
-			else if (input[i] == '$')
-			{
-				var_consumed = 0;
-				expanded = expand_dollar(&input[i], &var_consumed, info);
-				if (!expanded)
-				{
-					fprintf(stderr, "expand_dollar returned NULL\n");
-					stop = 1;
-					break ;
-				}
-				for (int k = 0; expanded[k] != '\0'; k++)
-				{
-					if (append_char_to_buf(buf, &buf_index, 1024,
-							expanded[k]) < 0)
-					{
-						fprintf(stderr, "Buffer overflow in $\"...\" expand\n");
-						free(expanded);
-						stop = 1;
-						break ;
-					}
-				}
-				free(expanded);
-				if (stop)
-					break ;
-				i += var_consumed;
-			}
+			if (append_char_to_buf(buf, buf_index, 1024, expanded[copy_stop]) < 0)
+				stop = 1;
 			else
-			{
-				if (append_char_to_buf(buf, &buf_index, 1024, input[i]) < 0)
-				{
-					fprintf(stderr, "Buffer overflow in $\"...\"\n");
-					stop = 1;
-					break ;
-				}
-				i++;
-			}
+				copy_stop = copy_stop + 1;
 		}
-		if (!stop && input[i] == '"')
-			i++;
+		free(expanded);
+		*i = *i + var_consumed;
 	}
+	return (stop);
+}
+
+static int handle_dquotes_normal_char(const char *input, int *i,char *buf,
+									  int *buf_index)
+{
+	int stop;
+	int res;
+
+	stop = 0;
+	res = append_char_to_buf(buf, buf_index, 1024, input[*i]);
+	if (res < 0)
+		stop = 1;
+	else
+		*i = *i + 1;
+	return stop;
+}
+
+static int read_dollar_double(const char *input, char *buf, int *buf_index,
+							  t_info *info)
+{
+	int i;
+	int stop;
+
+	i = 2;
+	stop = 0;
+	while (input[i] && input[i] != '"' && stop == 0)
+	{
+		if (input[i] == '\\')
+			stop = handle_dquotes_backslash(input, &i, buf, buf_index);
+		else if (input[i] == '$')
+			stop = handle_dquotes_dollar(input, &i, buf, buf_index, info);
+		else
+			stop = handle_dquotes_normal_char(input, &i, buf, buf_index);
+	}
+	if (stop == 0 && input[i] == '"')
+		i = i + 1;
+	return (i);
+}
+
+static char *read_dollar_quoted(const char *input,
+								int *consumed,
+								t_info *info)
+{
+	char quote;
+	char buf[1024];
+	int buf_index;
+	int i;
+
+	quote = input[1];
+	buf_index = 0;
+	i = 0;
+
+	if (quote == '\'')
+		i = read_dollar_single(input, buf, &buf_index);
+	else if (quote == '"')
+		i = read_dollar_double(input, buf, &buf_index, info);
+
 	buf[buf_index] = '\0';
 	*consumed = i;
-	return (strdup(buf));
+	return (ft_strdup(buf));
 }
 
 /************* */

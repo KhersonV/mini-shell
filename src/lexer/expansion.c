@@ -1,16 +1,18 @@
 #include "../../include/minishell.h"
 
 
-static int is_valid_var_char(char c) {
-	return isalnum((unsigned char)c) || c == '_';
+static int is_valid_var_char(char c)
+{
+	return (ft_isalnum((unsigned char)c) || c == '_');
 }
 
-static char *read_special_var(const char *input, int *consumed) {
+static char *read_special_var(const char *input, int *consumed)
+{
 	if (input[1] == '?') {
 		*consumed = 2;
 		return (ft_strdup("?"));
 	}
-	return NULL;
+	return (NULL);
 }
 
 static char *read_variable_name(const char *input, int *consumed)
