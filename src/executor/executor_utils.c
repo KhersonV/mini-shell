@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:09:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/07 14:12:43 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/08 13:26:29 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,8 @@ int	open_redirection_file(t_redirection *redir)
 		fd = open(redir->filename, O_RDONLY);
 	else
 	{
-		fprintf(stderr, "minishell: Unsupported redirection type\n");
+		ft_putstr_fd("minishell: ", STDERR_FILENO);
+		ft_putendl_fd("Unsupported redirection type", STDERR_FILENO);
 		return (-1);
 	}
 	if (fd == -1)
@@ -55,7 +56,6 @@ int	apply_redirection(int fd, int target_fd)
 {
 	if (dup2(fd, target_fd) == -1)
 	{
-		perror("dup2");
 		close(fd);
 		return (0);
 	}
@@ -94,13 +94,11 @@ void	restore_standard_fds(int fd_in, int fd_out)
 	if (fd_in != -1)
 	{
 		if (dup2(fd_in, STDIN_FILENO) == -1)
-			perror("dup2");
-		close(fd_in);
+			close(fd_in);
 	}
 	if (fd_out != -1)
 	{
 		if (dup2(fd_out, STDOUT_FILENO) == -1)
-			perror("dup2");
-		close(fd_out);
+			close(fd_out);
 	}
 }

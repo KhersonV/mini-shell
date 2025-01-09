@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/07 17:33:02 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/09 14:45:04 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,8 +82,6 @@ typedef struct s_token
 	struct s_token			*next;
 	struct s_token			*prev;
 }							t_token;
-
-extern t_exec_command		*g_commands;
 
 typedef enum e_token_type
 {
@@ -202,8 +200,14 @@ void						free_token_list(t_token *tokens);
 void						expansion(t_token **tokens, t_info *info);
 
 /* Signals */
-void						init_signals(void);
+void						sigint_handler_heredoc(int signo);
+void						sigint_handler_command(int signo);
+void						sigint_handler_readline(int signo);
+void						set_signal_mode_heredoc(void);
+void						set_signal_mode_pipe(void);
 void						reset_signals_to_default(void);
+void						set_signal_mode_command(void);
+void						set_signal_mode_readline(void);
 
 /* utils - free_utils */
 void						free_array(t_exec_command *commands);

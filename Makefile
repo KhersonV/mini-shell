@@ -31,7 +31,7 @@ SRC = $(SRC_DIR)/main.c \
       $(SRC_DIR)/lexer/lexer.c $(SRC_DIR)/lexer/lexer_utils.c $(SRC_DIR)/lexer/expansion.c \
       $(SRC_DIR)/lexer/syntax_check.c \
       $(SRC_DIR)/parser/parser2.c \
-      $(SRC_DIR)/signals/signals.c \
+      $(SRC_DIR)/signals/signals.c $(SRC_DIR)/signals/signal_mode.c \
       $(SRC_DIR)/utils/errors.c $(SRC_DIR)/utils/free_utils.c \
       $(GNL_DIR)/get_next_line_utils.c $(GNL_DIR)/get_next_line.c\
       

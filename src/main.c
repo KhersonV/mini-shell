@@ -6,13 +6,11 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/07 17:48:07 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/09 14:07:07 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/minishell.h"
-
-t_exec_command	*g_commands = NULL;
 
 void	main_initialize(t_info *info, char **envp)
 {
@@ -72,9 +70,7 @@ void	process_input(char *line, t_info *info)
 	commands = process_tokens(line, info, &tokens);
 	if (!commands)
 		return ;
-	g_commands = commands;
 	execute_commands(commands, info);
-	g_commands = NULL;
 	free_array(commands);
 	free_token_list(tokens);
 	free(line);
@@ -91,12 +87,13 @@ int	main(int ac, char **av, char **envp)
 		return (1);
 	}
 	main_initialize(&info, envp);
-	init_signals();
 	while (1)
 	{
+		set_signal_mode_readline();
 		line = get_user_input();
 		if (line == NULL)
 			exit_shell(&info);
+		set_signal_mode_command();
 		process_input(line, &info);
 	}
 	return (0);

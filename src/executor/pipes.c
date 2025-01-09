@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:10:51 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/07 16:23:55 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/09 14:52:32 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,4 +94,33 @@ void	execute_pipeline(t_exec_command *commands, t_info *info)
 	}
 	free_pipes(pipes, params.num_cmds);
 	wait_for_children(info, params.last_pid);
+}
+
+int	create_heredoc_file(const char *heredoc_marker)
+{
+	char	*filename;
+	int		fd;
+	char	*line;
+
+	filename = "/tmp/minishell_heredoc";
+	fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (fd == -1)
+	{
+		perror("open");
+		return (-1);
+	}
+	while (1)
+	{
+		line = readline("> ");
+		if (!line || ft_strcmp(line, heredoc_marker) == 0)
+		{
+			free(line);
+			break ;
+		}
+		write(fd, line, ft_strlen(line));
+		write(fd, "\n", 1);
+		free(line);
+	}
+	close(fd);
+	return (open(filename, O_RDONLY));
 }

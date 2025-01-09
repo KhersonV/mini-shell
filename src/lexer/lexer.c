@@ -1,135 +1,147 @@
 
 #include "../../include/minishell.h"
 
+char		*expand_variable(char *var_name, t_info *info);
+static char	*expand_dollar(const char *input, int *consumed, t_info *info);
 
-char *expand_variable(char *var_name, t_info *info);
-static char* expand_dollar(const char *input, int *consumed, t_info *info);
-
-char *ft_expand_variable(char *var_name, t_info *info)
+char	*ft_expand_variable(char *var_name, t_info *info)
 {
-	char *val = get_env_value(info, var_name);
+	char	*val;
+
+	val = get_env_value(info, var_name);
 	if (val == NULL)
-		return ft_strdup("");
-	return ft_strdup(val);
+		return (ft_strdup(""));
+	return (ft_strdup(val));
 }
 
-void expansion(t_token **tokens, t_info *info);
+void		expansion(t_token **tokens, t_info *info);
 
-static int is_space_char(char c)
+static int	is_space_char(char c)
 {
 	return (c == ' ' || (c >= 9 && c <= 13));
 }
 
-static int is_operator_char(char c)
+static int	is_operator_char(char c)
 {
 	return (c == '|' || c == '<' || c == '>');
 }
 
 int	ft_isalnum(int c)
 {
-	if ((c >= '0' && c <= '9')
-		|| ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')))
+	if ((c >= '0' && c <= '9') || ((c >= 'a' && c <= 'z') || (c >= 'A'
+				&& c <= 'Z')))
 		return (1);
 	return (0);
 }
 
-
-static char* read_var_name(const char *input, int *consumed)
+static char	*read_var_name(const char *input, int *consumed)
 {
-	int i = 0;
-	if (input[i] == '$') {
+	int	i;
+		char var_buf[256];
+	int	var_idx;
+
+	i = 0;
+	if (input[i] == '$')
+	{
 		i++;
-		if (input[i] == '?') {
+		if (input[i] == '?')
+		{
 			i++;
 			*consumed = i;
-			return strdup("?");
+			return (strdup("?"));
 		}
-
-		char var_buf[256];
-		int var_idx = 0;
-		while (input[i] && (isalnum((unsigned char)input[i]) || input[i] == '_')) {
-			if (var_idx < 255) {
+		var_idx = 0;
+		while (input[i] && (isalnum((unsigned char)input[i])
+				|| input[i] == '_'))
+		{
+			if (var_idx < 255)
+			{
 				var_buf[var_idx++] = input[i];
 			}
 			i++;
 		}
 		var_buf[var_idx] = '\0';
 		*consumed = i;
-		if (var_idx == 0) {
-			return strdup("$");
+		if (var_idx == 0)
+		{
+			return (strdup("$"));
 		}
-		return strdup(var_buf);
+		return (strdup(var_buf));
 	}
 	*consumed = 0;
-	return NULL;
+	return (NULL);
 }
-
-
 
 char	*print_token(int current_token)
 {
 	switch (current_token)
 	{
-		case TOKEN_SPACE:
-			return ("TOKEN_SPACE");
-		case TOKEN_FILE:
-			return ("TOKEN_FILE");
-		case TOKEN_HEREDOC:
-			return ("TOKEN_HEREDOC");
-		case TOKEN_COMMAND:
-			return ("TOKEN_COMMAND");
-		case TOKEN_ARGUMENT:
-			return("TOKEN_ARGUMENT");
-		case TOKEN_REDIRECT_APPEND:
-			return ("TOKEN_REDIRECT_APPEND");
-		case TOKEN_PIPE:
-			return ("TOKEN_PIPE");
-		case TOKEN_REDIRECT_OUT:
-			return ("TOKEN_REDIRECT_OUT");
-		case TOKEN_REDIRECT_IN:
-			return ("TOKEN_REDIRECT_IN");
-		case TOKEN_WORD:
-			return ("TOKEN_WORD");
-		case TOKEN_VAR:
-			return ("TOKEN_VAR");
-		case TOKEN_EXP_FIELD:
-			return ("TOKEN_EXP_FIELD");
-		case TOKEN_FIELD:
-			return ("TOKEN_FIELD");
-		case TOKEN_HEREDOC_MARKER:
-			return ("TOKEN_HEREDOC_MARKER");
-		case TOKEN_EXIT_STATUS:
-			return ("TOKEN_EXIT_STATUS");
-		default:
-			return ("UNKNOWN_TYPE");
+	case TOKEN_SPACE:
+		return ("TOKEN_SPACE");
+	case TOKEN_FILE:
+		return ("TOKEN_FILE");
+	case TOKEN_HEREDOC:
+		return ("TOKEN_HEREDOC");
+	case TOKEN_COMMAND:
+		return ("TOKEN_COMMAND");
+	case TOKEN_ARGUMENT:
+		return ("TOKEN_ARGUMENT");
+	case TOKEN_REDIRECT_APPEND:
+		return ("TOKEN_REDIRECT_APPEND");
+	case TOKEN_PIPE:
+		return ("TOKEN_PIPE");
+	case TOKEN_REDIRECT_OUT:
+		return ("TOKEN_REDIRECT_OUT");
+	case TOKEN_REDIRECT_IN:
+		return ("TOKEN_REDIRECT_IN");
+	case TOKEN_WORD:
+		return ("TOKEN_WORD");
+	case TOKEN_VAR:
+		return ("TOKEN_VAR");
+	case TOKEN_EXP_FIELD:
+		return ("TOKEN_EXP_FIELD");
+	case TOKEN_FIELD:
+		return ("TOKEN_FIELD");
+	case TOKEN_HEREDOC_MARKER:
+		return ("TOKEN_HEREDOC_MARKER");
+	case TOKEN_EXIT_STATUS:
+		return ("TOKEN_EXIT_STATUS");
+	default:
+		return ("UNKNOWN_TYPE");
 	}
 }
 
-static int append_char_to_buf(char *buf, int *idx, int buf_size, char c)
+static int	append_char_to_buf(char *buf, int *idx, int buf_size, char c)
 {
-	if (*idx >= buf_size - 1) {
-		return -1;
+	if (*idx >= buf_size - 1)
+	{
+		return (-1);
 	}
 	buf[(*idx)++] = c;
-	return 0;
+	return (0);
 }
 
-static int read_single_quoted(const char *input, char *buf, int *buf_index, int buf_size)
+static int	read_single_quoted(const char *input, char *buf, int *buf_index,
+		int buf_size)
 {
-	int i = 1;
-	while (input[i] && input[i] != '\'') {
-		if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0) {
+	int	i;
+
+	i = 1;
+	while (input[i] && input[i] != '\'')
+	{
+		if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
+		{
 			fprintf(stderr, "Buffer overflow in single quotes\n");
-			return i;
+			return (i);
 		}
 		i++;
 	}
-	if (input[i] == '\'') {
+	if (input[i] == '\'')
+	{
 		i++;
 	}
-	return i;
+	return (i);
 }
-
 
 t_token	*create_token_node(char *name, int type)
 {
@@ -145,17 +157,20 @@ t_token	*create_token_node(char *name, int type)
 	return (new_node);
 }
 
-static char* read_dollar_quoted(const char *input, int *consumed, t_info *info)
+static char	*read_dollar_quoted(const char *input, int *consumed, t_info *info)
 {
+	char	quote;
+	char	buf[1024];
+	int		buf_index;
+	int		var_consumed;
+	char	*expanded;
+
 	// Ожидаем, что input[0] == '$' и input[1] == ''' или '"'
-	char quote = input[1];
+	quote = input[1];
 	int i = 2; // Пропускаем символы $ и (') или (")
-
-	char buf[1024];
-	int buf_index = 0;
+	buf_index = 0;
 	int stop = 0; // Флаг, если случилось что-то, требующее выхода
-
-	if (quote == '\'')  // $'...'
+	if (quote == '\'') // $'...'
 	{
 		// Просто копируем до следующей одинарной кавычки
 		while (input[i] && input[i] != '\'' && !stop)
@@ -165,7 +180,7 @@ static char* read_dollar_quoted(const char *input, int *consumed, t_info *info)
 			{
 				fprintf(stderr, "Buffer overflow in $'...'\n");
 				stop = 1;
-				break;
+				break ;
 			}
 			i++;
 		}
@@ -183,8 +198,7 @@ static char* read_dollar_quoted(const char *input, int *consumed, t_info *info)
 				i++;
 				// Если вдруг строка кончилась на бэкслэше
 				if (!input[i])
-					break;
-
+					break ;
 				// Экранируем ", $,
 				if (strchr("\"$\\", input[i]))
 				{
@@ -192,7 +206,7 @@ static char* read_dollar_quoted(const char *input, int *consumed, t_info *info)
 					{
 						fprintf(stderr, "Buffer overflow in $\"...\"\n");
 						stop = 1;
-						break;
+						break ;
 					}
 					i++;
 				}
@@ -203,45 +217,41 @@ static char* read_dollar_quoted(const char *input, int *consumed, t_info *info)
 					{
 						fprintf(stderr, "Buffer overflow in $\"...\"\n");
 						stop = 1;
-						break;
+						break ;
 					}
 					if (append_char_to_buf(buf, &buf_index, 1024, input[i]) < 0)
 					{
 						fprintf(stderr, "Buffer overflow in $\"...\"\n");
 						stop = 1;
-						break;
+						break ;
 					}
 					i++;
 				}
 			}
 			else if (input[i] == '$')
 			{
-				// Раскрытие переменной внутри $"..."
-				int var_consumed = 0;
-				char *expanded = expand_dollar(&input[i], &var_consumed, info);
+				var_consumed = 0;
+				expanded = expand_dollar(&input[i], &var_consumed, info);
 				if (!expanded)
 				{
-
 					fprintf(stderr, "expand_dollar returned NULL\n");
 					stop = 1;
-					break;
+					break ;
 				}
-
 				for (int k = 0; expanded[k] != '\0'; k++)
 				{
-					if (append_char_to_buf(buf, &buf_index, 1024, expanded[k]) < 0)
+					if (append_char_to_buf(buf, &buf_index, 1024,
+							expanded[k]) < 0)
 					{
 						fprintf(stderr, "Buffer overflow in $\"...\" expand\n");
 						free(expanded);
 						stop = 1;
-						break;
+						break ;
 					}
 				}
 				free(expanded);
-
 				if (stop)
-					break;
-
+					break ;
 				i += var_consumed;
 			}
 			else
@@ -250,38 +260,35 @@ static char* read_dollar_quoted(const char *input, int *consumed, t_info *info)
 				{
 					fprintf(stderr, "Buffer overflow in $\"...\"\n");
 					stop = 1;
-					break;
+					break ;
 				}
 				i++;
 			}
 		}
-
 		if (!stop && input[i] == '"')
 			i++;
 	}
-
 	buf[buf_index] = '\0';
-
 	*consumed = i;
-
-	return strdup(buf);
+	return (strdup(buf));
 }
 
 /************* */
 
-static char *handle_quoted_dollar(const char *input, int *consumed)
+static char	*handle_quoted_dollar(const char *input, int *consumed)
 {
-	char quote;
-	char next_char;
-	int j;
-	int found_closing_quote;
+	char	quote;
+	char	next_char;
+	int		j;
+	int		found_closing_quote;
 
 	quote = input[1];
 	next_char = input[2];
-	if (next_char == '\0' || is_space_char(next_char) || is_operator_char(next_char) || next_char == quote)
+	if (next_char == '\0' || is_space_char(next_char)
+		|| is_operator_char(next_char) || next_char == quote)
 	{
 		*consumed = 1;
-		return strdup("$");
+		return (strdup("$"));
 	}
 	j = 2;
 	found_closing_quote = 0;
@@ -290,36 +297,37 @@ static char *handle_quoted_dollar(const char *input, int *consumed)
 		if (input[j] == quote)
 		{
 			found_closing_quote = 1;
-			break;
+			break ;
 		}
 		j++;
 	}
 	if (!found_closing_quote)
 	{
 		*consumed = 1;
-		return strdup("$");
+		return (strdup("$"));
 	}
-	return NULL;
+	return (NULL);
 }
 
-static char *handle_special_variable(const char *var_name, t_info *info)
+static char	*handle_special_variable(const char *var_name, t_info *info)
 {
 	if (strcmp(var_name, "?") == 0)
 	{
-		return ft_itoa(info->exit_status);
+		return (ft_itoa(info->exit_status));
 	}
 	if (strcmp(var_name, "$") == 0)
 	{
-		return strdup("$");
+		return (strdup("$"));
 	}
 	return NULL;
 }
 
-static char *handle_variable_expansion(const char *input, int *consumed, t_info *info)
+static char	*handle_variable_expansion(const char *input, int *consumed,
+		t_info *info)
 {
-	int var_consumed;
-	char *var_name;
-	char *expanded;
+	int		var_consumed;
+	char	*var_name;
+	char	*expanded;
 
 	var_consumed = 0;
 	var_name = read_var_name(input, &var_consumed);
@@ -340,9 +348,9 @@ static char *handle_variable_expansion(const char *input, int *consumed, t_info 
 	return expanded;
 }
 
-static char *expand_dollar(const char *input, int *consumed, t_info *info)
+static char	*expand_dollar(const char *input, int *consumed, t_info *info)
 {
-	char *result;
+	char	*result;
 
 	if (input[1] == '\'' || input[1] == '"')
 	{
@@ -378,7 +386,7 @@ t_token	*add_token(t_token *node, char *name, int type)
 
 void	flush_buf_if_needed(t_token **curr, char *buf, int *buf_index)
 {
-	if(*buf_index > 0)
+	if (*buf_index > 0)
 	{
 		buf[*buf_index] = '\0';
 		*curr = add_token(*curr, buf, TOKEN_WORD);
@@ -386,11 +394,15 @@ void	flush_buf_if_needed(t_token **curr, char *buf, int *buf_index)
 	}
 }
 
-int is_quotes_closed(const char *start)
+int	is_quotes_closed(const char *start)
 {
-	char quote = *start;
-	int i = 1;
-	while (start[i]) {
+	char	quote;
+	int		i;
+
+	quote = *start;
+	i = 1;
+	while (start[i])
+	{
 		if (start[i] == quote)
 			return 1;
 		i++;
@@ -398,8 +410,8 @@ int is_quotes_closed(const char *start)
 	return 0;
 }
 
-
-t_token *add_operator_token(t_token *curr, char current_char, char next_char, int *i)
+t_token	*add_operator_token(t_token *curr, char current_char, char next_char,
+		int *i)
 {
 	if (current_char == '|')
 		curr = add_token(curr, "|", TOKEN_PIPE);
@@ -426,90 +438,73 @@ t_token *add_operator_token(t_token *curr, char current_char, char next_char, in
 	return curr;
 }
 
-static void append_expanded_unquoted(const char *input,
-									 int *i,
-									 char *buf,
-									 int *buf_index,
-									 int buf_size,
-									 t_info *info)
+static void	append_expanded_unquoted(const char *input, int *i, char *buf,
+		int *buf_index, int buf_size, t_info *info)
 {
-	int var_consumed;
-	char *expanded;
-	int k;
-	int len;
+	int		var_consumed;
+	char	*expanded;
+	int		k;
+	int		len;
 
 	var_consumed = 0;
 	expanded = expand_dollar(&input[*i], &var_consumed, info);
 	if (!expanded)
-		return;
-
+		return ;
 	k = 0;
 	len = strlen(expanded);
-
 	while (k < len)
 	{
 		if (append_char_to_buf(buf, buf_index, buf_size, expanded[k]) < 0)
 		{
 			free(expanded);
-			return;
+			return ;
 		}
 		k++;
 	}
 	free(expanded);
-
 	*i = *i + var_consumed;
 }
 
-static void append_expanded_dquotes(const char *input,
-									int *i,
-									char *buf,
-									int *buf_index,
-									int buf_size,
-									t_info *info)
+static void	append_expanded_dquotes(const char *input, int *i, char *buf,
+		int *buf_index, int buf_size, t_info *info)
 {
-	int var_consumed;
-	char *expanded;
-	int k;
-	int len;
+	int		var_consumed;
+	char	*expanded;
+	int		k;
+	int		len;
 
 	var_consumed = 0;
 	expanded = expand_dollar(&input[*i], &var_consumed, info);
 	if (!expanded)
-		return;
-
+		return ;
 	k = 0;
 	len = strlen(expanded);
-
 	while (k < len)
 	{
 		if (append_char_to_buf(buf, buf_index, buf_size, expanded[k]) < 0)
 		{
 			free(expanded);
-			return;
+			return ;
 		}
 		k++;
 	}
 	free(expanded);
-
 	*i = *i + var_consumed;
 }
 
-static int read_double_quoted(const char *input,
-							  char *buf,
-							  int *buf_index,
-							  int buf_size,
-							  t_info *info)
+static int	read_double_quoted(const char *input, char *buf, int *buf_index,
+		int buf_size, t_info *info)
 {
-	int i;
-	i = 1; // пропускаем первую кавычку "
+	int	i;
 
+	i = 1;
 	while (input[i] && input[i] != '"')
 	{
 		if (input[i] == '\\')
 		{
 			i++;
 			if (!input[i])
-				break;
+				break ;
 			if (input[i] == '"' || input[i] == '$' || input[i] == '\\')
 			{
 				if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
@@ -528,7 +523,7 @@ static int read_double_quoted(const char *input,
 		else if (input[i] == '$')
 		{
 			append_expanded_dquotes(input, &i, buf, buf_index, buf_size, info);
-			continue; // <--- чтобы не делать i++ здесь
+			continue ;
 		}
 		else
 		{
@@ -542,31 +537,28 @@ static int read_double_quoted(const char *input,
 	return i;
 }
 
-static int read_unquoted(const char *input,
-						 char *buf,
-						 int *buf_index,
-						 int buf_size,
-						 t_info *info)
+static int	read_unquoted(const char *input, char *buf, int *buf_index,
+		int buf_size, t_info *info)
 {
-	int i;
-	i = 0;
+	int	i;
 
+	i = 0;
 	while (input[i] != '\0')
 	{
 		if (is_space_char(input[i]) || is_operator_char(input[i]))
-			break;
+			break ;
 		if (input[i] == '\'' || input[i] == '"')
-			break;
+			break ;
 		if (input[i] == '$')
 		{
 			append_expanded_unquoted(input, &i, buf, buf_index, buf_size, info);
-			continue;  // <--- чтобы не делать i++ ещё раз
+			continue ;
 		}
 		if (input[i] == '\\')
 		{
 			i++;
 			if (!input[i])
-				break;
+				break ;
 			if (strchr("$\\\"'", input[i]))
 			{
 				if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
@@ -581,7 +573,7 @@ static int read_unquoted(const char *input,
 					return i;
 				i++;
 			}
-			continue;
+			continue ;
 		}
 		if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
 			return i;
@@ -590,11 +582,8 @@ static int read_unquoted(const char *input,
 	return i;
 }
 
-static void skip_spaces(t_token **head,
-						char *buf,
-						int *buf_index,
-						const char *user_input,
-						int *i)
+static void	skip_spaces(t_token **head, char *buf, int *buf_index,
+		const char *user_input, int *i)
 {
 	while (is_space_char(user_input[*i]))
 	{
@@ -603,28 +592,18 @@ static void skip_spaces(t_token **head,
 	}
 }
 
-static int handle_double_quote(t_token **head,
-							   char *buf,
-							   int *buf_index,
-							   const char *user_input,
-							   int *i,
-							   t_info *info)
+static int	handle_double_quote(t_token **head, char *buf, int *buf_index,
+		const char *user_input, int *i, t_info *info)
 {
-	int old_index;
-	int consumed;
-	char c;
+	int		old_index;
+	int		consumed;
+	char	c;
 
 	if (user_input[*i] != '"')
 		return 0;
-
 	old_index = *buf_index;
-	consumed = read_double_quoted(&user_input[*i],
-								  buf,
-								  buf_index,
-								  1024,
-								  info);
+	consumed = read_double_quoted(&user_input[*i], buf, buf_index, 1024, info);
 	*i = *i + consumed;
-
 	if (*buf_index == old_index)
 	{
 		c = user_input[*i];
@@ -638,44 +617,29 @@ static int handle_double_quote(t_token **head,
 	return 1;
 }
 
-static int handle_operator_char(t_token **head,
-								char *buf,
-								int *buf_index,
-								const char *user_input,
-								int *i)
+static int	handle_operator_char(t_token **head, char *buf, int *buf_index,
+		const char *user_input, int *i)
 {
 	if (!is_operator_char(user_input[*i]))
 		return 0;
-
 	flush_buf_if_needed(head, buf, buf_index);
-	*head = add_operator_token(*head,
-							   user_input[*i],
-							   user_input[*i + 1],
-							   i);
+	*head = add_operator_token(*head, user_input[*i], user_input[*i + 1], i);
 	*i = *i + 1;
 	return 1;
 }
 
-static int handle_single_quote(t_token **head,
-							   char *buf,
-							   int *buf_index,
-							   const char *user_input,
-							   int *i)
+static int	handle_single_quote(t_token **head, char *buf, int *buf_index,
+		const char *user_input, int *i)
 {
-	int old_index;
-	int consumed;
-	char c;
+	int		old_index;
+	int		consumed;
+	char	c;
 
 	if (user_input[*i] != '\'')
 		return 0;
-
 	old_index = *buf_index;
-	consumed = read_single_quoted(&user_input[*i],
-								  buf,
-								  buf_index,
-								  1024);
+	consumed = read_single_quoted(&user_input[*i], buf, buf_index, 1024);
 	*i = *i + consumed;
-
 	if (*buf_index == old_index)
 	{
 		c = user_input[*i];
@@ -689,39 +653,28 @@ static int handle_single_quote(t_token **head,
 	return 1;
 }
 
-static int handle_unquoted(
-						   char *buf,
-						   int *buf_index,
-						   const char *user_input,
-						   int *i,
-						   t_info *info)
+static int	handle_unquoted(char *buf, int *buf_index, const char *user_input,
+		int *i, t_info *info)
 {
-	int consumed;
+	int	consumed;
 
-	if (is_space_char(user_input[*i])
-		|| is_operator_char(user_input[*i])
-		|| user_input[*i] == '\''
-		|| user_input[*i] == '"')
+	if (is_space_char(user_input[*i]) || is_operator_char(user_input[*i])
+		|| user_input[*i] == '\'' || user_input[*i] == '"')
 	{
 		return 0;
 	}
-
-	consumed = read_unquoted(&user_input[*i],
-							 buf,
-							 buf_index,
-							 1024,
-							 info);
+	consumed = read_unquoted(&user_input[*i], buf, buf_index, 1024, info);
 	*i = *i + consumed;
 	return 1;
 }
 
-t_token *tokenizer(char *user_input, t_info *info)
+t_token	*tokenizer(char *user_input, t_info *info)
 {
-	t_token *head;
-	char buf[1024];
-	int buf_index;
-	int i;
-	int handled;
+	t_token	*head;
+	char	buf[1024];
+	int		buf_index;
+	int		i;
+	int		handled;
 
 	head = NULL;
 	buf_index = 0;
@@ -731,16 +684,17 @@ t_token *tokenizer(char *user_input, t_info *info)
 		skip_spaces(&head, buf, &buf_index, user_input, &i);
 		handled = handle_operator_char(&head, buf, &buf_index, user_input, &i);
 		if (handled)
-			continue;
+			continue ;
 		handled = handle_single_quote(&head, buf, &buf_index, user_input, &i);
 		if (handled)
-			continue;
-		handled = handle_double_quote(&head, buf, &buf_index, user_input, &i, info);
+			continue ;
+		handled = handle_double_quote(&head, buf, &buf_index, user_input, &i,
+				info);
 		if (handled)
-			continue;
-		handled = handle_unquoted( buf, &buf_index, user_input, &i, info);
+			continue ;
+		handled = handle_unquoted(buf, &buf_index, user_input, &i, info);
 		if (!handled)
-			break;
+			break ;
 	}
 	flush_buf_if_needed(&head, buf, &buf_index);
 	return head;

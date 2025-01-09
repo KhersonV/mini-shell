@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 12:43:01 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 19:15:02 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/08 18:18:22 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,8 +48,9 @@ char	*validate_env_key(t_info *info, const char *key, const char *value)
 
 	if (!info || !key || !value || !is_valid_env_key(key))
 	{
-		fprintf(stderr, "minishell: export: `%s': not a valid identifier\n",
-			key);
+		write(STDERR_FILENO, "minishell: export: `", 21);
+		write(STDERR_FILENO, key, ft_strlen(key));
+		write(STDERR_FILENO, "': not a valid identifier\n", 26);
 		if (info)
 			info->exit_status = 1;
 		return (NULL);

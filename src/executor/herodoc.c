@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/07 14:11:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/07 14:16:38 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/09 14:52:44 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,10 +40,27 @@ static char	*generate_heredoc_filename(void)
 	return (filename);
 }
 
+int	write_heredoc_line(int out_fd, const char *delimiter)
+{
+	char	*line;
+
+	line = readline("> ");
+	if (!line)
+		return (0);
+	if (ft_strcmp(line, delimiter) == 0)
+	{
+		free(line);
+		return (0);
+	}
+	write(out_fd, line, ft_strlen(line));
+	write(out_fd, "\n", 1);
+	free(line);
+	return (1);
+}
+
 int	read_heredoc_to_file(const char *delimiter, const char *tmpfile)
 {
-	int		out_fd;
-	char	*line;
+	int	out_fd;
 
 	out_fd = open(tmpfile, O_WRONLY | O_TRUNC, 0644);
 	if (out_fd < 0)
@@ -51,20 +68,13 @@ int	read_heredoc_to_file(const char *delimiter, const char *tmpfile)
 		perror("open temp heredoc file");
 		return (0);
 	}
+	set_signal_mode_heredoc();
 	while (1)
 	{
-		line = readline("> ");
-		if (!line)
+		if (!write_heredoc_line(out_fd, delimiter))
 			break ;
-		if (ft_strcmp(line, delimiter) == 0)
-		{
-			free(line);
-			break ;
-		}
-		write(out_fd, line, ft_strlen(line));
-		write(out_fd, "\n", 1);
-		free(line);
 	}
+	set_signal_mode_readline();
 	close(out_fd);
 	return (1);
 }
@@ -108,33 +118,4 @@ int	prepare_heredocs(t_exec_command *commands)
 		cmd = cmd->next_cmd;
 	}
 	return (1);
-}
-
-int	create_heredoc_file(const char *heredoc_marker)
-{
-	char	*filename;
-	int		fd;
-	char	*line;
-
-	filename = "/tmp/minishell_heredoc";
-	fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	if (fd == -1)
-	{
-		perror("open");
-		return (-1);
-	}
-	while (1)
-	{
-		line = readline("> ");
-		if (!line || strcmp(line, heredoc_marker) == 0)
-		{
-			free(line);
-			break ;
-		}
-		write(fd, line, strlen(line));
-		write(fd, "\n", 1);
-		free(line);
-	}
-	close(fd);
-	return (open(filename, O_RDONLY));
 }
