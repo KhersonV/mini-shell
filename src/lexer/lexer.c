@@ -289,49 +289,56 @@ static char *read_dollar_quoted(const char *input, int *consumed, t_info *info)
 
 /************* */
 
-static char	*handle_quoted_dollar(const char *input, int *consumed)
+static int is_early_termination(char next_char, char quote)
 {
-	char	quote;
-	char	next_char;
-	int		j;
-	int		found_closing_quote;
+	return (next_char == '\0' || is_space_char(next_char) ||
+			is_operator_char(next_char) || next_char == quote);
+}
 
-	quote = input[1];
-	next_char = input[2];
-	if (next_char == '\0' || is_space_char(next_char)
-		|| is_operator_char(next_char) || next_char == quote)
-	{
-		*consumed = 1;
-		return (strdup("$"));
-	}
-	j = 2;
-	found_closing_quote = 0;
+static int find_closing_quote(const char *input, char quote)
+{
+	int j = 2;
+
 	while (input[j])
 	{
 		if (input[j] == quote)
-		{
-			found_closing_quote = 1;
-			break ;
-		}
+			return j;
 		j++;
 	}
-	if (!found_closing_quote)
-	{
-		*consumed = 1;
-		return (strdup("$"));
-	}
+	return -1;
+}
+
+static char *handle_no_closing_quote(int *consumed)
+{
+	*consumed = 1;
+	return ft_strdup("$");
+}
+
+static char *handle_quoted_dollar(const char *input, int *consumed)
+{
+	char quote = input[1];
+	char next_char = input[2];
+
+	if (is_early_termination(next_char, quote))
+		return handle_no_closing_quote(consumed);
+	int closing_quote_index = find_closing_quote(input, quote);
+
+	if (closing_quote_index == -1)
+		return (handle_no_closing_quote(consumed));
 	return (NULL);
 }
 
+/***********/
+
 static char	*handle_special_variable(const char *var_name, t_info *info)
 {
-	if (strcmp(var_name, "?") == 0)
+	if (ft_strcmp(var_name, "?") == 0)
 	{
 		return (ft_itoa(info->exit_status));
 	}
-	if (strcmp(var_name, "$") == 0)
+	if (ft_strcmp(var_name, "$") == 0)
 	{
-		return (strdup("$"));
+		return (ft_strdup("$"));
 	}
 	return NULL;
 }
