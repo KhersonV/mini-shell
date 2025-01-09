@@ -34,44 +34,6 @@ int	ft_isalnum(int c)
 	return (0);
 }
 
-static char	*read_var_name(const char *input, int *consumed)
-{
-	int	i;
-		char var_buf[256];
-	int	var_idx;
-
-	i = 0;
-	if (input[i] == '$')
-	{
-		i++;
-		if (input[i] == '?')
-		{
-			i++;
-			*consumed = i;
-			return (strdup("?"));
-		}
-		var_idx = 0;
-		while (input[i] && (isalnum((unsigned char)input[i])
-				|| input[i] == '_'))
-		{
-			if (var_idx < 255)
-			{
-				var_buf[var_idx++] = input[i];
-			}
-			i++;
-		}
-		var_buf[var_idx] = '\0';
-		*consumed = i;
-		if (var_idx == 0)
-		{
-			return (strdup("$"));
-		}
-		return (strdup(var_buf));
-	}
-	*consumed = 0;
-	return (NULL);
-}
-
 char	*print_token(int current_token)
 {
 	switch (current_token)

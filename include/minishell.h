@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/09 14:45:04 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/09 20:01:43 by lynchsama        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -197,7 +197,7 @@ int							is_builtin(char *command);
 t_token						*tokenizer(char *user_input, t_info *info);
 void						adjusting_token_tree(t_token **tree, t_info *info);
 void						free_token_list(t_token *tokens);
-void						expansion(t_token **tokens, t_info *info);
+char 						*read_var_name(const char *input, int *consumed);
 
 /* Signals */
 void						sigint_handler_heredoc(int signo);
