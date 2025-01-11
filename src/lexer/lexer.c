@@ -239,17 +239,17 @@ static int	handle_single_quote(t_lexer_params *params, int *i)
 }
 
 static int	handle_unquoted(t_lexer_params *params,
-		int *i, t_info *info)
+		 t_info *info)
 {
 	int	consumed;
 
-	if (is_space_char(params->input[*i]) || is_operator_char(params->input[*i])
-		|| params->input[*i] == '\'' || params->input[*i] == '"')
+	if (is_space_char(params->input[*params->i]) || is_operator_char(params->input[*params->i])
+		|| params->input[*params->i] == '\'' || params->input[*params->i] == '"')
 	{
 		return (0);
 	}
-	consumed = read_unquoted(&params->input[*i], params->buf, params->buf_index, 1024, info);
-	*i = *i + consumed;
+	consumed = read_unquoted(&params->input[*params->i], params->buf, params->buf_index, 1024, info);
+	*params->i = *params->i + consumed;
 	return (1); 
 }
 
@@ -261,7 +261,7 @@ int	process_token(t_lexer_params params, t_info *info)
 		return (1);
 	if (handle_double_quote(&params, params.i, info))
 		return (1);
-	if (handle_unquoted(&params, params.i, info))
+	if (handle_unquoted(&params, info))
 		return (1);
 	return (0);
 }
