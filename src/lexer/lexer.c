@@ -180,92 +180,88 @@ static void	skip_spaces(t_lexer_params *params)
 	}
 }
 
-static int	handle_double_quote(t_token **head, char *buf, int *buf_index,
-		const char *user_input, int *i, t_info *info)
+static int	handle_double_quote(t_lexer_params *params, int *i, t_info *info)
 {
 	int		old_index;
 	int		consumed;
 	char	c;
 
-	if (user_input[*i] != '"')
+	if (params->input[*i] != '"')
 		return (0);
-	old_index = *buf_index;
-	consumed = read_double_quoted(&user_input[*i], buf, buf_index, 1024, info);
+	old_index = *params->buf_index;
+	consumed = read_double_quoted(&params->input[*i], params->buf, params->buf_index, 1024, info);
 	*i = *i + consumed;
-	if (*buf_index == old_index)
+	if (*params->buf_index == old_index)
 	{
-		c = user_input[*i];
+		c = params->input[*i];
 		if (c == '\0' || is_space_char(c) || is_operator_char(c))
 		{
-			buf[*buf_index] = '\0';
-			*buf_index = *buf_index + 1;
-			flush_buf_if_needed(head, buf, buf_index);
+			params->buf[*params->buf_index] = '\0';
+			*params->buf_index = *params->buf_index + 1;
+			flush_buf_if_needed(params->head, params->buf, params->buf_index);
 		}
 	}
 	return (1);
 }
 
-static int	handle_operator_char(t_token **head, char *buf, int *buf_index,
-		const char *user_input, int *i)
+static int	handle_operator_char(t_lexer_params *params, int *i)
 {
-	if (!is_operator_char(user_input[*i]))
+	if (!is_operator_char(params->input[*i]))
 		return (0);
-	flush_buf_if_needed(head, buf, buf_index);
-	*head = add_operator_token(*head, user_input[*i], user_input[*i + 1], i);
+	flush_buf_if_needed(params->head, params->buf, params->buf_index);
+	*params->head = add_operator_token(*params->head, params->input[*i], params->input[*i + 1], i);
 	*i = *i + 1;
 	return (1);
 }
 
-static int	handle_single_quote(t_token **head, char *buf, int *buf_index,
-		const char *user_input, int *i)
+static int	handle_single_quote(t_lexer_params *params, int *i)
 {
 	int		old_index;
 	int		consumed;
 	char	c;
 
-	if (user_input[*i] != '\'')
+	if (params->input[*i] != '\'')
 		return (0);
-	old_index = *buf_index;
-	consumed = read_single_quoted(&user_input[*i], buf, buf_index, 1024);
+	old_index = *params->buf_index;
+	consumed = read_single_quoted(&params->input[*i], params->buf, params->buf_index, 1024);
 	*i = *i + consumed;
-	if (*buf_index == old_index)
+	if (*params->buf_index == old_index)
 	{
-		c = user_input[*i];
+		c = params->input[*i];
 		if (c == '\0' || is_space_char(c) || is_operator_char(c))
 		{
-			buf[*buf_index] = '\0';
-			*buf_index = *buf_index + 1;
-			flush_buf_if_needed(head, buf, buf_index);
+			params->buf[*params->buf_index] = '\0';
+			*params->buf_index = *params->buf_index + 1;
+			flush_buf_if_needed(params->head, params->buf, params->buf_index);
 		}
 	}
 	return (1);
 }
 
-static int	handle_unquoted(char *buf, int *buf_index, const char *user_input,
+static int	handle_unquoted(t_lexer_params *params,
 		int *i, t_info *info)
 {
 	int	consumed;
 
-	if (is_space_char(user_input[*i]) || is_operator_char(user_input[*i])
-		|| user_input[*i] == '\'' || user_input[*i] == '"')
+	if (is_space_char(params->input[*i]) || is_operator_char(params->input[*i])
+		|| params->input[*i] == '\'' || params->input[*i] == '"')
 	{
 		return (0);
 	}
-	consumed = read_unquoted(&user_input[*i], buf, buf_index, 1024, info);
+	consumed = read_unquoted(&params->input[*i], params->buf, params->buf_index, 1024, info);
 	*i = *i + consumed;
-	return (1);
+	return (1); 
 }
 
-int	process_token(t_token **head, char *buf, int *buf_index,
-		const char *user_input, int *i, t_info *info)
+int	process_token(t_lexer_params params, t_info *info)
 {
-	if (handle_operator_char(head, buf, buf_index, user_input, i))
+	if (handle_operator_char(&params, params.i))
 		return (1);
-	if (handle_single_quote(head, buf, buf_index, user_input, i))
+	if (handle_single_quote(&params, params.i))
 		return (1);
-	if (handle_double_quote(head, buf, buf_index, user_input, i, info))
+	if (handle_double_quote(&params, params.i, info))
 		return (1);
-	if (handle_unquoted(buf, buf_index, user_input, i, info))
+	if (handle_unquoted(&params, params.i, info))
 		return (1);
 	return (0);
 }
@@ -288,14 +284,13 @@ t_token	*tokenizer(char *user_input, t_info *info)
 	params.i = &i;
 	params.info = info;
 	params.buf_size = 1024;
-
 	while (user_input[i] != '\0')
 	{
 		skip_spaces(&params);
-		if (process_token(&head, buf, &buf_index, user_input, &i, info))
+		if (process_token(params, info))
 			continue ;
 		break ;
 	}
 	flush_buf_if_needed(&head, buf, &buf_index);
-	return head;
+	return (head);
 }

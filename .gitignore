@@ -1,3 +1,5 @@
 .vscode/
 .DS_Store
 src/builtins/.DS_Store
+src/.gitignore
+minishell.dSYM/*

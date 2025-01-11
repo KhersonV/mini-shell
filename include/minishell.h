@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/11 12:50:09 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/11 13:55:23 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,16 +32,6 @@
 # define TRUE 1
 # define FALSE 0
 
-typedef struct s_lexer_params
-{
-	t_token					**head;
-	char					*buf;
-	int						*buf_index;
-	char					*input;
-	int						*i;
-	t_info					*info;
-	int						buf_size;
-}							t_lexer_params;
 
 typedef struct s_pipeline_params
 {
@@ -93,6 +83,17 @@ typedef struct s_token
 	struct s_token			*next;
 	struct s_token			*prev;
 }							t_token;
+
+typedef struct s_lexer_params
+{
+	t_token					**head;
+	char					*buf;
+	int						*buf_index;
+	char					*input;
+	int						*i;
+	t_info					*info;
+	int						buf_size;
+}							t_lexer_params;
 
 typedef enum e_token_type
 {
