@@ -38,35 +38,19 @@ char	*expand_dollar(const char *input, int *consumed, t_info *info);
 t_token	*add_token(t_token *node, char *name, int type);
 int	is_quotes_closed(const char *start);
 void	flush_buf_if_needed(t_token **curr, char *buf, int *buf_index);
-
-
 t_token	*add_operator_token(t_token *curr, char current_char, char next_char,
-		int *i)
+		int *i);
+
+typedef struct s_lexer
 {
-	if (current_char == '|')
-		curr = add_token(curr, "|", TOKEN_PIPE);
-	else if (current_char == '<')
-	{
-		if (next_char == '<')
-		{
-			curr = add_token(curr, "<<", TOKEN_HEREDOC);
-			(*i)++;
-		}
-		else
-			curr = add_token(curr, "<", TOKEN_REDIRECT_IN);
-	}
-	else if (current_char == '>')
-	{
-		if (next_char == '>')
-		{
-			curr = add_token(curr, ">>", TOKEN_REDIRECT_APPEND);
-			(*i)++;
-		}
-		else
-			curr = add_token(curr, ">", TOKEN_REDIRECT_OUT);
-	}
-	return curr;
-}
+	t_token		**head;      // Указатель на список токенов
+	char		*buf;        // Буфер для накопления текста
+	int			*buf_index;  // Текущая позиция в buf
+	const char	*input;      // Строка пользовательского ввода
+	int			*i;          // Текущая позиция в input
+	t_info		*info;       // Ваш контекст с переменными окружения (или чем-то ещё)
+	int			buf_size;    // Максимальный размер buf (например, 1024)
+}	t_lexer;
 
 static void	append_expanded_unquoted(const char *input, int *i, char *buf,
 		int *buf_index, int buf_size, t_info *info)
@@ -167,49 +151,65 @@ static int	read_double_quoted(const char *input, char *buf, int *buf_index,
 	return i;
 }
 
-static int	read_unquoted(const char *input, char *buf, int *buf_index,
-		int buf_size, t_info *info)
-{
-	int	i;
+static int handle_dollar(const char *input, int *i, char *buf, int *buf_index, int buf_size, t_info *info) {
+    append_expanded_unquoted(input, i, buf, buf_index, buf_size, info);
+    return 0;
+}
 
-	i = 0;
-	while (input[i] != '\0')
-	{
-		if (is_space_char(input[i]) || is_operator_char(input[i]))
-			break ;
-		if (input[i] == '\'' || input[i] == '"')
-			break ;
-		if (input[i] == '$')
-		{
-			append_expanded_unquoted(input, &i, buf, buf_index, buf_size, info);
-			continue ;
-		}
-		if (input[i] == '\\')
-		{
-			i++;
-			if (!input[i])
-				break ;
-			if (strchr("$\\\"'", input[i]))
-			{
-				if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
-					return i;
-				i++;
-			}
-			else
-			{
-				if (append_char_to_buf(buf, buf_index, buf_size, '\\') < 0)
-					return i;
-				if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
-					return i;
-				i++;
-			}
-			continue ;
-		}
-		if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
-			return i;
-		i++;
-	}
-	return i;
+static int handle_escape(const char *input, int *i, char *buf, int *buf_index, int buf_size) {
+    (*i)++;
+    if (!input[*i])
+        return -1;
+
+    if (strchr("$\\\"'", input[*i])) {
+        if (append_char_to_buf(buf, buf_index, buf_size, input[*i]) < 0)
+            return -1;
+    } else {
+        if (append_char_to_buf(buf, buf_index, buf_size, '\'') < 0)
+            return -1;
+        if (append_char_to_buf(buf, buf_index, buf_size, input[*i]) < 0)
+            return -1;
+    }
+    (*i)++;
+    return 0;
+}
+
+static int handle_default(const char *input, int *i, char *buf, int *buf_index, int buf_size) {
+    if (append_char_to_buf(buf, buf_index, buf_size, input[*i]) < 0)
+        return -1;
+    (*i)++;
+    return 0;
+}
+
+static int should_break(char c) {
+    return is_space_char(c) || is_operator_char(c) || c == '\'' || c == '"';
+}
+
+static int read_unquoted(const char *input, char *buf, int *buf_index,
+        int buf_size, t_info *info) {
+    int i = 0;
+
+    while (input[i] != '\0') {
+        if (should_break(input[i]))
+            break;
+
+        if (input[i] == '$') {
+            if (handle_dollar(input, &i, buf, buf_index, buf_size, info) < 0)
+                return i;
+            continue;
+        }
+
+        if (input[i] == '\\') {
+            if (handle_escape(input, &i, buf, buf_index, buf_size) < 0)
+                return i;
+            continue;
+        }
+
+        if (handle_default(input, &i, buf, buf_index, buf_size) < 0)
+            return i;
+    }
+
+    return i;
 }
 
 static void	skip_spaces(t_token **head, char *buf, int *buf_index,
@@ -283,6 +283,7 @@ static int	handle_single_quote(t_token **head, char *buf, int *buf_index,
 	return 1;
 }
 
+
 static int	handle_unquoted(char *buf, int *buf_index, const char *user_input,
 		int *i, t_info *info)
 {
@@ -298,34 +299,47 @@ static int	handle_unquoted(char *buf, int *buf_index, const char *user_input,
 	return 1;
 }
 
+int process_spaces(t_token **head, char *buf, int *buf_index,
+				   const char *user_input, int *i)
+{
+	skip_spaces(head, buf, buf_index, user_input, i);
+	return 0;
+}
+
+int process_token(t_token **head, char *buf, int *buf_index,
+				  const char *user_input, int *i, t_info *info)
+{
+	if (handle_operator_char(head, buf, buf_index, user_input, i))
+		return 1;
+	if (handle_single_quote(head, buf, buf_index, user_input, i))
+		return 1;
+	if (handle_double_quote(head, buf, buf_index, user_input, i, info))
+		return 1;
+	if (handle_unquoted(buf, buf_index, user_input, i, info))
+		return 1;
+	return 0;
+}
+
 t_token	*tokenizer(char *user_input, t_info *info)
 {
 	t_token	*head;
 	char	buf[1024];
 	int		buf_index;
 	int		i;
-	int		handled;
 
 	head = NULL;
 	buf_index = 0;
 	i = 0;
+
 	while (user_input[i] != '\0')
 	{
-		skip_spaces(&head, buf, &buf_index, user_input, &i);
-		handled = handle_operator_char(&head, buf, &buf_index, user_input, &i);
-		if (handled)
-			continue ;
-		handled = handle_single_quote(&head, buf, &buf_index, user_input, &i);
-		if (handled)
-			continue ;
-		handled = handle_double_quote(&head, buf, &buf_index, user_input, &i,
-				info);
-		if (handled)
-			continue ;
-		handled = handle_unquoted(buf, &buf_index, user_input, &i, info);
-		if (!handled)
-			break ;
+		if (process_spaces(&head, buf, &buf_index, user_input, &i))
+			continue;
+		if (process_token(&head, buf, &buf_index, user_input, &i, info))
+			continue;
+		break;
 	}
 	flush_buf_if_needed(&head, buf, &buf_index);
 	return head;
 }
+
