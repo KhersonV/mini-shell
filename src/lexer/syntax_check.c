@@ -76,23 +76,27 @@ void	adjust_word_token(t_token *token, int *command)
 		token->type = TOKEN_ARGUMENT;
 }
 
-void	adjusting_token_tree(t_token **tree, t_info *info)
+static int	check_initial_syntax_errors(t_token **tree, t_info *info)
 {
-	t_token *curr;
-	int command_found;
-
-	command_found = 0;
-	info->syntax_error = 0;
 	if (!tree || !*tree)
-		return ;
+		return (0);
 	if ((*tree)->type == TOKEN_PIPE)
 	{
-		fprintf(stderr, "minishell: syntax error near unexpected token `|'\n");
+		ft_putstr_fd("minishell: syntax error near unexpected token `|'\n", 2);
 		info->syntax_error = 1;
 		info->exit_status = 2;
-		return ;
+		return (-1);
 	}
-	curr = *tree;
+	return (0);
+}
+
+static void	process_token_list(t_token *tree, t_info *info)
+{
+	t_token	*curr;
+	int		command_found;
+
+	curr = tree;
+	command_found = 0;
 	while (curr)
 	{
 		if (curr->type == TOKEN_PIPE)
@@ -106,4 +110,11 @@ void	adjusting_token_tree(t_token **tree, t_info *info)
 			return ;
 		curr = curr->next;
 	}
+}
+
+void	adjusting_token_tree(t_token **tree, t_info *info)
+{
+	if (check_initial_syntax_errors(tree, info) == -1)
+		return ;
+	process_token_list(*tree, info);
 }

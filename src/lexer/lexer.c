@@ -57,6 +57,39 @@ static void	append_expanded_dquotes(const char *input, int *i,
 	*i = *i + var_consumed;
 }
 
+static int	handle_dollar_in_dquotes(const char *input, int *i,
+		t_lexer_params *params, t_info *info)
+{
+	append_expanded_dquotes(input, i, params, info);
+	return (0);
+}
+
+static int	handle_escape_sequence(const char *input, int *i,
+		t_lexer_params *params)
+{
+	(*i)++;
+	if (!input[*i])
+		return (-1);
+	if (input[*i] == '"' || input[*i] == '$' || input[*i] == '\\')
+	{
+		if (append_char_to_buf(params->buf, params->buf_index, params->buf_size,
+				input[*i]) < 0)
+			return (-1);
+		(*i)++;
+	}
+	else
+	{
+		if (append_char_to_buf(params->buf, params->buf_index, params->buf_size,
+				'\\') < 0)
+			return (-1);
+		if (append_char_to_buf(params->buf, params->buf_index, params->buf_size,
+				input[*i]) < 0)
+			return (-1);
+		(*i)++;
+	}
+	return (0);
+}
+
 static int	read_double_quoted(const char *input, t_lexer_params *params,
 		t_info *info)
 {
@@ -67,31 +100,12 @@ static int	read_double_quoted(const char *input, t_lexer_params *params,
 	{
 		if (input[i] == '\\')
 		{
-			i++;
-			if (!input[i])
-				break ;
-			if (input[i] == '"' || input[i] == '$' || input[i] == '\\')
-			{
-				if (append_char_to_buf(params->buf, params->buf_index,
-						params->buf_size, input[i]) < 0)
-					return (i);
-				i++;
-			}
-			else
-			{
-				if (append_char_to_buf(params->buf, params->buf_index,
-						params->buf_size, '\\') < 0)
-					return (i);
-				if (append_char_to_buf(params->buf, params->buf_index,
-						params->buf_size, input[i]) < 0)
-					return (i);
-				i++;
-			}
+			if (handle_escape_sequence(input, &i, params) < 0)
+				return (i);
 		}
 		else if (input[i] == '$')
 		{
-			append_expanded_dquotes(input, &i, params, info);
-			continue ;
+			handle_dollar_in_dquotes(input, &i, params, info);
 		}
 		else
 		{
