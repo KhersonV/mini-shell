@@ -1,8 +1,8 @@
 
 #include "../../include/minishell.h"
 
-static void	append_expanded_unquoted(const char *input, int *i, char *buf,
-		int *buf_index, int buf_size, t_info *info)
+static void	append_expanded_unquoted(const char *input, int *i,
+		t_lexer_params *params, t_info *info)
 {
 	int		var_consumed;
 	char	*expanded;
@@ -17,7 +17,8 @@ static void	append_expanded_unquoted(const char *input, int *i, char *buf,
 	len = strlen(expanded);
 	while (k < len)
 	{
-		if (append_char_to_buf(buf, buf_index, buf_size, expanded[k]) < 0)
+		if (append_char_to_buf(params->buf, params->buf_index, params->buf_size,
+				expanded[k]) < 0)
 		{
 			free(expanded);
 			return ;
@@ -28,8 +29,8 @@ static void	append_expanded_unquoted(const char *input, int *i, char *buf,
 	*i = *i + var_consumed;
 }
 
-static void	append_expanded_dquotes(const char *input, int *i, char *buf,
-		int *buf_index, int buf_size, t_info *info)
+static void	append_expanded_dquotes(const char *input, int *i,
+		t_lexer_params *params, t_info *info)
 {
 	int		var_consumed;
 	char	*expanded;
@@ -44,7 +45,8 @@ static void	append_expanded_dquotes(const char *input, int *i, char *buf,
 	len = strlen(expanded);
 	while (k < len)
 	{
-		if (append_char_to_buf(buf, buf_index, buf_size, expanded[k]) < 0)
+		if (append_char_to_buf(params->buf, params->buf_index, params->buf_size,
+				expanded[k]) < 0)
 		{
 			free(expanded);
 			return ;
@@ -55,7 +57,8 @@ static void	append_expanded_dquotes(const char *input, int *i, char *buf,
 	*i = *i + var_consumed;
 }
 
-static int	read_double_quoted(const char *input, t_lexer_params *params, t_info *info)	
+static int	read_double_quoted(const char *input, t_lexer_params *params,
+		t_info *info)
 {
 	int	i;
 
@@ -69,27 +72,31 @@ static int	read_double_quoted(const char *input, t_lexer_params *params, t_info 
 				break ;
 			if (input[i] == '"' || input[i] == '$' || input[i] == '\\')
 			{
-				if (append_char_to_buf(params->buf, params->buf_index, params->buf_size, input[i]) < 0)
+				if (append_char_to_buf(params->buf, params->buf_index,
+						params->buf_size, input[i]) < 0)
 					return (i);
 				i++;
 			}
 			else
 			{
-				if (append_char_to_buf(params->buf, params->buf_index, params->buf_size, '\\') < 0)
+				if (append_char_to_buf(params->buf, params->buf_index,
+						params->buf_size, '\\') < 0)
 					return (i);
-				if (append_char_to_buf(params->buf, params->buf_index, params->buf_size, input[i]) < 0)
+				if (append_char_to_buf(params->buf, params->buf_index,
+						params->buf_size, input[i]) < 0)
 					return (i);
 				i++;
 			}
 		}
 		else if (input[i] == '$')
 		{
-			append_expanded_dquotes(input, &i, params->buf, params->buf_index, params->buf_size, info);
+			append_expanded_dquotes(input, &i, params, info);
 			continue ;
 		}
 		else
 		{
-			if (append_char_to_buf(params->buf, params->buf_index, params->buf_size, input[i]) < 0)
+			if (append_char_to_buf(params->buf, params->buf_index,
+					params->buf_size, input[i]) < 0)
 				return (i);
 			i++;
 		}
@@ -99,39 +106,41 @@ static int	read_double_quoted(const char *input, t_lexer_params *params, t_info 
 	return (i);
 }
 
-static int	handle_dollar(const char *input, int *i, char *buf, int *buf_index,
-		int buf_size, t_info *info)
+static int	handle_dollar(const char *input, int *i, t_lexer_params *params,
+		t_info *info)
 {
-	append_expanded_unquoted(input, i, buf, buf_index, buf_size, info);
+	append_expanded_unquoted(input, i, params, info);
 	return (0);
 }
 
-static int	handle_escape(const char *input, int *i, char *buf, int *buf_index,
-		int buf_size)
+static int	handle_escape(const char *input, int *i, t_lexer_params *params)
 {
 	(*i)++;
 	if (!input[*i])
 		return (-1);
 	if (strchr("$\\\"'", input[*i]))
 	{
-		if (append_char_to_buf(buf, buf_index, buf_size, input[*i]) < 0)
+		if (append_char_to_buf(params->buf, params->buf_index, params->buf_size,
+				input[*i]) < 0)
 			return (-1);
 	}
 	else
 	{
-		if (append_char_to_buf(buf, buf_index, buf_size, '\'') < 0)
+		if (append_char_to_buf(params->buf, params->buf_index, params->buf_size,
+				'\'') < 0)
 			return (-1);
-		if (append_char_to_buf(buf, buf_index, buf_size, input[*i]) < 0)
+		if (append_char_to_buf(params->buf, params->buf_index, params->buf_size,
+				input[*i]) < 0)
 			return (-1);
 	}
 	(*i)++;
 	return (0);
 }
 
-static int	handle_default(const char *input, int *i, char *buf, int *buf_index,
-		int buf_size)
+static int	handle_default(const char *input, int *i, t_lexer_params *params)
 {
-	if (append_char_to_buf(buf, buf_index, buf_size, input[*i]) < 0)
+	if (append_char_to_buf(params->buf, params->buf_index, params->buf_size,
+			input[*i]) < 0)
 		return (-1);
 	(*i)++;
 	return (0);
@@ -142,8 +151,8 @@ static int	should_break(char c)
 	return (is_space_char(c) || is_operator_char(c) || c == '\'' || c == '"');
 }
 
-static int	read_unquoted(const char *input, char *buf, int *buf_index,
-		int buf_size, t_info *info)
+static int	read_unquoted(const char *input, t_lexer_params *params,
+		t_info *info)
 {
 	int	i;
 
@@ -154,17 +163,17 @@ static int	read_unquoted(const char *input, char *buf, int *buf_index,
 			break ;
 		if (input[i] == '$')
 		{
-			if (handle_dollar(input, &i, buf, buf_index, buf_size, info) < 0)
+			if (handle_dollar(input, &i, params, info) < 0)
 				return (i);
 			continue ;
 		}
 		if (input[i] == '\\')
 		{
-			if (handle_escape(input, &i, buf, buf_index, buf_size) < 0)
+			if (handle_escape(input, &i, params) < 0)
 				return (i);
 			continue ;
 		}
-		if (handle_default(input, &i, buf, buf_index, buf_size) < 0)
+		if (handle_default(input, &i, params) < 0)
 			return (i);
 	}
 	return (i);
@@ -208,7 +217,8 @@ static int	handle_operator_char(t_lexer_params *params, int *i)
 	if (!is_operator_char(params->input[*i]))
 		return (0);
 	flush_buf_if_needed(params->head, params->buf, params->buf_index);
-	*params->head = add_operator_token(*params->head, params->input[*i], params->input[*i + 1], i);
+	*params->head = add_operator_token(*params->head, params->input[*i],
+			params->input[*i + 1], i);
 	*i = *i + 1;
 	return (1);
 }
@@ -222,7 +232,8 @@ static int	handle_single_quote(t_lexer_params *params)
 	if (params->input[*params->i] != '\'')
 		return (0);
 	old_index = *params->buf_index;
-	consumed = read_single_quoted(&params->input[*params->i], params->buf, params->buf_index, params->buf_size);
+	consumed = read_single_quoted(&params->input[*params->i], params->buf,
+			params->buf_index, params->buf_size);
 	*params->i = *params->i + consumed;
 	if (*params->buf_index == old_index)
 	{
@@ -237,19 +248,20 @@ static int	handle_single_quote(t_lexer_params *params)
 	return (1);
 }
 
-static int	handle_unquoted(t_lexer_params *params,
-		 t_info *info)
+static int	handle_unquoted(t_lexer_params *params, t_info *info)
 {
 	int	consumed;
 
-	if (is_space_char(params->input[*params->i]) || is_operator_char(params->input[*params->i])
-		|| params->input[*params->i] == '\'' || params->input[*params->i] == '"')
+	if (is_space_char(params->input[*params->i])
+		|| is_operator_char(params->input[*params->i])
+		|| params->input[*params->i] == '\''
+		|| params->input[*params->i] == '"')
 	{
 		return (0);
 	}
-	consumed = read_unquoted(&params->input[*params->i], params->buf, params->buf_index, params->buf_size, info);
+	consumed = read_unquoted(&params->input[*params->i], params, info);
 	*params->i = *params->i + consumed;
-	return (1); 
+	return (1);
 }
 
 int	process_token(t_lexer_params params, t_info *info)
