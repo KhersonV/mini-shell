@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lynchsama <lynchsama@student.42.fr>        +#+  +:+       +#+        */
+/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/09 20:01:43 by lynchsama        ###   ########.fr       */
+/*   Updated: 2025/01/11 12:00:06 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,10 +194,52 @@ int							is_builtin(char *command);
 
 /* Lexer */
 
+char						*expand_dollar(const char *input, int *consumed,
+								t_info *info);
+char						*ft_expand_variable(char *var_name, t_info *info);
+int							is_space_char(char c);
+int							is_operator_char(char c);
+int							ft_isalnum(int c);
+int							append_char_to_buf(char *buf, int *idx,
+								int buf_size, char c);
+int							read_single_quoted(const char *input, char *buf,
+								int *buf_index, int buf_size);
+t_token						*create_token_node(char *name, int type);
+int							read_dollar_single(const char *input, char *buf,
+								int *buf_index);
+int							handle_bslash_short(const char **p, char *buf,
+								int *buf_index);
+int							handle_bslash_long(const char **p, char *buf,
+								int *buf_index);
+int							handle_dquotes_backslash(const char **p, char *buf,
+								int *buf_index);
+int							handle_dquotes_dollar(const char **p, char *buf,
+								int *buf_index, t_info *info);
+int							handle_dquotes_normal_char(const char **p,
+								char *buf, int *buf_index);
+int							read_dollar_double(const char *input, char *buf,
+								int *buf_index, t_info *info);
+char						*read_dollar_quoted(const char *input,
+								int *consumed, t_info *info);
+
+int							is_early_termination(char next_char, char quote);
+int							find_closing_quote(const char *input, char quote);
+char						*handle_no_closing_quote(int *consumed);
+char						*handle_quoted_dollar(const char *input,
+								int *consumed);
+char						*expand_dollar(const char *input, int *consumed,
+								t_info *info);
+
+t_token						*add_token(t_token *node, char *name, int type);
+int							is_quotes_closed(const char *start);
+void						flush_buf_if_needed(t_token **curr, char *buf,
+								int *buf_index);
+t_token						*add_operator_token(t_token *curr,
+								char current_char, char next_char, int *i);
 t_token						*tokenizer(char *user_input, t_info *info);
 void						adjusting_token_tree(t_token **tree, t_info *info);
 void						free_token_list(t_token *tokens);
-char 						*read_var_name(const char *input, int *consumed);
+char						*read_var_name(const char *input, int *consumed);
 
 /* Signals */
 void						sigint_handler_heredoc(int signo);
