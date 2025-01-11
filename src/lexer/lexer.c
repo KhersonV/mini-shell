@@ -180,20 +180,20 @@ static void	skip_spaces(t_lexer_params *params)
 	}
 }
 
-static int	handle_double_quote(t_lexer_params *params, int *i, t_info *info)
+static int	handle_double_quote(t_lexer_params *params, t_info *info)
 {
 	int		old_index;
 	int		consumed;
 	char	c;
 
-	if (params->input[*i] != '"')
+	if (params->input[*params->i] != '"')
 		return (0);
 	old_index = *params->buf_index;
-	consumed = read_double_quoted(&params->input[*i], params->buf, params->buf_index, 1024, info);
-	*i = *i + consumed;
+	consumed = read_double_quoted(&params->input[*params->i], params->buf, params->buf_index, 1024, info);
+	*params->i = *params->i + consumed;
 	if (*params->buf_index == old_index)
 	{
-		c = params->input[*i];
+		c = params->input[*params->i];
 		if (c == '\0' || is_space_char(c) || is_operator_char(c))
 		{
 			params->buf[*params->buf_index] = '\0';
@@ -214,20 +214,20 @@ static int	handle_operator_char(t_lexer_params *params, int *i)
 	return (1);
 }
 
-static int	handle_single_quote(t_lexer_params *params, int *i)
+static int	handle_single_quote(t_lexer_params *params)
 {
 	int		old_index;
 	int		consumed;
 	char	c;
 
-	if (params->input[*i] != '\'')
+	if (params->input[*params->i] != '\'')
 		return (0);
 	old_index = *params->buf_index;
-	consumed = read_single_quoted(&params->input[*i], params->buf, params->buf_index, 1024);
-	*i = *i + consumed;
+	consumed = read_single_quoted(&params->input[*params->i], params->buf, params->buf_index, params->buf_size);
+	*params->i = *params->i + consumed;
 	if (*params->buf_index == old_index)
 	{
-		c = params->input[*i];
+		c = params->input[*params->i];
 		if (c == '\0' || is_space_char(c) || is_operator_char(c))
 		{
 			params->buf[*params->buf_index] = '\0';
@@ -257,9 +257,9 @@ int	process_token(t_lexer_params params, t_info *info)
 {
 	if (handle_operator_char(&params, params.i))
 		return (1);
-	if (handle_single_quote(&params, params.i))
+	if (handle_single_quote(&params))
 		return (1);
-	if (handle_double_quote(&params, params.i, info))
+	if (handle_double_quote(&params, info))
 		return (1);
 	if (handle_unquoted(&params, info))
 		return (1);
