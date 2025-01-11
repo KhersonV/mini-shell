@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:35 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/08 18:19:09 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/09 18:34:31 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,6 @@ void	unset_env(t_exec_command *command, t_info *info)
 		i++;
 	}
 }
-
 
 void	exit_shell(t_info *info)
 {

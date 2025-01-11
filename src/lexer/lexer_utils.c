@@ -1,7 +1,7 @@
 
 #include "../../include/minishell.h"
 
-char	*expand_dollar(const char *input, int *consumed, t_info *info);
+char		*expand_dollar(const char *input, int *consumed, t_info *info);
 
 char	*ft_expand_variable(char *var_name, t_info *info)
 {
@@ -31,7 +31,6 @@ int	ft_isalnum(int c)
 	return (0);
 }
 
-
 int	append_char_to_buf(char *buf, int *idx, int buf_size, char c)
 {
 	if (*idx >= buf_size - 1)
@@ -52,7 +51,7 @@ int	read_single_quoted(const char *input, char *buf, int *buf_index,
 	{
 		if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
 		{
-			fprintf(stderr, "Buffer overflow in single quotes\n"); //todo
+			fprintf(stderr, "Buffer overflow in single quotes\n"); // todo
 			return (i);
 		}
 		i++;
@@ -78,10 +77,10 @@ t_token	*create_token_node(char *name, int type)
 	return (new_node);
 }
 
-int read_dollar_single(const char *input, char *buf, int *buf_index)
+int	read_dollar_single(const char *input, char *buf, int *buf_index)
 {
-	int i;
-	int stop;
+	int	i;
+	int	stop;
 
 	i = 2;
 	stop = 0;
@@ -100,10 +99,10 @@ int read_dollar_single(const char *input, char *buf, int *buf_index)
 	return (i);
 }
 
-int handle_bslash_short(const char **p, char *buf, int *buf_index)
+int	handle_bslash_short(const char **p, char *buf, int *buf_index)
 {
-	int stop;
-	int res;
+	int	stop;
+	int	res;
 
 	stop = 0;
 	res = append_char_to_buf(buf, buf_index, 1024, (*p)[0]);
@@ -122,7 +121,6 @@ int	handle_bslash_long(const char **p, char *buf, int *buf_index)
 	res = append_char_to_buf(buf, buf_index, 1024, '\\');
 	if (res < 0)
 		local_stop = 1;
-
 	if (local_stop == 0)
 	{
 		res = append_char_to_buf(buf, buf_index, 1024, (*p)[0]);
@@ -141,8 +139,7 @@ int	handle_dquotes_backslash(const char **p, char *buf, int *buf_index)
 	stop = 0;
 	*p = (*p) + 1;
 	if ((*p)[0] == '\0')
-		return stop;
-
+		return (stop);
 	if (ft_strchr("\"$\\", (*p)[0]))
 	{
 		check = handle_bslash_short(p, buf, buf_index);
@@ -158,13 +155,13 @@ int	handle_dquotes_backslash(const char **p, char *buf, int *buf_index)
 	return (stop);
 }
 
-int handle_dquotes_dollar(const char **p, char *buf, int *buf_index,
-								 t_info *info)
+int	handle_dquotes_dollar(const char **p, char *buf, int *buf_index,
+		t_info *info)
 {
-	int stop;
-	int var_consumed;
-	char *expanded;
-	int copy_stop;
+	int		stop;
+	int		var_consumed;
+	char	*expanded;
+	int		copy_stop;
 
 	stop = 0;
 	var_consumed = 0;
@@ -176,7 +173,8 @@ int handle_dquotes_dollar(const char **p, char *buf, int *buf_index,
 		copy_stop = 0;
 		while (expanded[copy_stop] != '\0' && stop == 0)
 		{
-			if (append_char_to_buf(buf, buf_index, 1024, expanded[copy_stop]) < 0)
+			if (append_char_to_buf(buf, buf_index, 1024,
+					expanded[copy_stop]) < 0)
 				stop = 1;
 			else
 				copy_stop = copy_stop + 1;
@@ -187,11 +185,10 @@ int handle_dquotes_dollar(const char **p, char *buf, int *buf_index,
 	return (stop);
 }
 
-int	handle_dquotes_normal_char(const char **p, char *buf,
-									  int *buf_index)
+int	handle_dquotes_normal_char(const char **p, char *buf, int *buf_index)
 {
-	int stop;
-	int res;
+	int	stop;
+	int	res;
 
 	stop = 0;
 	res = append_char_to_buf(buf, buf_index, 1024, (*p)[0]);
@@ -203,11 +200,11 @@ int	handle_dquotes_normal_char(const char **p, char *buf,
 }
 
 int	read_dollar_double(const char *input, char *buf, int *buf_index,
-							  t_info *info)
+		t_info *info)
 {
-	const char *p;
-	const char *start;
-	int stop;
+	const char	*p;
+	const char	*start;
+	int			stop;
 
 	start = &input[2];
 	p = start;
@@ -226,12 +223,12 @@ int	read_dollar_double(const char *input, char *buf, int *buf_index,
 	return (p - input);
 }
 
-char *read_dollar_quoted(const char *input, int *consumed, t_info *info)
+char	*read_dollar_quoted(const char *input, int *consumed, t_info *info)
 {
-	char quote;
-	char buf[1024];
-	int buf_index;
-	int i;
+	char	quote;
+	char	buf[1024];
+	int		buf_index;
+	int		i;
 
 	quote = input[1];
 	buf_index = 0;
@@ -240,35 +237,35 @@ char *read_dollar_quoted(const char *input, int *consumed, t_info *info)
 		i = read_dollar_single(input, buf, &buf_index);
 	else if (quote == '"')
 		i = read_dollar_double(input, buf, &buf_index, info);
-
 	buf[buf_index] = '\0';
 	*consumed = i;
 	return (ft_strdup(buf));
 }
 
-int is_early_termination(char next_char, char quote)
+int	is_early_termination(char next_char, char quote)
 {
-	return (next_char == '\0' || is_space_char(next_char) ||
-			is_operator_char(next_char) || next_char == quote);
+	return (next_char == '\0' || is_space_char(next_char)
+		|| is_operator_char(next_char) || next_char == quote);
 }
 
-int find_closing_quote(const char *input, char quote)
+int	find_closing_quote(const char *input, char quote)
 {
-	int j = 2;
+	int	j;
 
+	j = 2;
 	while (input[j])
 	{
 		if (input[j] == quote)
-			return j;
+			return (j);
 		j++;
 	}
-	return -1;
+	return (-1);
 }
 
-char *handle_no_closing_quote(int *consumed)
+char	*handle_no_closing_quote(int *consumed)
 {
 	*consumed = 1;
-	return ft_strdup("$");
+	return (ft_strdup("$"));
 }
 
 static char	*handle_special_variable(const char *var_name, t_info *info)
@@ -281,18 +278,20 @@ static char	*handle_special_variable(const char *var_name, t_info *info)
 	{
 		return (ft_strdup("$"));
 	}
-	return NULL;
+	return (NULL);
 }
 
-char *handle_quoted_dollar(const char *input, int *consumed)
+char	*handle_quoted_dollar(const char *input, int *consumed)
 {
-	char quote = input[1];
-	char next_char = input[2];
+	char	quote;
+	char	next_char;
+	int		closing_quote_index;
 
+	quote = input[1];
+	next_char = input[2];
 	if (is_early_termination(next_char, quote))
-		return handle_no_closing_quote(consumed);
-	int closing_quote_index = find_closing_quote(input, quote);
-
+		return (handle_no_closing_quote(consumed));
+	closing_quote_index = find_closing_quote(input, quote);
 	if (closing_quote_index == -1)
 		return (handle_no_closing_quote(consumed));
 	return (NULL);
@@ -310,18 +309,18 @@ static char	*handle_variable_expansion(const char *input, int *consumed,
 	if (!var_name)
 	{
 		*consumed = 0;
-		return strdup("");
+		return (strdup(""));
 	}
 	*consumed = var_consumed;
 	expanded = handle_special_variable(var_name, info);
 	if (expanded)
 	{
 		free(var_name);
-		return expanded;
+		return (expanded);
 	}
 	expanded = ft_expand_variable(var_name, info);
 	free(var_name);
-	return expanded;
+	return (expanded);
 }
 
 char	*expand_dollar(const char *input, int *consumed, t_info *info)
@@ -332,10 +331,10 @@ char	*expand_dollar(const char *input, int *consumed, t_info *info)
 	{
 		result = handle_quoted_dollar(input, consumed);
 		if (result)
-			return result;
-		return read_dollar_quoted(input, consumed, info);
+			return (result);
+		return (read_dollar_quoted(input, consumed, info));
 	}
-	return handle_variable_expansion(input, consumed, info);
+	return (handle_variable_expansion(input, consumed, info));
 }
 
 t_token	*add_token(t_token *node, char *name, int type)
@@ -378,10 +377,10 @@ int	is_quotes_closed(const char *start)
 	while (start[i])
 	{
 		if (start[i] == quote)
-			return 1;
+			return (1);
 		i++;
 	}
-	return 0;
+	return (0);
 }
 
 t_token	*add_operator_token(t_token *curr, char current_char, char next_char,
@@ -409,5 +408,5 @@ t_token	*add_operator_token(t_token *curr, char current_char, char next_char,
 		else
 			curr = add_token(curr, ">", TOKEN_REDIRECT_OUT);
 	}
-	return curr;
+	return (curr);
 }
