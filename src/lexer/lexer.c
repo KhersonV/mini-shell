@@ -55,8 +55,7 @@ static void	append_expanded_dquotes(const char *input, int *i, char *buf,
 	*i = *i + var_consumed;
 }
 
-static int	read_double_quoted(const char *input, char *buf, int *buf_index,
-		int buf_size, t_info *info)
+static int	read_double_quoted(const char *input, t_lexer_params *params, t_info *info)	
 {
 	int	i;
 
@@ -70,27 +69,27 @@ static int	read_double_quoted(const char *input, char *buf, int *buf_index,
 				break ;
 			if (input[i] == '"' || input[i] == '$' || input[i] == '\\')
 			{
-				if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
+				if (append_char_to_buf(params->buf, params->buf_index, params->buf_size, input[i]) < 0)
 					return (i);
 				i++;
 			}
 			else
 			{
-				if (append_char_to_buf(buf, buf_index, buf_size, '\\') < 0)
+				if (append_char_to_buf(params->buf, params->buf_index, params->buf_size, '\\') < 0)
 					return (i);
-				if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
+				if (append_char_to_buf(params->buf, params->buf_index, params->buf_size, input[i]) < 0)
 					return (i);
 				i++;
 			}
 		}
 		else if (input[i] == '$')
 		{
-			append_expanded_dquotes(input, &i, buf, buf_index, buf_size, info);
+			append_expanded_dquotes(input, &i, params->buf, params->buf_index, params->buf_size, info);
 			continue ;
 		}
 		else
 		{
-			if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
+			if (append_char_to_buf(params->buf, params->buf_index, params->buf_size, input[i]) < 0)
 				return (i);
 			i++;
 		}
@@ -189,7 +188,7 @@ static int	handle_double_quote(t_lexer_params *params, t_info *info)
 	if (params->input[*params->i] != '"')
 		return (0);
 	old_index = *params->buf_index;
-	consumed = read_double_quoted(&params->input[*params->i], params->buf, params->buf_index, 1024, info);
+	consumed = read_double_quoted(&params->input[*params->i], params, info);
 	*params->i = *params->i + consumed;
 	if (*params->buf_index == old_index)
 	{
@@ -248,7 +247,7 @@ static int	handle_unquoted(t_lexer_params *params,
 	{
 		return (0);
 	}
-	consumed = read_unquoted(&params->input[*params->i], params->buf, params->buf_index, 1024, info);
+	consumed = read_unquoted(&params->input[*params->i], params->buf, params->buf_index, params->buf_size, info);
 	*params->i = *params->i + consumed;
 	return (1); 
 }
