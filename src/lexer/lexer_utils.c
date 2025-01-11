@@ -51,7 +51,7 @@ int	read_single_quoted(const char *input, char *buf, int *buf_index,
 	{
 		if (append_char_to_buf(buf, buf_index, buf_size, input[i]) < 0)
 		{
-			fprintf(stderr, "Buffer overflow in single quotes\n"); // todo
+			ft_putendl_fd("Buffer overflow in single quotes", 2);
 			return (i);
 		}
 		i++;
@@ -88,7 +88,7 @@ int	read_dollar_single(const char *input, char *buf, int *buf_index)
 	{
 		if (append_char_to_buf(buf, buf_index, 1024, input[i]) < 0)
 		{
-			fprintf(stderr, "Buffer overflow in $'...'\n"); // todo
+			ft_putendl_fd("Buffer overflow in $'...'", 2);
 			stop = 1;
 		}
 		else
@@ -309,7 +309,7 @@ static char	*handle_variable_expansion(const char *input, int *consumed,
 	if (!var_name)
 	{
 		*consumed = 0;
-		return (strdup(""));
+		return (ft_strdup(""));
 	}
 	*consumed = var_consumed;
 	expanded = handle_special_variable(var_name, info);

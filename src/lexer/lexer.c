@@ -14,7 +14,7 @@ static void	append_expanded_unquoted(const char *input, int *i,
 	if (!expanded)
 		return ;
 	k = 0;
-	len = strlen(expanded);
+	len = ft_strlen(expanded);
 	while (k < len)
 	{
 		if (append_char_to_buf(params->buf, params->buf_index, params->buf_size,
@@ -42,7 +42,7 @@ static void	append_expanded_dquotes(const char *input, int *i,
 	if (!expanded)
 		return ;
 	k = 0;
-	len = strlen(expanded);
+	len = ft_strlen(expanded);
 	while (k < len)
 	{
 		if (append_char_to_buf(params->buf, params->buf_index, params->buf_size,
@@ -132,7 +132,7 @@ static int	handle_escape(const char *input, int *i, t_lexer_params *params)
 	(*i)++;
 	if (!input[*i])
 		return (-1);
-	if (strchr("$\\\"'", input[*i]))
+	if (ft_strchr("$\\\"'", input[*i]))
 	{
 		if (append_char_to_buf(params->buf, params->buf_index, params->buf_size,
 				input[*i]) < 0)

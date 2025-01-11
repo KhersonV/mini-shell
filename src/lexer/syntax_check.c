@@ -5,14 +5,14 @@ int	check_pipes_error(t_token *token, t_info *info)
 {
 	if (!token->next)
 	{
-		fprintf(stderr, "minishell: syntax error near unexpected token `|'\n");
+		ft_putstr_fd("minishell: syntax error near unexpected token `|'\n", 2);
 		info->syntax_error = 1;
 		info->exit_status = 258;
 		return (-1);
 	}
 	if (token->next->type == TOKEN_PIPE)
 	{
-		fprintf(stderr, "minishell: syntax error near unexpected token `|'\n");
+		ft_putstr_fd("minishell: syntax error near unexpected token `|'\n", 2);
 		info->syntax_error = 1;
 		info->exit_status = 258;
 		return (-1);
@@ -23,7 +23,7 @@ int	check_pipes_error(t_token *token, t_info *info)
 int	print_syntax_error(char *token_str, t_info *info)
 {
 	write(2, "minishell: syntax error near unexpected token `", 47);
-	write(2, token_str, strlen(token_str));
+	write(2, token_str, ft_strlen(token_str));
 	write(2, "'\n", 2);
 	info->syntax_error = 1;
 	info->exit_status = 258;
