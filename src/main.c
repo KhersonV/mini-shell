@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/09 14:07:07 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 14:47:23 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@ void	main_initialize(t_info *info, char **envp)
 	info->std_out_reserve = dup(STDOUT_FILENO);
 	info->curr_dir = getcwd(NULL, 0);
 	info->envp = copy_envp(envp);
+	if (!info->envp)
+		exit(EXIT_FAILURE);
 	info->old_dir = get_env_value(info, "OLDPWD");
 	info->home = get_env_value(info, "HOME");
 	info->exit_status = 0;
@@ -87,6 +89,7 @@ int	main(int ac, char **av, char **envp)
 		return (1);
 	}
 	main_initialize(&info, envp);
+	
 	while (1)
 	{
 		set_signal_mode_readline();

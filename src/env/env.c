@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 12:43:01 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/08 18:18:22 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 14:55:04 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,19 +27,6 @@ char	**allocate_env_copy(char **envp, int *size)
 	if (!env_copy)
 		return (NULL);
 	return (env_copy);
-}
-
-void	free_partial_env_copy(char **env_copy, int count)
-{
-	int	j;
-
-	j = 0;
-	while (j < count)
-	{
-		free(env_copy[j]);
-		j++;
-	}
-	free(env_copy);
 }
 
 char	*validate_env_key(t_info *info, const char *key, const char *value)

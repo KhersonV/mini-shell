@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
+/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 14:42:51 by snazarov         ###   ########.fr       */
+/*   Updated: 2025/01/12 14:57:10 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -317,7 +317,7 @@ void						set_signal_mode_command(void);
 void						set_signal_mode_readline(void);
 
 /* utils - free_utils */
-
+void						free_partial_env_copy(char **env_copy, int count);
 void						free_info(t_info *info);
 void						free_array(t_exec_command *commands);
 void						ft_free_array(char **array);

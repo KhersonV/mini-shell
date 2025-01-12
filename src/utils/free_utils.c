@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/06 19:00:23 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 14:14:18 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 14:45:08 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,4 +74,19 @@ void	free_info(t_info *info)
 	info->syntax_error = 0;
 	info->std_in_reserve = -1;
 	info->std_out_reserve = -1;
+}
+
+void	free_partial_env_copy(char **env_copy, int count)
+{
+	int	j;
+
+	if (!env_copy)
+		return;
+	j = 0;
+	while (j < count)
+	{
+		free(env_copy[j]);
+		j++;
+	}
+	free(env_copy);
 }
