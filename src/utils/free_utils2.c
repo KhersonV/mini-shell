@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   free_utils2.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/12 14:10:22 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 14:28:28 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 14:50:16 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,22 @@ void	free_token_list(t_token *tokens)
 	}
 }
 
+void	free_inner_redirections(t_redirection *redir)
+{
+	t_redirection	*next_redir;
+
+	while (redir)
+	{
+		next_redir = redir->next;
+		if (redir->filename)
+			free(redir->filename);
+		if (redir->heredoc_marker)
+			free(redir->heredoc_marker);
+		free(redir);
+		redir = next_redir;
+	}
+}
+
 void	free_commands(t_exec_command *commands)
 {
 	t_exec_command	*temp;
@@ -49,7 +65,7 @@ void	free_commands(t_exec_command *commands)
 		temp = commands;
 		free(commands->cmd_name);
 		ft_free_array(commands->args);
-		free_redirections(commands->redirects);
+		free_inner_redirections(commands->redirects);
 		commands = commands->next_cmd;
 		free(temp);
 	}

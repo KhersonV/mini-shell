@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   executor.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 12:32:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/08 15:31:19 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 14:43:25 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ void	execute_builtin_command(t_exec_command *command, t_info *info)
 	else if (ft_strcmp(command->cmd_name, "unset") == 0)
 		unset_env(command, info);
 	else if (ft_strcmp(command->cmd_name, "exit") == 0)
-		ft_exit(command->args, info);
+		ft_exit(command->args, info, command);
 }
 
 int	execute_builtin_in_child(t_exec_command *command, t_info *info)

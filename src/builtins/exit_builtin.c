@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exit_builtin.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:26 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 16:49:32 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 14:45:32 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,7 @@ int	handle_exit_args(char **args, t_info *info)
 	return (exit_code);
 }
 
-void	ft_exit(char **args, t_info *info)
+void	ft_exit(char **args, t_info *info, t_exec_command *commands)
 {
 	int	exit_code;
 	int	is_interactive;
@@ -84,5 +84,6 @@ void	ft_exit(char **args, t_info *info)
 	if (exit_code == -1)
 		return ;
 	free_env(info);
+	free_commands(commands);
 	exit(exit_code);
 }
