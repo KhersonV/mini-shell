@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 14:47:23 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 15:06:21 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 void	main_initialize(t_info *info, char **envp)
 {
+	info->envp = NULL;
 	info->std_in_reserve = dup(STDIN_FILENO);
 	info->std_out_reserve = dup(STDOUT_FILENO);
 	info->curr_dir = getcwd(NULL, 0);
@@ -72,9 +73,9 @@ void	process_input(char *line, t_info *info)
 	commands = process_tokens(line, info, &tokens);
 	if (!commands)
 		return ;
+	free_token_list(tokens);
 	execute_commands(commands, info);
 	free_array(commands);
-	free_token_list(tokens);
 	free(line);
 }
 

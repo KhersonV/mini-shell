@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 14:57:10 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 15:32:43 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -324,5 +324,4 @@ void						ft_free_array(char **array);
 void						free_commands(t_exec_command *commands);
 void						free_env(t_info *info);
 void						free_redirections(t_redirection *redirects);
-void						free_exec_command(t_exec_command *command);
 #endif
