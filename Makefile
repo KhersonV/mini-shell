@@ -29,8 +29,11 @@ SRC = $(SRC_DIR)/main.c \
       $(SRC_DIR)/executor/executor.c $(SRC_DIR)/executor/executor_utils.c $(SRC_DIR)/executor/pipes_utils.c \
       $(SRC_DIR)/executor/herodoc.c $(SRC_DIR)/executor/pipes.c $(SRC_DIR)/executor/executor_utils3.c \
       $(SRC_DIR)/lexer/lexer.c $(SRC_DIR)/lexer/lexer_utils.c $(SRC_DIR)/lexer/expansion.c \
-      $(SRC_DIR)/lexer/syntax_check.c \
-      $(SRC_DIR)/parser/parser2.c \
+      $(SRC_DIR)/lexer/syntax_check.c $(SRC_DIR)/lexer/lexer_utils2.c $(SRC_DIR)/lexer/lexer_utils3.c \
+      $(SRC_DIR)/lexer/lexer_utils4.c $(SRC_DIR)/lexer/lexer_utils5.c \
+      $(SRC_DIR)/lexer/lexer_utils6.c $(SRC_DIR)/lexer/lexer_utils7.c $(SRC_DIR)/lexer/lexer_utils8.c \
+      $(SRC_DIR)/lexer/syntax_check2.c\
+      $(SRC_DIR)/parser/parser.c $(SRC_DIR)/parser/parser2.c \
       $(SRC_DIR)/signals/signals.c $(SRC_DIR)/signals/signal_mode.c \
       $(SRC_DIR)/utils/errors.c $(SRC_DIR)/utils/free_utils.c \
       $(GNL_DIR)/get_next_line_utils.c $(GNL_DIR)/get_next_line.c\

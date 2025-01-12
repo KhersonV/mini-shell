@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/11 13:55:23 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 11:11:04 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,6 @@
 
 # define TRUE 1
 # define FALSE 0
-
 
 typedef struct s_pipeline_params
 {
@@ -94,6 +93,22 @@ typedef struct s_lexer_params
 	t_info					*info;
 	int						buf_size;
 }							t_lexer_params;
+
+typedef struct s_command_context
+{
+	t_exec_command			**current_cmd;
+	t_exec_command			**cmd_list;
+	t_exec_command			**prev_cmd;
+}							t_command_context;
+
+typedef struct s_redirection_params
+{
+	const char				*filename;
+	int						type;
+	int						is_append;
+	int						is_heredoc;
+	const char				*heredoc_marker;
+}							t_redirection_params;
 
 typedef enum e_token_type
 {
@@ -203,6 +218,33 @@ char						*find_command(char *command, char **envp);
 int							is_builtin(char *command);
 
 /* Lexer */
+int							check_pipes_error(t_token *token, t_info *info);
+int							process_token(t_lexer_params params, t_info *info);
+void						skip_spaces(t_lexer_params *params);
+int							redirect_check(t_token *token, t_info *info);
+void						adjust_word_token(t_token *token, int *command);
+char						*handle_special_variable(const char *var_name,
+								t_info *info);
+void						append_expanded_unquoted(const char *input, int *i,
+								t_lexer_params *params, t_info *info);
+int							handle_dollar(const char *input, int *i,
+								t_lexer_params *params, t_info *info);
+int							read_unquoted(const char *input,
+								t_lexer_params *params, t_info *info);
+int							handle_default(const char *input, int *i,
+								t_lexer_params *params);
+int							handle_escape(const char *input, int *i,
+								t_lexer_params *params);
+int							handle_operator_char(t_lexer_params *params,
+								int *i);
+
+int							handle_single_quote(t_lexer_params *params);
+int							handle_double_quote(t_lexer_params *params,
+								t_info *info);
+int							handle_unquoted(t_lexer_params *params,
+								t_info *info);
+int							read_double_quoted(const char *input,
+								t_lexer_params *params, t_info *info);
 
 char						*expand_dollar(const char *input, int *consumed,
 								t_info *info);
@@ -250,6 +292,18 @@ t_token						*tokenizer(char *user_input, t_info *info);
 void						adjusting_token_tree(t_token **tree, t_info *info);
 void						free_token_list(t_token *tokens);
 char						*read_var_name(const char *input, int *consumed);
+
+/* Parser */
+
+char						**add_argument(char **args, const char *arg);
+t_redirection				*add_redirection(t_redirection *redirects,
+								t_redirection_params params);
+t_exec_command				*create_command_node(void);
+t_exec_command				*handle_pipe_token(t_exec_command *current_cmd,
+								t_command_context *ctx);
+
+void						handle_command_token(t_token *tokens,
+								t_command_context *ctx);
 
 /* Signals */
 void						sigint_handler_heredoc(int signo);

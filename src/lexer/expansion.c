@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   expansion.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/01/12 10:27:56 by vmamoten          #+#    #+#             */
+/*   Updated: 2025/01/12 10:32:11 by vmamoten         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../../include/minishell.h"
 
 static int	is_valid_var_char(char c)
@@ -55,4 +67,32 @@ char	*read_var_name(const char *input, int *consumed)
 		return (special_var);
 	}
 	return (read_variable_name(input, consumed));
+}
+
+t_token	*add_operator_token(t_token *curr, char current_char, char next_char,
+		int *i)
+{
+	if (current_char == '|')
+		curr = add_token(curr, "|", TOKEN_PIPE);
+	else if (current_char == '<')
+	{
+		if (next_char == '<')
+		{
+			curr = add_token(curr, "<<", TOKEN_HEREDOC);
+			(*i)++;
+		}
+		else
+			curr = add_token(curr, "<", TOKEN_REDIRECT_IN);
+	}
+	else if (current_char == '>')
+	{
+		if (next_char == '>')
+		{
+			curr = add_token(curr, ">>", TOKEN_REDIRECT_APPEND);
+			(*i)++;
+		}
+		else
+			curr = add_token(curr, ">", TOKEN_REDIRECT_OUT);
+	}
+	return (curr);
 }
