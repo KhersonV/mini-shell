@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/11 12:43:01 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 14:55:04 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 17:13:59 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,6 +78,7 @@ int	update_env_entry(t_info *info, const char *key, char *new_entry)
 		return (-1);
 	}
 	info->exit_status = 0;
+	free(new_entry);
 	return (0);
 }
 
