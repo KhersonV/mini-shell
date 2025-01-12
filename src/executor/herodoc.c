@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/07 14:11:30 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/09 14:52:44 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 13:19:11 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,17 +44,20 @@ int	write_heredoc_line(int out_fd, const char *delimiter)
 {
 	char	*line;
 
-	line = readline("> ");
-	if (!line)
-		return (0);
-	if (ft_strcmp(line, delimiter) == 0)
+	while (1)
 	{
+		line = readline("> ");
+		if (!line)
+			return (0);
+		if (ft_strcmp(line, delimiter) == 0)
+		{
+			free(line);
+			break ;
+		}
+		write(out_fd, line, ft_strlen(line));
+		write(out_fd, "\n", 1);
 		free(line);
-		return (0);
 	}
-	write(out_fd, line, ft_strlen(line));
-	write(out_fd, "\n", 1);
-	free(line);
 	return (1);
 }
 
@@ -62,17 +65,17 @@ int	read_heredoc_to_file(const char *delimiter, const char *tmpfile)
 {
 	int	out_fd;
 
-	out_fd = open(tmpfile, O_WRONLY | O_TRUNC, 0644);
+	out_fd = open(tmpfile, O_WRONLY | O_TRUNC | O_CREAT, 0600);
 	if (out_fd < 0)
 	{
 		perror("open temp heredoc file");
 		return (0);
 	}
 	set_signal_mode_heredoc();
-	while (1)
+	if (!write_heredoc_line(out_fd, delimiter))
 	{
-		if (!write_heredoc_line(out_fd, delimiter))
-			break ;
+		close(out_fd);
+		return (0);
 	}
 	set_signal_mode_readline();
 	close(out_fd);
@@ -105,6 +108,7 @@ int	prepare_heredocs(t_exec_command *commands)
 	cmd = commands;
 	while (cmd)
 	{
+		cmd->redirects = reverse_redirections(cmd->redirects);
 		redir = cmd->redirects;
 		while (redir)
 		{

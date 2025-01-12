@@ -6,13 +6,13 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/12 13:09:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/08 13:26:29 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 13:20:08 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
-static t_redirection	*reverse_redirections(t_redirection *head)
+t_redirection	*reverse_redirections(t_redirection *head)
 {
 	t_redirection	*prev;
 	t_redirection	*curr;
@@ -20,7 +20,6 @@ static t_redirection	*reverse_redirections(t_redirection *head)
 
 	prev = NULL;
 	curr = head;
-	next = NULL;
 	while (curr)
 	{
 		next = curr->next;
@@ -65,16 +64,16 @@ int	apply_redirection(int fd, int target_fd)
 
 int	handle_redirections(t_redirection *redirects)
 {
-	t_redirection	*rev;
+	t_redirection	*redir;
 	int				fd;
 
-	rev = reverse_redirections(redirects);
-	while (rev)
+	redir = redirects;
+	while (redir)
 	{
-		fd = open_redirection_file(rev);
+		fd = open_redirection_file(redir);
 		if (fd == -1)
 			return (0);
-		if (rev->type == TOKEN_REDIRECT_IN)
+		if (redir->type == TOKEN_REDIRECT_IN)
 		{
 			if (!apply_redirection(fd, STDIN_FILENO))
 				return (0);
@@ -84,7 +83,7 @@ int	handle_redirections(t_redirection *redirects)
 			if (!apply_redirection(fd, STDOUT_FILENO))
 				return (0);
 		}
-		rev = rev->next;
+		redir = redir->next;
 	}
 	return (1);
 }
