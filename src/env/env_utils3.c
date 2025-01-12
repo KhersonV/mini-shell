@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   env_utils3.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
+/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/06 18:34:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 15:41:27 by snazarov         ###   ########.fr       */
+/*   Updated: 2025/01/12 18:08:59 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,13 +28,19 @@ void	init_env(t_info *info)
 
 char	*get_env_value(t_info *info, const char *key)
 {
-	int	i;
+	int		i;
+	char	*equals;
 
 	i = 0;
 	while (info->envp[i])
 	{
 		if (env_key_compare(info->envp[i], key))
-			return (get_value_from_env(info->envp[i]));
+		{
+			equals = ft_strchr(info->envp[i], '=');
+			if (!equals)
+				return (NULL);
+			return (ft_strdup(equals + 1));
+		}
 		i++;
 	}
 	return (NULL);
