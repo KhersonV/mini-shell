@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   lexeer_utils3.c                                    :+:      :+:    :+:   */
+/*   lexer_utils3.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/12 10:29:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 10:33:04 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 16:13:00 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ char	*ft_expand_variable(char *var_name, t_info *info)
 	val = get_env_value(info, var_name);
 	if (val == NULL)
 		return (ft_strdup(""));
-	return (ft_strdup(val));
+	return (val);
 }
 
 int	is_space_char(char c)

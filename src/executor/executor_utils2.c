@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   executor_utils2.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/07 14:09:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/07 14:09:59 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 16:14:33 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ char	*check_absolute_path(char *command)
 			return (NULL);
 		}
 		if (access(command, X_OK) == 0)
-			return (ft_strdup(command));
+			return (command);
 	}
 	ft_putendl_fd("minishell: /: No such file or directory", STDERR_FILENO);
 	return (NULL);
