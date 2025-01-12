@@ -6,7 +6,7 @@
 /*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 15:32:43 by snazarov         ###   ########.fr       */
+/*   Updated: 2025/01/12 15:39:03 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,7 +162,7 @@ void						free_partial_env_copy(char **env_copy, int count);
 char						**allocate_env_copy(char **envp, int *size);
 void						sort_env(char **env);
 char						**copy_envp(char **envp);
-void						init_env(t_info *info, char **envp);
+void						init_env(t_info *info);
 char						*get_env_value(t_info *info, const char *key);
 int							set_env(t_info *info, const char *key,
 								const char *value);

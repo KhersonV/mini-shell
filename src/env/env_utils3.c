@@ -3,21 +3,20 @@
 /*                                                        :::      ::::::::   */
 /*   env_utils3.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/06 18:34:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 14:01:57 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 15:41:27 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
-void	init_env(t_info *info, char **envp)
+void	init_env(t_info *info)
 {
 	int		shlvl;
 	char	new_shlvl[12];
 
-	info->envp = copy_envp(envp);
 	if (!info->envp)
 		exit(EXIT_FAILURE);
 	remove_oldpwd(&(info->envp));

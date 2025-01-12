@@ -6,7 +6,7 @@
 /*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 15:06:21 by snazarov         ###   ########.fr       */
+/*   Updated: 2025/01/12 15:38:48 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ void	main_initialize(t_info *info, char **envp)
 	info->old_dir = get_env_value(info, "OLDPWD");
 	info->home = get_env_value(info, "HOME");
 	info->exit_status = 0;
-	init_env(info, envp);
+	init_env(info);
 }
 
 char	*get_user_input(void)
