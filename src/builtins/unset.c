@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   unset.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
+/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:35 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 11:12:20 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 15:57:40 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,5 +77,8 @@ void	unset_env(t_exec_command *command, t_info *info)
 void	exit_shell(t_info *info)
 {
 	free_env(info);
+	free(info->old_dir);
+	free(info->curr_dir);
+	free(info->home);
 	exit(info->exit_status);
 }

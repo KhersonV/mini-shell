@@ -6,7 +6,7 @@
 /*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 15:38:48 by snazarov         ###   ########.fr       */
+/*   Updated: 2025/01/12 15:48:53 by snazarov         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 void	main_initialize(t_info *info, char **envp)
 {
 	info->envp = NULL;
+	info->input = NULL;
 	info->std_in_reserve = dup(STDIN_FILENO);
 	info->std_out_reserve = dup(STDOUT_FILENO);
 	info->curr_dir = getcwd(NULL, 0);
@@ -24,6 +25,7 @@ void	main_initialize(t_info *info, char **envp)
 	info->old_dir = get_env_value(info, "OLDPWD");
 	info->home = get_env_value(info, "HOME");
 	info->exit_status = 0;
+	info->syntax_error = 0;
 	init_env(info);
 }
 
@@ -67,6 +69,8 @@ void	process_input(char *line, t_info *info)
 	t_token			*tokens;
 	t_exec_command	*commands;
 
+	tokens = NULL;
+	commands = NULL;
 	if (*line != '\0')
 		add_history(line);
 	info->input = line;
