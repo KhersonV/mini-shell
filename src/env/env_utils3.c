@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/06 18:34:33 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 19:14:50 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 14:01:57 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,20 +60,4 @@ int	is_valid_env_key(const char *key)
 char	**env_to_array(t_info *info)
 {
 	return (copy_envp(info->envp));
-}
-
-void	free_env(t_info *info)
-{
-	int	i;
-
-	if (!info || !info->envp)
-		return ;
-	i = 0;
-	while (info->envp[i])
-	{
-		free(info->envp[i]);
-		i++;
-	}
-	free(info->envp);
-	info->envp = NULL;
 }

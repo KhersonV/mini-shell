@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 13:19:55 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 14:04:37 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -317,6 +317,8 @@ void						set_signal_mode_command(void);
 void						set_signal_mode_readline(void);
 
 /* utils - free_utils */
+
+void						free_info(t_info *info);
 void						free_array(t_exec_command *commands);
 void						ft_free_array(char **array);
 void						free_commands(t_exec_command *commands);

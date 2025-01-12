@@ -6,54 +6,12 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/06 19:00:23 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/07 17:31:41 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/12 14:14:18 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
 
-void	ft_free_array(char **array)
-{
-	int	i;
-
-	if (!array)
-		return ;
-	i = 0;
-	while (array[i])
-	{
-		free(array[i]);
-		i++;
-	}
-	free(array);
-}
-
-void	free_token_list(t_token *tokens)
-{
-	t_token	*temp;
-
-	while (tokens)
-	{
-		temp = tokens;
-		free(temp->str);
-		tokens = tokens->next;
-		free(temp);
-	}
-}
-
-void	free_commands(t_exec_command *commands)
-{
-	t_exec_command	*temp;
-
-	while (commands)
-	{
-		temp = commands;
-		free(commands->cmd_name);
-		ft_free_array(commands->args);
-		free_redirections(commands->redirects);
-		commands = commands->next_cmd;
-		free(temp);
-	}
-}
 
 void	free_redirections(t_redirection *redirects)
 {
@@ -84,4 +42,36 @@ void	free_array(t_exec_command *commands)
 		free(current);
 		current = next;
 	}
+}
+
+void	free_env(t_info *info)
+{
+	int	i;
+
+	if (!info || !info->envp)
+		return ;
+	i = 0;
+	while (info->envp[i])
+	{
+		free(info->envp[i]);
+		i++;
+	}
+	free(info->envp);
+	info->envp = NULL;
+}
+
+void	free_info(t_info *info)
+{
+	if (!info)
+		return ;
+	free(info->input);
+	free(info->old_dir);
+	free(info->curr_dir);
+	free(info->home);
+	free_env(info);
+	info->nb_cmds = 0;
+	info->exit_status = 0;
+	info->syntax_error = 0;
+	info->std_in_reserve = -1;
+	info->std_out_reserve = -1;
 }
