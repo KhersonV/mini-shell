@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/07 16:15:59 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/13 16:59:19 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/13 17:30:07 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,26 @@ int	handle_directory_command(t_exec_command *command, t_info *info,
 	return (0);
 }
 
+int	is_path_command(const char *cmd)
+{
+	static const char *path_cmds[] = {
+		"ls", "mkdir", "rm", "rmdir", "cp", "mv", "touch",
+		"cat", "grep", "echo", "find", "chmod", "chown",
+		"pwd", "which", "whereis", "clear",
+		NULL
+	};
+	int	i;
+
+	i = 0;
+	while (path_cmds[i] != NULL)
+	{
+		if (ft_strcmp(path_cmds[i], cmd) == 0)
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
 void	ext_cmd(t_exec_command *command, t_info *info, int stin, int stout)
 {
 	char	*path;
@@ -94,7 +114,7 @@ void	ext_cmd(t_exec_command *command, t_info *info, int stin, int stout)
 	else
 	{
 		handle_parent_process(pid, info);
-		if (ft_strcmp(command->cmd_name, "ls") == 0)
-			free(path);
+		if (is_path_command(command->cmd_name))
+		free(path);
 	}
 }
