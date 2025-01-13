@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/07 13:59:10 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/13 15:42:17 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/13 16:29:42 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,8 @@ void	handle_child_process(char *path, t_exec_command *command, t_info *info)
 {
 	reset_signals_to_default();
 	execve(path, command->args, info->envp);
+	if (path)
+		free(path);
 	perror("execve");
 	exit(EXIT_FAILURE);
 }

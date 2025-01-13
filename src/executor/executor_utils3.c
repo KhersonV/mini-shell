@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/07 16:15:59 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/13 15:45:12 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/13 16:59:19 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,6 @@ void	ext_cmd(t_exec_command *command, t_info *info, int stin, int stout)
 	pid = fork();
 	if (pid == -1)
 	{
-		perror("fork");
 		free(path);
 		restore_standard_fds(stin, stout);
 		return ;
@@ -93,5 +92,9 @@ void	ext_cmd(t_exec_command *command, t_info *info, int stin, int stout)
 	if (pid == 0)
 		handle_child_process(path, command, info);
 	else
+	{
 		handle_parent_process(pid, info);
+		if (ft_strcmp(command->cmd_name, "ls") == 0)
+			free(path);
+	}
 }
