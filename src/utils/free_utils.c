@@ -6,12 +6,11 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/06 19:00:23 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 14:45:08 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/13 15:44:18 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../include/minishell.h"
-
 
 void	free_redirections(t_redirection *redirects)
 {
@@ -81,7 +80,7 @@ void	free_partial_env_copy(char **env_copy, int count)
 	int	j;
 
 	if (!env_copy)
-		return;
+		return ;
 	j = 0;
 	while (j < count)
 	{

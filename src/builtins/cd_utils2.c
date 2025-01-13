@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/06 17:50:32 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 18:20:31 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/13 15:41:39 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 int	update_env_vars(t_info *info, char *old_cwd)
 {
 	char	cwd[PATH_MAX];
+
 	if (set_env(info, "OLDPWD", old_cwd) == -1)
 	{
 		ft_putendl_fd("minishell: cd: failed to set OLDPWD", STDERR_FILENO);
@@ -43,7 +44,7 @@ int	handle_directory_change(char *dir, char **args, t_info *info)
 			free(dir);
 		return (0);
 	}
-	if (args[1] && (args[1][0] == '~' || args[1][0] == '\0'))
+	if (!args[1] || (args[1] && (args[1][0] == '~' || args[1][0] == '-')))
 		free(dir);
 	return (1);
 }

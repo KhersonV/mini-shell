@@ -1,10 +1,12 @@
 # Имя исполняемого файла
 DEBUG = 1
 ifeq ($(DEBUG), 1)
-    CFLAGS = -g -Wall -Wextra -Werror
+    CFLAGS = -g -Wall -Wextra -Werror 
+    # -fsanitize=address
     BUILD_DIR = build/
 else
-    CFLAGS = -Wall -Wextra -Werror
+    CFLAGS = -Wall -Wextra -Werror 
+    # -fsanitize=address
     BUILD_DIR = build/
 endif
 

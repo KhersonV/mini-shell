@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
+/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 15:39:03 by snazarov         ###   ########.fr       */
+/*   Updated: 2025/01/13 15:46:51 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,7 +151,8 @@ void						ft_pwd(t_info *info);
 void						ft_export(char **args, t_info *info);
 void						unset_env(t_exec_command *commands, t_info *info);
 void						ft_env(t_exec_command *commands, t_info *info);
-void						ft_exit(char **args, t_info *info, t_exec_command *commands);
+void						ft_exit(char **args, t_info *info,
+								t_exec_command *commands);
 
 /* Env */
 void						shlvl_to_string(int shlvl, char *buffer);

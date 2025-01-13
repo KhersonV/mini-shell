@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/07 16:15:59 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 19:05:09 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/13 15:45:12 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,14 +90,8 @@ void	ext_cmd(t_exec_command *command, t_info *info, int stin, int stout)
 		restore_standard_fds(stin, stout);
 		return ;
 	}
-
-
 	if (pid == 0)
 		handle_child_process(path, command, info);
 	else
-	{
-		// if(path)
-		// 	free(path);
 		handle_parent_process(pid, info);
-	}
 }

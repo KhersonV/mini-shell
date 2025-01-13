@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
+/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 15:48:53 by snazarov         ###   ########.fr       */
+/*   Updated: 2025/01/13 15:46:10 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,6 @@ int	main(int ac, char **av, char **envp)
 		return (1);
 	}
 	main_initialize(&info, envp);
-	
 	while (1)
 	{
 		set_signal_mode_readline();

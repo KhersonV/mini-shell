@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:04 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 17:59:20 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/13 15:45:52 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,19 +43,8 @@ void	ft_cd(char **args, t_info *info)
 	}
 	if (!handle_directory_change(dir, args, info))
 		return ;
-
-
-	
-	
 	if (!update_env_vars(info, cwd))
-	{
-
 		info->exit_status = 1;
-		if (dir)
-		{
-			free(dir);
-		}
-	}
 	else
-	info->exit_status = 0;
+		info->exit_status = 0;
 }
