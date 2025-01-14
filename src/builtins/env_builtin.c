@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:23 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/06 16:40:12 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/14 19:10:22 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ void	run_env(char *path, t_exec_command *command, char **new_env)
 	execve(path, &command->args[1], new_env);
 	perror("execve");
 	free(path);
-	ft_free_array(new_env);
+	ft_free_array(&new_env);
 	exit(EXIT_FAILURE);
 }
 
@@ -57,7 +57,7 @@ void	update_and_print_env(t_exec_command *command, t_info *info,
 			ft_putendl_fd((*new_env)[i], STDOUT_FILENO);
 			i++;
 		}
-		ft_free_array(*new_env);
+		ft_free_array(new_env);
 		info->exit_status = 0;
 	}
 }
@@ -72,7 +72,7 @@ void	execute_command_with_env(t_exec_command *command, t_info *info,
 	{
 		info->exit_status = 127;
 		p_r(command->args[1]);
-		ft_free_array(new_env);
+		ft_free_array(&new_env);
 		return ;
 	}
 	run_env(path, command, new_env);

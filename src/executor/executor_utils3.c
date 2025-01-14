@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/07 16:15:59 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/13 17:30:07 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/14 19:25:55 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,8 +74,8 @@ int	is_path_command(const char *cmd)
 {
 	static const char *path_cmds[] = {
 		"ls", "mkdir", "rm", "rmdir", "cp", "mv", "touch",
-		"cat", "grep", "echo", "find", "chmod", "chown",
-		"pwd", "which", "whereis", "clear",
+		"cat", "grep", "find", "chmod", "chown",
+		"which", "whereis", "clear",
 		NULL
 	};
 	int	i;
@@ -95,6 +95,7 @@ void	ext_cmd(t_exec_command *command, t_info *info, int stin, int stout)
 	char	*path;
 	pid_t	pid;
 
+	path = NULL;
 	path = find_command(command->cmd_name, info->envp);
 	if (!path)
 	{
@@ -114,7 +115,7 @@ void	ext_cmd(t_exec_command *command, t_info *info, int stin, int stout)
 	else
 	{
 		handle_parent_process(pid, info);
-		if (is_path_command(command->cmd_name))
-		free(path);
+		if(is_path_command(command->cmd_name))
+			free(path);
 	}
 }

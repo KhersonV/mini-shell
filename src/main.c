@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 15:48:24 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/13 15:46:10 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/14 19:14:07 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ t_exec_command	*process_tokens(char *line, t_info *info, t_token **tokens)
 	adjusting_token_tree(tokens, info);
 	if (info->syntax_error == 1)
 	{
-		free_token_list(*tokens);
+		free_token_list(tokens);
 		free(line);
 		return (NULL);
 	}
@@ -77,9 +77,9 @@ void	process_input(char *line, t_info *info)
 	commands = process_tokens(line, info, &tokens);
 	if (!commands)
 		return ;
-	free_token_list(tokens);
+	free_token_list(&tokens);
 	execute_commands(commands, info);
-	free_array(commands);
+	free_array(&commands);
 	free(line);
 }
 

@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/12 17:14:50 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/13 15:46:51 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/14 19:13:24 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -292,7 +292,7 @@ t_token						*add_operator_token(t_token *curr,
 								char current_char, char next_char, int *i);
 t_token						*tokenizer(char *user_input, t_info *info);
 void						adjusting_token_tree(t_token **tree, t_info *info);
-void						free_token_list(t_token *tokens);
+void						free_token_list(t_token **tokens);
 char						*read_var_name(const char *input, int *consumed);
 
 /* Parser */
@@ -320,9 +320,9 @@ void						set_signal_mode_readline(void);
 /* utils - free_utils */
 void						free_partial_env_copy(char **env_copy, int count);
 void						free_info(t_info *info);
-void						free_array(t_exec_command *commands);
-void						ft_free_array(char **array);
-void						free_commands(t_exec_command *commands);
+void						free_array(t_exec_command **commands);
+void						ft_free_array(char ***array);
+void						free_commands(t_exec_command **commands);
 void						free_env(t_info *info);
-void						free_redirections(t_redirection *redirects);
+void						free_redirections(t_redirection **redirects);
 #endif

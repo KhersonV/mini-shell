@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   executor_utils2.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: snazarov <snazarov@student.42.fr>          +#+  +:+       +#+        */
+/*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/07 14:09:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/12 16:14:33 by snazarov         ###   ########.fr       */
+/*   Updated: 2025/01/14 19:11:38 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ char	*search_in_path(char *command, char **paths)
 			if (S_ISDIR(statbuf.st_mode))
 			{
 				ft_putendl_fd("minishell: /: is a directory", STDERR_FILENO);
-				return (free(full_path), NULL);
+				return ( NULL); //free(full_path)
 			}
 			if (access(full_path, X_OK) == 0)
 				return (full_path);
@@ -104,7 +104,7 @@ char	*find_command(char *command, char **envp)
 	if (!paths)
 		return (NULL);
 	result = search_in_path(command, paths);
-	ft_free_array(paths);
+	ft_free_array(&paths);
 	if (!result)
 		print_command_not_found(command);
 	return (result);
