@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/12/10 14:25:26 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/14 18:54:23 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/15 13:41:40 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,6 @@ void	ft_exit(char **args, t_info *info, t_exec_command *commands)
 	if (exit_code == -1)
 		return ;
 	free_info(info);
-	free_commands(&commands);
+	free_array(&commands);
 	exit(exit_code);
 }

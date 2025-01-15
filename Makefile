@@ -1,12 +1,11 @@
 # Имя исполняемого файла
 DEBUG = 1
 ifeq ($(DEBUG), 1)
-    CFLAGS = -g -Wall -Wextra -Werror 
+    CFLAGS = -g -Wall -Wextra -Werror  
     # -fsanitize=address
     BUILD_DIR = build/
 else
-    CFLAGS = -Wall -Wextra -Werror 
-    # -fsanitize=address
+    CFLAGS =  -Wall -Wextra -Werror
     BUILD_DIR = build/
 endif
 
@@ -77,6 +76,9 @@ fclean: clean
 
 # Пересборка
 re: fclean all
+
+test: re
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(NAME)
 
 # Объявление phony целей
 .PHONY: all clean fclean re

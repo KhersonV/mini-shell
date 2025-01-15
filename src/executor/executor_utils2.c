@@ -6,7 +6,7 @@
 /*   By: vmamoten <vmamoten@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/07 14:09:15 by vmamoten          #+#    #+#             */
-/*   Updated: 2025/01/14 19:11:38 by vmamoten         ###   ########.fr       */
+/*   Updated: 2025/01/15 15:16:03 by vmamoten         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ char	*check_absolute_path(char *command)
 			return (NULL);
 		}
 		if (access(command, X_OK) == 0)
-			return (command);
+			return (ft_strdup(command));
 	}
 	ft_putendl_fd("minishell: /: No such file or directory", STDERR_FILENO);
 	return (NULL);
@@ -58,7 +58,7 @@ char	*search_in_path(char *command, char **paths)
 			if (S_ISDIR(statbuf.st_mode))
 			{
 				ft_putendl_fd("minishell: /: is a directory", STDERR_FILENO);
-				return ( NULL); //free(full_path)
+				return (free(full_path), NULL);
 			}
 			if (access(full_path, X_OK) == 0)
 				return (full_path);
@@ -91,6 +91,7 @@ char	*find_command(char *command, char **envp)
 	char	**paths;
 	char	*result;
 
+	result = NULL;
 	if (ft_strchr(command, '/'))
 		return (check_absolute_path(command));
 	path_env = get_env_value_direct(envp, "PATH");
