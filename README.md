@@ -62,7 +62,7 @@ Execute commands connected by pipes:
 
 ```bash
 ls | grep minishell
-Redirections
+### Redirections
 
 Supported redirections:
 
@@ -71,24 +71,24 @@ Supported redirections:
 <   input redirect
 <<  heredoc
 
-Example:
+### Example:
 
 echo hello > file.txt
 cat < file.txt
 Environment variables
 
-Supports expansion of variables:
+### Supports expansion of variables:
 
 export NAME=Vlad
 echo $NAME
 
-Also supports the special variable:
+### Also supports the special variable:
 
 $?
 
 which returns the exit status of the last command.
 
-Signal handling
+### Signal handling
 
 Correct handling of signals:
 
@@ -98,7 +98,7 @@ Ctrl + D
 
 Ctrl + \
 
-Project Structure
+# Project Structure
 mini-shell/
 │
 ├── include/            # header files
@@ -117,19 +117,20 @@ mini-shell/
 ├── get_next_line/      # line reader
 │
 └── Makefile
-Installation
 
-Clone the repository:
+# Installation
+
+### Clone the repository:
 
 git clone https://github.com/KhersonV/mini-shell.git
 cd mini-shell
 Compilation
 
-Compile the project using:
+### Compile the project using:
 
 make
 
-Available commands:
+### Available commands:
 
 make        # build minishell
 make clean  # remove object files
@@ -137,17 +138,17 @@ make fclean # remove executable and object files
 make re     # rebuild project
 Usage
 
-Run the shell:
+### Run the shell:
 
 ./minishell
 
-Example prompt:
+### Example prompt:
 
 minishell>
 
 Now you can run commands like in a normal shell.
 
-Examples
+### Examples
 Simple command
 ls
 Command with arguments
@@ -161,7 +162,7 @@ export USER=Vlad
 echo $USER
 Dependencies
 
-The project requires:
+### The project requires:
 
 gcc
 
@@ -179,10 +180,10 @@ Ubuntu / Debian:
 
 sudo apt install libreadline-dev
 
-MacOS:
+### MacOS:
 
 brew install readline
-Learning Goals
+# Learning Goals
 
 This project helps understand:
 
@@ -200,6 +201,6 @@ environment variables
 
 signal handling
 
-Author
+# Author
 
 Vladyslav Mamotenko
